@@ -1,0 +1,35 @@
+# FastAPI and server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Supabase (lightweight - just postgrest and auth)
+postgrest
+httpx
+
+# Authentication (for password hashing)
+passlib[bcrypt]
+bcrypt
+
+# Validation and settings
+pydantic
+pydantic-settings
+email-validator
+
+# HTTP client for scraping
+aiohttp
+
+# Google Gemini AI
+google-generativeai
+
+# Web scraping
+beautifulsoup4
+lxml
+feedparser
+
+# Utilities
+python-dotenv
+tenacity
+
+# JWT
+python-jose[cryptography]

@@ -1,0 +1,55 @@
+"""
+Supabase client initialization using postgrest-py
+Lightweight alternative to full supabase-py package
+"""
+from functools import lru_cache
+from postgrest import SyncPostgrestClient
+from app.core.config import settings
+
+
+class SupabaseClient:
+    """Wrapper around PostgREST client for Supabase tables"""
+
+    def __init__(self, url: str, key: str):
+        self.rest_url = f"{url}/rest/v1"
+        self.key = key
+        self._client = SyncPostgrestClient(
+            base_url=self.rest_url,
+            headers={
+                "apikey": key,
+                "Authorization": f"Bearer {key}",
+            }
+        )
+
+    def table(self, table_name: str):
+        """Access a table (mirrors supabase-py interface)"""
+        return self._client.from_(table_name)
+
+
+@lru_cache()
+def get_supabase_admin() -> SupabaseClient:
+    """
+    Get Supabase client with service role key (admin access)
+    Use this for server-side operations that bypass RLS
+    """
+    return SupabaseClient(
+        settings.SUPABASE_URL,
+        settings.SUPABASE_SERVICE_ROLE_KEY
+    )
+
+
+@lru_cache()
+def get_supabase() -> SupabaseClient:
+    """
+    Get Supabase client with anon key (respects RLS)
+    Use this for operations that should respect Row Level Security
+    """
+    return SupabaseClient(
+        settings.SUPABASE_URL,
+        settings.SUPABASE_ANON_KEY
+    )
+
+
+def get_supabase_client() -> SupabaseClient:
+    """Dependency for FastAPI endpoints - returns admin client"""
+    return get_supabase_admin()
