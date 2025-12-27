@@ -1,0 +1,59 @@
+# =============================================================================
+# Render Blueprint - LINQ AI Backend
+# https://render.com/docs/blueprint-spec
+# =============================================================================
+
+services:
+  - type: web
+    name: linq-api
+    env: python
+    region: oregon  # or frankfurt for EU
+    plan: free  # or starter, standard for production
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    envVars:
+      # Environment
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+      # Supabase (set these in Render dashboard as secrets)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+
+      # Auth
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+
+      # External APIs (set in dashboard)
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SERP_API_KEY
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
+
+      # CORS - set your production domains
+      - key: PROD_CORS_ORIGINS
+        value: "https://linq.ai,https://www.linq.ai"
+
+      # URLs (update after deployment)
+      - key: API_BASE_URL
+        fromService:
+          name: linq-api
+          type: web
+          property: host
+      - key: FRONTEND_URL
+        value: "https://linq.ai"

@@ -3,7 +3,7 @@ User and Session database models
 Implements the Netflix single-session model (F3.2)
 """
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -18,7 +18,10 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=True)
     company_name: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    # Subscription status
+    # Organization link (for team-based access)
+    organization_id: Mapped[int] = mapped_column(ForeignKey("organizations.id"), nullable=True, index=True)
+
+    # Legacy subscription status (kept for backward compatibility, now handled at org level)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     subscription_tier: Mapped[str] = mapped_column(String(50), default="free")  # free, pro, enterprise
     subscription_expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)

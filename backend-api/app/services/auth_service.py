@@ -192,3 +192,64 @@ class AuthService:
         """Get user by ID"""
         result = self.supabase.table("users").select("*").eq("id", user_id).execute()
         return result.data[0] if result.data else None
+
+    def create_extension_session(self, organization_id: int, user_id: Optional[int] = None) -> str:
+        """
+        Create a session for the Chrome extension activation
+        This is used when activating via access code
+        """
+        # Create access token for organization-based access
+        token_data = {
+            "sub": f"org:{organization_id}",
+            "organization_id": organization_id,
+            "user_id": user_id,
+            "extension": True,
+        }
+
+        access_token = create_access_token(
+            token_data,
+            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+        )
+
+        # Create session record
+        session_data = {
+            "user_id": user_id or 0,  # 0 for org-only sessions
+            "session_token": access_token,
+            "device_info": "Chrome Extension",
+            "is_active": True,
+            "created_at": datetime.utcnow().isoformat(),
+            "last_activity": datetime.utcnow().isoformat(),
+        }
+
+        self.supabase.table("user_sessions").insert(session_data).execute()
+
+        return access_token
+
+    def get_user_with_organization(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """Get user with organization and subscription info"""
+        result = self.supabase.table("users").select(
+            "*, organizations(id, name, industry, logo_url, subscriptions(plan, status, max_tracked_companies, max_team_members))"
+        ).eq("id", user_id).execute()
+
+        if not result.data:
+            return None
+
+        user = result.data[0]
+
+        # Flatten organization data
+        if user.get("organizations"):
+            org = user["organizations"]
+            user["organization_id"] = org.get("id")
+            user["organization_name"] = org.get("name")
+            user["industry"] = org.get("industry")
+
+            if org.get("subscriptions"):
+                sub = org["subscriptions"]
+                user["subscription"] = {
+                    "plan": sub.get("plan"),
+                    "status": sub.get("status"),
+                    "max_tracked_companies": sub.get("max_tracked_companies"),
+                    "max_team_members": sub.get("max_team_members"),
+                }
+
+        return user

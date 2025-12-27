@@ -1,0 +1,129 @@
+Product Requirements Document (PRD)
+LINQ AI Sales Intelligence Extension MVP
+Product Name: LINQ AI Sales Intelligence Extension
+Product Version: 1.0 (Minimum Viable Product - MVP)
+Focus: Africa-First B2B Lead Qualification (Phase 1: Nigeria & Ghana)
+Target Users: B2B Sales Development Representatives (SDRs) & Account Executives (AEs) of Fintechs, Banks, and Corporates.
+I. Product Vision and Goal
+1. Vision
+To become Africa’s trusted B2B intelligence engine—a platform that automatically discovers, qualifies, and delivers high-intent business leads across African markets daily, leveraging AI to understand local business contexts and data ecosystems.
+2. Core Value Proposition
+Automate research and data entry, cutting manual prospecting by up to 80% while improving lead quality through contextual qualification.
+3. Success Metrics (KPIs)
+Data Accuracy: 90% of verified contact emails must have a low bounce rate.
+Time-to-Insight: Max 5-second latency for the on-demand Company Search (F1.1).
+Adoption: 70% weekly active user rate among paid users.
+II. Functional Requirements (What the Extension Must Do)
+A. Core Search Module (On-Demand Discovery)
+ID
+Feature
+Description
+Acceptance Criteria
+F1.1
+Company Search Input
+Single field where the user inputs a company name for instant profile generation.
+Results display company profile, core contact, and key activity within 5 seconds.
+F1.2
+Decision Maker ID
+Identifies and displays the key executive(s) (Founders, C-Suite) for the company.
+Must include verified Name, Title, and LinkedIn URL.
+F1.3
+Contact Verification
+Provides the most likely current contact data (email, phone, WhatsApp).
+Must display a verification score (0-100) based on source strength and cross-checking frequency.
+F1.4
+AI Contextual Synthesis
+[Gemini] Generates a concise, actionable summary of the company's "Why Now" and predicted pain point based on local context.
+Output must be a maximum of 3 sentences and be relevant to the user's specific vertical (e.g., Fintech or Logistics).
+F1.5
+Strength Matching Score
+Displays an AI-generated Conversion Readiness Score (0-100) for the lead.
+Score is based on activity, growth trends, and alignment with defined value propositions (e.g., "Ready for Funding" or "Expansion-Ready").
+
+
+
+
+
+
+
+
+B. Continuous Data Engine (The "Live Feed")
+ID
+Feature
+Description
+Acceptance Criteria
+F2.1
+Latest Activity Feed
+A fixed right-panel in the extension showing a continuous, scrollable feed of recent events from the target market (Phase 1: Nigeria/Ghana).
+Feed must refresh every hour (server-side) with news items tagged by event type (Funding, Partnerships, Hiring Spike).
+F2.2
+Multi-Source Aggregation (Phase 1)
+Aggregates data from general web, social media, startup databases, and local business registries (e.g., Nigerian CAC listings).
+Scrapers must reliably extract data from the top 5 targeted sources in Nigeria and Ghana.
+F2.3
+Local Language Support
+The AI must be capable of identifying and translating/interpreting basic business signals in local African contexts/languages (e.g., Francophone job titles, Pidgin mentions).
+AI Synthesis (F1.4) must correctly incorporate signals found in non-English sources.
+
+
+
+
+
+
+
+
+C. System and Integration
+ID
+Feature
+Description
+Acceptance Criteria
+F3.1
+Subscription Authentication
+Secure sign-up/login and linkage to a paid account plan.
+User access is revoked upon subscription cancellation or payment failure.
+F3.2
+Single Active Session
+The "Netflix model": only one simultaneous active login is allowed per paid subscription.
+When Device B logs in, Device A receives a notification and is immediately logged out.
+F3.3
+CRM Integration (MVP)
+Simple capability to export the generated lead profile and score (F1.5) to the user’s sales system.
+Must support data export to CSV and include the framework for Salesforce API integration (to be completed in V2).
+
+
+
+
+
+
+
+
+
+
+
+III. Non-Functional Requirements (Compliance and Technology)
+A. Data & Compliance (Critical Risk)
+ID
+Requirement
+Compliance Focus
+Risk Mitigation Strategy (Solo Dev)
+N1
+Data Governance (Africa-First)
+Must comply with data protection laws in Phase 1 regions (e.g., Nigerian Data Protection Regulation).
+All contact data (F1.3) must be sourced from public-facing company or professional pages; no illegal scraping behind login walls.
+N2
+Data Freshness
+Data used for qualification (F1.5) must be recent.
+Activity Feed (F2.1) must be based on data indexed within the last 7 days.
+N3
+Scalability & Performance
+Must handle simultaneous scraping and processing for the continuous feed and on-demand search.
+Backend must be deployed on Serverless Architecture (GCP Cloud Functions/AWS Lambda) with automated load balancing.
+
+
+
+B. Technology Stack
+Frontend: Browser Extension (Chrome/Firefox) built with React/TypeScript.
+Backend: Python (for Scraping, Data Processing, ML) and Node.js/Go (for fast API endpoints).
+Database: Supabase/Firebase Firestore (Free Tier Scalability) for user auth and data storage.
+Intelligence: Gemini API (Free Tier for MVP, must be ready for Paid Tier upgrade).
+

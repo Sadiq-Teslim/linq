@@ -6,6 +6,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
 });
 
 // Request interceptor to add auth token
@@ -13,9 +14,13 @@ api.interceptors.request.use(
   (config) => {
     const storage = localStorage.getItem('linq-auth-storage');
     if (storage) {
-      const { state } = JSON.parse(storage);
-      if (state?.token) {
-        config.headers.Authorization = `Bearer ${state.token}`;
+      try {
+        const { state } = JSON.parse(storage);
+        if (state?.token) {
+          config.headers.Authorization = `Bearer ${state.token}`;
+        }
+      } catch {
+        // Invalid storage, ignore
       }
     }
     return config;
@@ -31,6 +36,11 @@ api.interceptors.response.use(
       // Clear auth storage on 401
       localStorage.removeItem('linq-auth-storage');
       localStorage.removeItem('linq-user-storage');
+
+      // Dispatch custom event for auth error handling
+      window.dispatchEvent(new CustomEvent('linq:auth-error', {
+        detail: { message: 'Session expired' }
+      }));
     }
     return Promise.reject(error);
   }

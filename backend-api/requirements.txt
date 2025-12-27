@@ -1,35 +1,40 @@
+# =============================================================================
+# LINQ AI Backend - Python Dependencies
+# =============================================================================
+
 # FastAPI and server
-fastapi
-uvicorn[standard]
-python-multipart
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
 
 # Supabase (lightweight - just postgrest and auth)
-postgrest
-httpx
+postgrest==0.13.0
+httpx==0.26.0
 
-# Authentication (for password hashing)
-passlib[bcrypt]
-bcrypt
+# Authentication
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+python-jose[cryptography]==3.3.0
 
 # Validation and settings
-pydantic
-pydantic-settings
-email-validator
+pydantic==2.5.3
+pydantic-settings==2.1.0
+email-validator==2.1.0
 
-# HTTP client for scraping
-aiohttp
+# HTTP client for async operations
+aiohttp==3.9.1
 
 # Google Gemini AI
-google-generativeai
+google-generativeai==0.3.2
 
 # Web scraping
-beautifulsoup4
-lxml
-feedparser
+beautifulsoup4==4.12.3
+lxml==5.1.0
+feedparser==6.0.10
 
 # Utilities
-python-dotenv
-tenacity
+python-dotenv==1.0.0
+tenacity==8.2.3
 
-# JWT
-python-jose[cryptography]
+# Production server (Render uses gunicorn)
+gunicorn==21.2.0

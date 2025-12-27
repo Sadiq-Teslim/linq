@@ -13,7 +13,10 @@ from alembic import context
 # Import your models and config
 from app.core.config import settings
 from app.db.base import Base
-from app.db.models import user, intelligence  # Import all models
+# Import all models so they register with Base.metadata
+from app.db.models import (
+    user, intelligence, organization, subscription, tracked_company
+)
 
 # Alembic Config object
 config = context.config

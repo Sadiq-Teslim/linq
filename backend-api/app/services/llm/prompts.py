@@ -1,8 +1,8 @@
 """
 Prompt templates for Gemini AI analysis
-Optimized for African B2B lead qualification
+Optimized for African B2B lead qualification (PRD F1.4, F1.5, F2.3)
 """
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 class PromptTemplates:
@@ -13,49 +13,65 @@ class PromptTemplates:
         company_name: str,
         country: str,
         context: str,
+        user_vertical: Optional[str] = None,
     ) -> str:
         """
         Generate prompt for company analysis and lead scoring (F1.4, F1.5)
+        Contextual to user's vertical as per PRD requirements
         """
-        return f"""You are an expert B2B sales intelligence analyst specializing in West African markets (Nigeria and Ghana).
+        vertical_context = ""
+        if user_vertical:
+            vertical_context = f"""
+TARGET VERTICAL: {user_vertical}
+Tailor your analysis to highlight relevance for a {user_vertical} company selling to this prospect."""
 
-Analyze the following company and provide sales intelligence for a B2B sales representative.
+        return f"""You are LINQ AI, an expert B2B sales intelligence analyst specializing in West African markets (Nigeria and Ghana). You help SDRs and Account Executives at Fintechs, Banks, and Corporates find and qualify high-intent leads.
+
+Analyze the following company and provide actionable sales intelligence.
 
 COMPANY: {company_name}
 COUNTRY: {country}
+{vertical_context}
 
 AVAILABLE CONTEXT:
 {context}
 
-Provide your analysis in the following format:
+Provide your analysis in this EXACT format:
 
-SUMMARY: (Write exactly 2-3 sentences explaining "Why Now" - why this company might be ready to buy. Focus on timing signals, growth indicators, or pain points that suggest buying readiness. Be specific and actionable.)
+SUMMARY: [Write exactly 2-3 sentences as a "Why Now" summary. Explain why this company might be ready to engage NOW. Focus on: recent funding, expansion plans, technology adoption, regulatory compliance needs, or growth signals. Be specific and actionable for a sales rep.]
 
-CONVERSION SCORE: (Provide a number 0-100 representing the likelihood this lead will convert. Consider:
-- 80-100: Strong buying signals, active growth, recent funding
-- 60-79: Good potential, some positive indicators
-- 40-59: Moderate potential, needs nurturing
-- 20-39: Low immediate potential but worth monitoring
-- 0-19: Not a good fit currently)
+SCORE_LABEL: [Provide ONE label: "Hot Lead - Act Now", "Warm Lead - Nurture", "Growth Stage - Monitor", "Early Stage - Long-term", or "Not Ready"]
 
-SCORE FACTORS:
-- Factor 1
-- Factor 2
-- Factor 3
+CONVERSION_SCORE: [Number 0-100]
+- 85-100: Hot - Recent funding, active hiring, expansion announced
+- 70-84: Warm - Growth signals, may have budget
+- 50-69: Moderate - Potential but needs nurturing
+- 30-49: Cool - Long-term prospect
+- 0-29: Cold - Not a fit currently
 
-PAIN POINTS:
-- Predicted pain point 1
-- Predicted pain point 2
-- Predicted pain point 3
+WHY_NOW_FACTORS:
+- [Specific timing factor 1]
+- [Specific timing factor 2]
+- [Specific timing factor 3]
 
-Consider the unique context of doing business in {country}:
-- Local regulatory environment (NDPR in Nigeria, Data Protection in Ghana)
-- Payment infrastructure challenges
-- Talent acquisition in tech hubs (Lagos, Accra)
-- Foreign exchange considerations
-- Local competition landscape
+SCORE_FACTORS:
+- [Factor]: [positive/negative] - [brief explanation]
+- [Factor]: [positive/negative] - [brief explanation]
+- [Factor]: [positive/negative] - [brief explanation]
 
-Be concise and actionable. Every insight should help a sales rep personalize their outreach."""
+PAIN_POINTS:
+- [Specific pain point relevant to {country} market]
+- [Technology or operational pain point]
+- [Growth or scaling challenge]
+
+INDUSTRY: [Identify the primary industry: Fintech, Banking, Logistics, E-commerce, AgriTech, HealthTech, EdTech, or Other]
+
+Consider {country}-specific factors:
+- Nigeria: NDPR compliance, CBN regulations, Naira volatility, Lagos/Abuja expansion
+- Ghana: Data Protection Act, Bank of Ghana regulations, Cedi considerations, Accra tech ecosystem
+- Regional: ECOWAS trade, mobile money adoption, infrastructure challenges
+
+Every insight should help a sales rep personalize their cold outreach and book meetings."""
 
     @staticmethod
     def decision_maker_extraction(search_results: List[Dict[str, Any]]) -> str:

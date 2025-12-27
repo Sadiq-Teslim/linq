@@ -136,6 +136,12 @@ ALTER TABLE company_cache ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_feed ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Service role can do everything (for backend API)
+-- Drop existing policies first to avoid conflicts
+DROP POLICY IF EXISTS "Service role full access on users" ON users;
+DROP POLICY IF EXISTS "Service role full access on sessions" ON user_sessions;
+DROP POLICY IF EXISTS "Service role full access on company_cache" ON company_cache;
+DROP POLICY IF EXISTS "Service role full access on activity_feed" ON activity_feed;
+
 CREATE POLICY "Service role full access on users" ON users
     FOR ALL
     USING (auth.role() = 'service_role');

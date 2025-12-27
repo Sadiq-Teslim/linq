@@ -18,7 +18,8 @@ class GeminiClient:
     def __init__(self):
         if settings.GEMINI_API_KEY:
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            self.model = genai.GenerativeModel("gemini-pro")
+            # Use gemini-1.5-flash (fast, cheap) or gemini-1.5-pro (better quality)
+            self.model = genai.GenerativeModel("gemini-2.5-flash")
         else:
             self.model = None
 
@@ -101,14 +102,17 @@ class GeminiClient:
         return "\n".join(parts) if parts else "No additional context available."
 
     def _parse_analysis_response(self, response_text: str, company_name: str) -> Dict[str, Any]:
-        """Parse Gemini response into structured format"""
-        # Simple parsing - in production, use structured output or JSON mode
+        """Parse Gemini response into structured format matching PRD requirements"""
+        import re
         lines = response_text.strip().split("\n")
 
         summary = ""
         score = 50
+        score_label = "Growth Stage - Monitor"
         factors = []
         pain_points = []
+        why_now_factors = []
+        industry = "Technology"
 
         current_section = None
         for line in lines:
@@ -118,26 +122,42 @@ class GeminiClient:
 
             lower_line = line.lower()
 
-            if "summary:" in lower_line or "why now:" in lower_line:
+            # Parse SUMMARY section
+            if lower_line.startswith("summary:"):
                 current_section = "summary"
                 summary = line.split(":", 1)[-1].strip()
-            elif "score:" in lower_line or "conversion" in lower_line:
-                current_section = "score"
-                # Extract number from line
-                import re
+            # Parse SCORE_LABEL section
+            elif lower_line.startswith("score_label:"):
+                current_section = None
+                score_label = line.split(":", 1)[-1].strip().strip('"\'[]')
+            # Parse CONVERSION_SCORE section
+            elif lower_line.startswith("conversion_score:"):
+                current_section = None
                 numbers = re.findall(r'\d+', line)
                 if numbers:
                     score = min(100, max(0, int(numbers[0])))
-            elif "factor" in lower_line:
+            # Parse WHY_NOW_FACTORS section
+            elif lower_line.startswith("why_now_factors:"):
+                current_section = "why_now"
+            # Parse SCORE_FACTORS section
+            elif lower_line.startswith("score_factors:"):
                 current_section = "factors"
-            elif "pain" in lower_line:
+            # Parse PAIN_POINTS section
+            elif lower_line.startswith("pain_points:"):
                 current_section = "pain_points"
+            # Parse INDUSTRY section
+            elif lower_line.startswith("industry:"):
+                current_section = None
+                industry = line.split(":", 1)[-1].strip().strip('"\'[]')
+            # Parse list items
             elif line.startswith("-") or line.startswith("*"):
                 item = line.lstrip("-* ").strip()
                 if current_section == "factors":
-                    factors.append(item)
+                    factors.append(self._parse_score_factor(item))
                 elif current_section == "pain_points":
                     pain_points.append(item)
+                elif current_section == "why_now":
+                    why_now_factors.append(item)
             elif current_section == "summary" and not summary:
                 summary = line
 
@@ -145,11 +165,45 @@ class GeminiClient:
         if not summary:
             summary = f"{company_name} shows potential for B2B engagement based on available market data."
 
+        # Determine confidence based on data quality
+        confidence = "high" if len(factors) >= 3 and len(pain_points) >= 2 else "medium" if factors else "low"
+
         return {
-            "summary": summary[:500],  # Max 3 sentences / 500 chars
+            "summary": summary[:500],
             "conversion_score": score,
+            "score_label": score_label,
             "score_factors": factors[:5],
             "pain_points": pain_points[:5],
+            "why_now_factors": why_now_factors[:5],
+            "industry": industry,
+            "confidence_level": confidence,
+        }
+
+    def _parse_score_factor(self, factor_text: str) -> Dict[str, Any]:
+        """Parse a score factor line into structured format"""
+        # Expected format: "[Factor]: [positive/negative] - [explanation]"
+        parts = factor_text.split(":")
+        if len(parts) >= 2:
+            factor_name = parts[0].strip()
+            rest = ":".join(parts[1:]).strip()
+
+            impact = "neutral"
+            if "positive" in rest.lower():
+                impact = "positive"
+            elif "negative" in rest.lower():
+                impact = "negative"
+
+            return {
+                "factor": factor_name,
+                "impact": impact,
+                "explanation": rest,
+                "weight": 5 if impact == "positive" else 3 if impact == "neutral" else 2
+            }
+        return {
+            "factor": factor_text,
+            "impact": "neutral",
+            "explanation": "",
+            "weight": 3
         }
 
     def _parse_decision_makers(self, response_text: str) -> List[Dict[str, Any]]:
@@ -184,6 +238,10 @@ class GeminiClient:
         return {
             "summary": f"{company_name} is a business operating in the West African market. Further analysis requires AI configuration.",
             "conversion_score": 50,
-            "score_factors": ["Limited data available"],
+            "score_label": "Growth Stage - Monitor",
+            "score_factors": [{"factor": "Limited data", "impact": "neutral", "explanation": "AI analysis unavailable", "weight": 3}],
             "pain_points": ["Unable to determine without AI analysis"],
+            "why_now_factors": ["Requires AI analysis for timing insights"],
+            "industry": "Unknown",
+            "confidence_level": "low",
         }

@@ -1,4 +1,5 @@
 import { api } from './client';
+import type { Organization, SubscriptionInfo } from './types';
 
 export interface LoginRequest {
   username: string; // OAuth2PasswordRequestForm uses 'username' for email
@@ -9,7 +10,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   full_name?: string;
-  company_name?: string;
+  organization_name?: string;
+  industry?: string;
 }
 
 export interface TokenResponse {
@@ -23,8 +25,11 @@ export interface UserResponse {
   id: string;
   email: string;
   full_name?: string;
-  company_name?: string;
-  subscription_tier: 'free' | 'pro' | 'enterprise';
+  role: 'owner' | 'admin' | 'member';
+  organization_id: string;
+  organization_name: string;
+  industry: string;
+  subscription: SubscriptionInfo;
   is_active: boolean;
   created_at: string;
 }
@@ -35,9 +40,23 @@ export interface SessionStatus {
   email: string;
 }
 
+// Access Code Activation - for extension activation after web signup
+export interface ActivationCodeRequest {
+  access_code: string;
+}
+
+export interface ActivationResponse {
+  success: boolean;
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user: UserResponse;
+  organization: Organization;
+}
+
 export const authApi = {
+  // Traditional email/password login (backup method)
   login: async (email: string, password: string): Promise<TokenResponse> => {
-    // OAuth2PasswordRequestForm requires form-urlencoded data
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);
@@ -50,8 +69,39 @@ export const authApi = {
     return response.data;
   },
 
+  // Register via web (returns user, payment happens on web)
   register: async (data: RegisterRequest): Promise<UserResponse> => {
     const response = await api.post<UserResponse>('/auth/register', data);
+    return response.data;
+  },
+
+  // Activate extension with access code from web signup
+  activateWithCode: async (accessCode: string): Promise<ActivationResponse> => {
+    const response = await api.post<ActivationResponse>('/auth/activate', {
+      access_code: accessCode,
+    });
+    return response.data;
+  },
+
+  // Validate access code without activating
+  validateCode: async (accessCode: string): Promise<{
+    valid: boolean;
+    organization_name?: string;
+    plan?: string;
+    expires_at?: string;
+  }> => {
+    const response = await api.post('/auth/validate-code', {
+      access_code: accessCode,
+    });
+    return response.data;
+  },
+
+  // Generate new access code (from web dashboard)
+  generateAccessCode: async (): Promise<{
+    access_code: string;
+    expires_at: string;
+  }> => {
+    const response = await api.post('/auth/generate-code');
     return response.data;
   },
 
@@ -66,6 +116,12 @@ export const authApi = {
 
   checkSession: async (): Promise<SessionStatus> => {
     const response = await api.get<SessionStatus>('/auth/session/status');
+    return response.data;
+  },
+
+  // Refresh token
+  refreshToken: async (): Promise<TokenResponse> => {
+    const response = await api.post<TokenResponse>('/auth/refresh');
     return response.data;
   },
 };
