@@ -1,0 +1,1 @@
+export { IntelligenceCard } from './ui';

@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Body for Extension Popup */
+body {
+    margin: 0;
+    padding: 0;
+    width: 350px;
+    height: 600px; /* Fixed height for the popup */
+    background-color: #f8fafc;
+}

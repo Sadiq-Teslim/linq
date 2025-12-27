@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "LINQ AI - Sales Intelligence",
+  "version": "1.0.0",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["activeTab", "storage", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/app/background.ts",
+    "type": "module"
+  }
+}
