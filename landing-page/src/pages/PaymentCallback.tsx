@@ -6,9 +6,10 @@ import { useAuthStore } from "../store/authStore";
 export const PaymentCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { token: storeToken, setToken, setUser } = useAuthStore();
+  const { token: storeToken, isAuthenticated, restoreSession } = useAuthStore();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
+  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -20,21 +21,24 @@ export const PaymentCallback = () => {
         return;
       }
 
-      // Try to get token from store first, then from localStorage
+      // Wait a moment for zustand to hydrate, then check auth
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Try to get token from store first
       let token = storeToken;
+      
+      // Fallback: check localStorage if store is empty
       if (!token) {
         token = localStorage.getItem("linq_token");
-        // Restore auth state from localStorage
-        if (token) {
-          const userStr = localStorage.getItem("linq_user");
-          if (userStr) {
-            try {
-              const user = JSON.parse(userStr);
-              setUser(user);
-              setToken(token);
-            } catch {
-              // Invalid user data
-            }
+        const userStr = localStorage.getItem("linq_user");
+        
+        if (token && userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            restoreSession(user, token);
+          } catch {
+            // Invalid user data
+            token = null;
           }
         }
       }
@@ -42,8 +46,11 @@ export const PaymentCallback = () => {
       if (!token) {
         setStatus("error");
         setMessage("Session expired. Please log in and try again.");
+        setHasToken(false);
         return;
       }
+
+      setHasToken(true);
 
       try {
         const response = await api.subscription.verifyPaystackPayment(token, reference);
@@ -54,7 +61,7 @@ export const PaymentCallback = () => {
           setMessage("Your subscription has been activated.");
           // Redirect to dashboard after 2 seconds
           setTimeout(() => {
-            navigate("/dashboard/overview");
+            navigate("/dashboard/overview", { replace: true });
           }, 2000);
         } else {
           setStatus("error");
@@ -67,7 +74,7 @@ export const PaymentCallback = () => {
     };
 
     verifyPayment();
-  }, [searchParams, storeToken, navigate, setToken, setUser]);
+  }, [searchParams, storeToken, isAuthenticated, navigate, restoreSession]);
 
   return (
     <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center px-4">
@@ -115,19 +122,18 @@ export const PaymentCallback = () => {
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => {
-                  const token = localStorage.getItem("linq_token");
-                  if (token) {
-                    navigate("/dashboard/payment");
+                  if (hasToken) {
+                    navigate("/dashboard/payment", { replace: true });
                   } else {
-                    navigate("/auth/login");
+                    navigate("/auth/login", { replace: true });
                   }
                 }}
                 className="w-full py-2.5 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all"
               >
-                {localStorage.getItem("linq_token") ? "Go to Payment Page" : "Log In"}
+                {hasToken ? "Go to Payment Page" : "Log In"}
               </button>
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/", { replace: true })}
                 className="text-sm text-slate-400 hover:text-white transition-colors"
               >
                 Back to Home

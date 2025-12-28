@@ -29,6 +29,7 @@ venv/
 ENV/
 env/
 .venv/
+SCALABILITY_SECURITY.md
 
 # Environment variables
 .env

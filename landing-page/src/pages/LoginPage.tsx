@@ -30,11 +30,10 @@ export const LoginPage = () => {
       const response = await api.auth.login(formData.email, formData.password);
       const data = response.data;
 
+      // login() now also saves to localStorage
       login(data.user, data.access_token);
-      localStorage.setItem("linq_token", data.access_token);
-      localStorage.setItem("linq_user", JSON.stringify(data.user));
 
-      navigate("/dashboard/overview");
+      navigate("/dashboard/overview", { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.detail || "Login failed. Please try again.");
     } finally {

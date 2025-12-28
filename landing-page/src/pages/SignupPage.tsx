@@ -35,11 +35,10 @@ export const SignupPage = () => {
       const response = await api.auth.register(formData);
       const data = response.data;
 
+      // login() now also saves to localStorage
       login(data.user, data.access_token);
-      localStorage.setItem("linq_token", data.access_token);
-      localStorage.setItem("linq_user", JSON.stringify(data.user));
 
-      navigate("/dashboard/overview");
+      navigate("/dashboard/overview", { replace: true });
     } catch (err: any) {
       setError(
         err.response?.data?.detail || "Signup failed. Please try again."

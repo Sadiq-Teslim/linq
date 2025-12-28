@@ -30,12 +30,11 @@ export const GoogleCallback = () => {
         full_name: email.split("@")[0],
       };
 
+      // login() now also saves to localStorage
       login(user, token);
-      localStorage.setItem("linq_token", token);
-      localStorage.setItem("linq_user", JSON.stringify(user));
 
       setTimeout(() => {
-        navigate("/dashboard/overview");
+        navigate("/dashboard/overview", { replace: true });
       }, 1000);
     } else {
       setStatus("error");

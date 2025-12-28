@@ -23,23 +23,25 @@ import {
 import "./index.css";
 
 function App() {
-  const { setUser, setToken } = useAuthStore();
+  const { restoreSession, isAuthenticated, token } = useAuthStore();
 
-  // Restore session on mount
+  // Backup restore from manual localStorage (in case zustand persist fails)
   useEffect(() => {
-    const token = localStorage.getItem("linq_token");
+    // Skip if already authenticated (zustand persist worked)
+    if (isAuthenticated && token) return;
+
+    const storedToken = localStorage.getItem("linq_token");
     const userStr = localStorage.getItem("linq_user");
-    if (token && userStr) {
+    if (storedToken && userStr) {
       try {
         const user = JSON.parse(userStr);
-        setUser(user);
-        setToken(token);
+        restoreSession(user, storedToken);
       } catch {
         localStorage.removeItem("linq_token");
         localStorage.removeItem("linq_user");
       }
     }
-  }, [setUser, setToken]);
+  }, [restoreSession, isAuthenticated, token]);
 
   return (
     <Router>
