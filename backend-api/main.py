@@ -18,11 +18,11 @@ from app.core.security import RateLimitMiddleware, SecurityHeadersMiddleware
 
 app = FastAPI(
     title="LINQ AI API",
-    description="B2B Sales Intelligence Platform API",
+    description="B2B Sales Intelligence Platform API - Scalable and Secure",
     version="1.0.0",
-    docs_url="/docs" if settings.is_development else None,  # Disable docs in prod
-    redoc_url="/redoc" if settings.is_development else None,
-    openapi_url="/openapi.json" if settings.is_development else None,
+    docs_url="/docs",  # Enable Swagger UI in all environments
+    redoc_url="/redoc",  # Enable ReDoc in all environments
+    openapi_url="/openapi.json",
 )
 
 # =============================================================================

@@ -64,6 +64,8 @@ export const DashboardPayment = () => {
   };
 
   const currentPlan = subscription?.plan || "free_trial";
+  const isSubscriptionActive = subscription?.status === "active" || subscription?.status === "trialing";
+  const hasActivePaidPlan = isSubscriptionActive && currentPlan !== "free_trial";
 
   if (loadingData) {
     return (
@@ -83,26 +85,42 @@ export const DashboardPayment = () => {
 
       {/* Current Plan */}
       {subscription && (
-        <div className="p-6 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+        <div className={`p-6 rounded-xl border ${
+          isSubscriptionActive 
+            ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20" 
+            : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
+        }`}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <p className="text-sm text-amber-400 mb-1">Current Plan</p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm text-slate-400">Current Plan</p>
+                {isSubscriptionActive && (
+                  <span className="px-2 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
+                    Active
+                  </span>
+                )}
+              </div>
               <p className="text-2xl font-serif text-white capitalize mb-2">
                 {currentPlan.replace("_", " ")}
               </p>
-              <div className="flex items-center gap-4 text-sm">
-                <span className={`flex items-center gap-1.5 ${subscription.status === "active" ? "text-green-400" : "text-red-400"}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${subscription.status === "active" ? "bg-green-400" : "bg-red-400"}`}></span>
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                <span className={`flex items-center gap-1.5 ${isSubscriptionActive ? "text-green-400" : "text-red-400"}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isSubscriptionActive ? "bg-green-400" : "bg-red-400"}`}></span>
                   {subscription.status}
                 </span>
                 {subscription.current_period_end && (
                   <span className="text-slate-400">
-                    Renews: {new Date(subscription.current_period_end).toLocaleDateString()}
+                    {isSubscriptionActive ? "Renews" : "Expired"}: {new Date(subscription.current_period_end).toLocaleDateString()}
+                  </span>
+                )}
+                {subscription.max_tracked_companies && (
+                  <span className="text-slate-500">
+                    {subscription.max_tracked_companies === -1 ? "Unlimited" : subscription.max_tracked_companies} companies
                   </span>
                 )}
               </div>
             </div>
-            {subscription.status !== "active" && (
+            {!isSubscriptionActive && (
               <button
                 onClick={() => handleSubscribe(currentPlan)}
                 disabled={loading}
@@ -117,65 +135,97 @@ export const DashboardPayment = () => {
 
       {/* Available Plans */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Available Plans</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">Available Plans</h2>
+          {hasActivePaidPlan && (
+            <span className="text-xs text-slate-500">
+              You have an active subscription. Contact support to change plans.
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans
             .filter((plan) => plan.id !== "free_trial")
-            .map((plan, index) => (
-              <div
-                key={plan.id}
-                className={`relative p-6 rounded-xl border transition-all duration-300 ${
-                  plan.is_popular
-                    ? "bg-gradient-to-b from-amber-500/10 to-transparent border-amber-500/30"
-                    : "bg-white/[0.02] border-white/5 hover:border-white/10"
-                } ${currentPlan === plan.id ? "opacity-60" : ""}`}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                {plan.is_popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="text-xs font-medium text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 px-3 py-1 rounded-full">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                <h3 className="text-lg font-semibold text-white mb-1">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-3xl font-serif text-white">
-                    {formatPrice(plan.price_monthly)}
-                  </span>
-                  <span className="text-sm text-slate-500">/month</span>
-                </div>
-                <ul className="space-y-2 mb-6">
-                  {plan.features?.map((feature: string) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm text-slate-300">
-                      <svg className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={loading || currentPlan === plan.id}
-                  className={`w-full py-2.5 rounded-lg font-medium text-sm transition-all disabled:opacity-50 ${
-                    currentPlan === plan.id
-                      ? "border border-white/10 text-slate-500 cursor-not-allowed"
-                      : plan.is_popular
-                      ? "bg-gradient-to-r from-amber-400 to-amber-500 text-[#0a0f1c] hover:from-amber-300 hover:to-amber-400"
-                      : "border border-white/10 text-white hover:bg-white/5"
-                  } flex items-center justify-center gap-2`}
+            .map((plan, index) => {
+              const isCurrentPlan = currentPlan === plan.id;
+              const isDisabled = hasActivePaidPlan || loading;
+              
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative p-6 rounded-xl border transition-all duration-300 ${
+                    isCurrentPlan && isSubscriptionActive
+                      ? "bg-gradient-to-b from-green-500/10 to-transparent border-green-500/30 ring-2 ring-green-500/20"
+                      : plan.is_popular && !hasActivePaidPlan
+                      ? "bg-gradient-to-b from-amber-500/10 to-transparent border-amber-500/30"
+                      : "bg-white/[0.02] border-white/5"
+                  } ${isDisabled && !isCurrentPlan ? "opacity-40 cursor-not-allowed" : ""}`}
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  {loading && selectedPlan === plan.id ? (
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                  ) : currentPlan === plan.id ? (
-                    "Current Plan"
+                  {/* Badges */}
+                  {isCurrentPlan && isSubscriptionActive ? (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="text-xs font-medium text-[#0a0f1c] bg-gradient-to-r from-green-400 to-emerald-500 px-3 py-1 rounded-full flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Active Plan
+                      </span>
+                    </div>
+                  ) : plan.is_popular && !hasActivePaidPlan ? (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="text-xs font-medium text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 px-3 py-1 rounded-full">
+                        Most Popular
+                      </span>
+                    </div>
+                  ) : null}
+                  
+                  <h3 className="text-lg font-semibold text-white mb-1">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-3xl font-serif text-white">
+                      {formatPrice(plan.price_monthly)}
+                    </span>
+                    <span className="text-sm text-slate-500">/month</span>
+                  </div>
+                  <ul className="space-y-2 mb-6">
+                    {plan.features?.map((feature: string) => (
+                      <li key={feature} className="flex items-start gap-2 text-sm text-slate-300">
+                        <svg className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isCurrentPlan && isSubscriptionActive ? "text-green-400" : "text-amber-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  {isCurrentPlan && isSubscriptionActive ? (
+                    <div className="w-full py-2.5 rounded-lg font-medium text-sm bg-green-500/10 text-green-400 border border-green-500/20 text-center">
+                      Current Plan
+                    </div>
                   ) : (
-                    "Subscribe Now"
+                    <button
+                      onClick={() => !isDisabled && handleSubscribe(plan.id)}
+                      disabled={isDisabled}
+                      className={`w-full py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                        isDisabled
+                          ? "border border-white/10 text-slate-600 cursor-not-allowed"
+                          : plan.is_popular
+                          ? "bg-gradient-to-r from-amber-400 to-amber-500 text-[#0a0f1c] hover:from-amber-300 hover:to-amber-400"
+                          : "border border-white/10 text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {loading && selectedPlan === plan.id ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : hasActivePaidPlan ? (
+                        "Unavailable"
+                      ) : (
+                        "Subscribe Now"
+                      )}
+                    </button>
                   )}
-                </button>
-              </div>
-            ))}
+                </div>
+              );
+            })}
         </div>
       </div>
 

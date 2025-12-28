@@ -117,6 +117,14 @@ export const api = {
     // GET /analytics/subscription-status - Get subscription status
     getSubscriptionStatus: (token: string) =>
       getApiClient(token).get("/analytics/subscription-status"),
+
+    // GET /analytics/breakdown - Get full analytics breakdown
+    getFullBreakdown: (token: string, timeRange: string = "30d") =>
+      getApiClient(token).get(`/analytics/breakdown?time_range=${timeRange}`),
+
+    // GET /analytics/activity - Get recent activity log
+    getActivityLog: (token: string, limit: number = 50) =>
+      getApiClient(token).get(`/analytics/activity?limit=${limit}`),
   },
 
   // ORGANIZATION ENDPOINTS

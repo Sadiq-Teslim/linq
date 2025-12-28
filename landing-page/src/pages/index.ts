@@ -9,4 +9,5 @@ export {
   DashboardPayment,
   DashboardSettings,
   DashboardAccessCode,
+  DashboardAnalytics,
 } from "./Dashboard";

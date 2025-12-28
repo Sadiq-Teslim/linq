@@ -18,6 +18,7 @@ import {
   DashboardPayment,
   DashboardSettings,
   DashboardAccessCode,
+  DashboardAnalytics,
 } from "./pages";
 import "./index.css";
 
@@ -60,6 +61,7 @@ function App() {
           }
         >
           <Route path="overview" element={<DashboardOverview />} />
+          <Route path="analytics" element={<DashboardAnalytics />} />
           <Route path="payment" element={<DashboardPayment />} />
           <Route path="settings" element={<DashboardSettings />} />
           <Route path="access-code" element={<DashboardAccessCode />} />
