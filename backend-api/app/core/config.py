@@ -64,20 +64,15 @@ class Settings(BaseSettings):
     # =============================================================================
     # CORS
     # =============================================================================
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
-
-    # Production CORS origins (set via environment variable)
-    # Format: comma-separated string "https://linq.ai,chrome-extension://xxx"
-    PROD_CORS_ORIGINS: str = ""
+    # Format: comma-separated string "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     @property
     def allowed_origins(self) -> List[str]:
-        """Get CORS origins based on environment"""
-        if self.is_production and self.PROD_CORS_ORIGINS:
-            # Parse comma-separated production origins
-            prod_origins = [o.strip() for o in self.PROD_CORS_ORIGINS.split(",") if o.strip()]
-            return prod_origins
-        return self.CORS_ORIGINS
+        """Get CORS origins - parses comma-separated string"""
+        if self.CORS_ORIGINS:
+            return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        return ["http://localhost:5173", "http://localhost:3000"]
 
     # =============================================================================
     # DATABASE
