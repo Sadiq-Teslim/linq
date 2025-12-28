@@ -58,17 +58,18 @@ class SubscriptionResponse(BaseModel):
     id: int
     plan: SubscriptionPlan
     status: SubscriptionStatus
-    price_monthly: int
-    currency: str
-    max_tracked_companies: int
-    max_team_members: int
-    max_contacts_per_company: int
-    current_period_start: Optional[datetime]
-    current_period_end: Optional[datetime]
-    trial_ends_at: Optional[datetime]
-    cancelled_at: Optional[datetime]
-    created_at: datetime
-    updated_at: datetime
+    price_monthly: int = 0
+    currency: str = "NGN"
+    max_tracked_companies: int = 5
+    max_team_members: int = 1
+    max_contacts_per_company: int = 5
+    current_period_start: Optional[datetime] = None
+    current_period_end: Optional[datetime] = None
+    trial_ends_at: Optional[datetime] = None
+    cancelled_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    organization_id: Optional[int] = None
 
     class Config:
         from_attributes = True
