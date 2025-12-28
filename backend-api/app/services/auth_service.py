@@ -26,22 +26,67 @@ class AuthService:
         full_name: Optional[str] = None,
         company_name: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Register a new user"""
+        """Register a new user with organization and subscription"""
         # Check if user exists
         existing = self.supabase.table("users").select("id").eq("email", email).execute()
         if existing.data:
             raise AuthenticationError("Email already registered")
 
-        # Create user
+        now = datetime.utcnow()
+        
+        # 1. Create organization first
+        org_name = company_name or f"{email.split('@')[0]}'s Organization"
+        org_data = {
+            "name": org_name,
+            "is_active": True,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+        }
+        
+        org_result = self.supabase.table("organizations").insert(org_data).execute()
+        if not org_result.data:
+            raise AuthenticationError("Failed to create organization")
+        
+        organization = org_result.data[0]
+        organization_id = organization["id"]
+        
+        # 2. Create free trial subscription
+        trial_end = now + timedelta(days=7)
+        subscription_data = {
+            "plan": "free_trial",
+            "status": "trialing",
+            "price_monthly": 0,
+            "currency": "NGN",
+            "max_tracked_companies": 5,
+            "max_team_members": 1,
+            "max_contacts_per_company": 5,
+            "current_period_start": now.isoformat(),
+            "current_period_end": trial_end.isoformat(),
+            "trial_ends_at": trial_end.isoformat(),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+        }
+        
+        sub_result = self.supabase.table("subscriptions").insert(subscription_data).execute()
+        if sub_result.data:
+            subscription_id = sub_result.data[0]["id"]
+            # Link subscription to organization
+            self.supabase.table("organizations").update({
+                "subscription_id": subscription_id,
+                "updated_at": now.isoformat(),
+            }).eq("id", organization_id).execute()
+        
+        # 3. Create user linked to organization
         user_data = {
             "email": email,
             "hashed_password": get_password_hash(password),
             "full_name": full_name,
             "company_name": company_name,
+            "organization_id": organization_id,
             "is_active": True,
             "subscription_tier": "free",
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
         }
 
         result = self.supabase.table("users").insert(user_data).execute()
@@ -49,7 +94,9 @@ class AuthService:
         if not result.data:
             raise AuthenticationError("Failed to create user")
 
-        return result.data[0]
+        user = result.data[0]
+        user["organization_id"] = organization_id
+        return user
 
     def authenticate_user(self, email: str, password: str) -> Optional[Dict[str, Any]]:
         """Verify user credentials"""

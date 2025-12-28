@@ -153,21 +153,61 @@ class GoogleOAuthService:
                 "is_new_user": False,
             }
         else:
-            # New user - create account
-            # Extract first and last name
-            name_parts = name.split(" ", 1) if name else ["", ""]
-            first_name = name_parts[0] if name_parts else ""
-            last_name = name_parts[1] if len(name_parts) > 1 else ""
+            # New user - create account with organization and subscription
+            now = datetime.utcnow()
+            
+            # 1. Create organization first
+            org_name = f"{name}'s Organization" if name else f"{email.split('@')[0]}'s Organization"
+            org_data = {
+                "name": org_name,
+                "is_active": True,
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat(),
+            }
 
-            # Create user
+            org_result = supabase.table("organizations").insert(org_data).execute()
+            
+            if not org_result.data:
+                raise Exception("Failed to create organization")
+            
+            org_id = org_result.data[0]["id"]
+            
+            # 2. Create free trial subscription
+            trial_end = now + timedelta(days=7)
+            subscription_data = {
+                "plan": "free_trial",
+                "status": "trialing",
+                "price_monthly": 0,
+                "currency": "NGN",
+                "max_tracked_companies": 5,
+                "max_team_members": 1,
+                "max_contacts_per_company": 5,
+                "current_period_start": now.isoformat(),
+                "current_period_end": trial_end.isoformat(),
+                "trial_ends_at": trial_end.isoformat(),
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat(),
+            }
+            
+            sub_result = supabase.table("subscriptions").insert(subscription_data).execute()
+            if sub_result.data:
+                subscription_id = sub_result.data[0]["id"]
+                # Link subscription to organization
+                supabase.table("organizations").update({
+                    "subscription_id": subscription_id,
+                    "updated_at": now.isoformat(),
+                }).eq("id", org_id).execute()
+
+            # 3. Create user linked to organization
             user_data = {
                 "email": email,
                 "full_name": name,
                 "hashed_password": "",  # OAuth users don't have passwords
+                "organization_id": org_id,
                 "is_active": True,
                 "subscription_tier": "free",
-                "created_at": datetime.utcnow().isoformat(),
-                "updated_at": datetime.utcnow().isoformat(),
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat(),
             }
 
             result = supabase.table("users").insert(user_data).execute()
@@ -176,25 +216,7 @@ class GoogleOAuthService:
                 raise Exception("Failed to create user")
 
             user = result.data[0]
-
-            # Create organization for the user
-            org_data = {
-                "name": f"{name}'s Organization",
-                "is_active": True,
-                "created_at": datetime.utcnow().isoformat(),
-                "updated_at": datetime.utcnow().isoformat(),
-            }
-
-            org_result = supabase.table("organizations").insert(org_data).execute()
-
-            if org_result.data:
-                org_id = org_result.data[0]["id"]
-                # Link user to organization
-                supabase.table("users").update({
-                    "organization_id": org_id,
-                    "updated_at": datetime.utcnow().isoformat(),
-                }).eq("id", user["id"]).execute()
-                user["organization_id"] = org_id
+            user["organization_id"] = org_id
 
             # Create session
             session_token, _ = auth_service.create_session(

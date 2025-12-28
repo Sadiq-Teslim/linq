@@ -593,21 +593,14 @@ async def initialize_payment(
     Initialize a Paystack payment for subscription
     Returns a payment URL to redirect the user to
     """
-    import sys
-    sys.stderr.write(f"\n\n>>> ENDPOINT REACHED\n")
-    sys.stderr.write(f">>> Plan (raw string): {plan}\n")
-    sys.stderr.write(f">>> Callback URL: {callback_url}\n")
-    sys.stderr.flush()
-    
-    # Try to convert to enum
+    # Convert plan string to enum
     try:
         plan_enum = SubscriptionPlan(plan)
-        sys.stderr.write(f">>> Plan enum converted: {plan_enum}\n")
-        sys.stderr.flush()
-    except ValueError as e:
-        sys.stderr.write(f">>> ERROR converting plan to enum: {e}\n")
-        sys.stderr.flush()
-        return {"error": f"Invalid plan: {plan}"}
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid plan: {plan}"
+        )
     
     if plan_enum == SubscriptionPlan.FREE_TRIAL:
         raise HTTPException(
@@ -624,30 +617,45 @@ async def initialize_payment(
 
     org_id = current_user.get("organization_id")
     email = current_user.get("email")
+    
+    # If user doesn't have an organization, create one
+    if not org_id:
+        now = datetime.utcnow()
+        org_name = current_user.get("company_name") or f"{email.split('@')[0]}'s Organization"
+        
+        org_result = supabase.table("organizations").insert({
+            "name": org_name,
+            "is_active": True,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+        }).execute()
+        
+        if org_result.data:
+            org_id = org_result.data[0]["id"]
+            # Link user to organization
+            supabase.table("users").update({
+                "organization_id": org_id,
+                "updated_at": now.isoformat(),
+            }).eq("id", current_user["id"]).execute()
+            logger.info(f"Created organization {org_id} for user {current_user['id']}")
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create organization"
+            )
 
     try:
         # Initialize transaction with Paystack
         # Paystack requires amounts in kobo (smallest currency unit)
         # 1 Naira = 100 Kobo
-        # So we multiply the Naira amount by 100 to get kobo
-        amount_in_naira = plan_details.price_monthly  # Already in Naira (e.g., 14500 = ₦14,500)
-        amount_in_kobo = amount_in_naira * 100  # Convert to kobo (e.g., 1,450,000 kobo)
-        
-        import sys
-        sys.stderr.write(f"\n\n=== PAYSTACK PAYMENT INIT ===\n")
-        sys.stderr.write(f"Plan: {plan_enum}\n")
-        sys.stderr.write(f"Email: {email}\n")
-        sys.stderr.write(f"Amount (Naira): ₦{amount_in_naira:,}\n")
-        sys.stderr.write(f"Amount (Kobo): {amount_in_kobo:,} kobo\n")
-        sys.stderr.write(f"Callback URL: {callback_url}\n")
-        sys.stderr.write(f"================================\n\n")
-        sys.stderr.flush()
+        amount_in_naira = plan_details.price_monthly
+        amount_in_kobo = amount_in_naira * 100
         
         result = await paystack_service.initialize_transaction(
             email=email,
-            amount=amount_in_kobo,  # Paystack expects amount in kobo
+            amount=amount_in_kobo,
             callback_url=callback_url,
-            currency=plan_details.currency,  # NGN
+            currency=plan_details.currency,
             metadata={
                 "organization_id": org_id,
                 "user_id": current_user["id"],
@@ -720,11 +728,32 @@ async def verify_payment(
                 "message": "Could not determine plan from payment. Please contact support.",
             }
         
+        # If user still doesn't have an organization, create one now
         if not org_id:
-            return {
-                "verified": False,
-                "message": "No organization found. Please contact support.",
-            }
+            now_for_org = datetime.utcnow()
+            email = current_user.get("email", "")
+            org_name = current_user.get("company_name") or f"{email.split('@')[0]}'s Organization"
+            
+            org_create_result = supabase.table("organizations").insert({
+                "name": org_name,
+                "is_active": True,
+                "created_at": now_for_org.isoformat(),
+                "updated_at": now_for_org.isoformat(),
+            }).execute()
+            
+            if org_create_result.data:
+                org_id = org_create_result.data[0]["id"]
+                # Link user to organization
+                supabase.table("users").update({
+                    "organization_id": org_id,
+                    "updated_at": now_for_org.isoformat(),
+                }).eq("id", current_user["id"]).execute()
+                logger.info(f"Created organization {org_id} for user {current_user['id']} during payment verification")
+            else:
+                return {
+                    "verified": False,
+                    "message": "Failed to create organization. Please contact support.",
+                }
 
         # Activate subscription
         plan = SubscriptionPlan(plan_value)
