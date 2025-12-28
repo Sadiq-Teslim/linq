@@ -689,15 +689,41 @@ async def verify_payment(
                 "status": result.get("status"),
             }
 
-        # Extract metadata
+        # Extract metadata - Paystack may nest it differently
         metadata = result.get("metadata", {})
+        # Sometimes metadata comes as a string or nested object
+        if isinstance(metadata, str):
+            import json
+            try:
+                metadata = json.loads(metadata)
+            except:
+                metadata = {}
+        
         plan_value = metadata.get("plan")
         org_id = metadata.get("organization_id")
+        
+        # If org_id is None or missing, get it from current user
+        if not org_id:
+            org_id = current_user.get("organization_id")
 
-        if not plan_value or not org_id:
+        if not plan_value:
+            # Try to get plan from custom_fields if metadata didn't have it
+            custom_fields = result.get("custom_fields", [])
+            for field in custom_fields:
+                if field.get("variable_name") == "plan":
+                    plan_value = field.get("value")
+                    break
+        
+        if not plan_value:
             return {
                 "verified": False,
-                "message": "Invalid payment metadata",
+                "message": "Could not determine plan from payment. Please contact support.",
+            }
+        
+        if not org_id:
+            return {
+                "verified": False,
+                "message": "No organization found. Please contact support.",
             }
 
         # Activate subscription
