@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button, Card } from "../../components";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
 
 export const DashboardPayment = () => {
-  const navigate = useNavigate();
   const { token } = useAuthStore();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,7 +66,7 @@ export const DashboardPayment = () => {
     }
   };
 
-  const formatPrice = (price: number, currency: string = "NGN") => {
+  const formatPrice = (price: number) => {
     // Always display in Naira (Paystack supports NGN)
     return `₦${price.toLocaleString("en-NG")}`;
   };
@@ -151,7 +149,7 @@ export const DashboardPayment = () => {
                   )}
                   <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
                   <p className="text-3xl font-bold mb-4">
-                    {formatPrice(plan.price_monthly, plan.currency)}
+                    {formatPrice(plan.price_monthly)}
                     <span className="text-sm text-slate-600">/month</span>
                   </p>
                   <ul className="space-y-2 mb-6">
@@ -208,7 +206,7 @@ export const DashboardPayment = () => {
                       {payment.plan?.replace("_", " ") || "—"}
                     </td>
                     <td className="py-3 px-4 text-sm text-slate-900">
-                      {payment.amount ? formatPrice(payment.amount / 100, payment.currency || "NGN") : "—"}
+                      {payment.amount ? formatPrice(payment.amount / 100) : "—"}
                     </td>
                     <td className="py-3 px-4 text-sm">
                       <span className={`px-2 py-1 rounded text-xs ${

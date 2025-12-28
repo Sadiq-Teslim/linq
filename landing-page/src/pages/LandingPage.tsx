@@ -66,7 +66,7 @@ export const LandingPage = () => {
     fetchPlans();
   }, []);
 
-  const formatPrice = (price: number, currency: string = "NGN") => {
+  const formatPrice = (price: number) => {
     // Always display in Naira (Paystack supports NGN)
     return `₦${price.toLocaleString("en-NG")}`;
   };
@@ -260,7 +260,7 @@ export const LandingPage = () => {
                   </h3>
                   <div className="mb-6">
                     <span className="text-4xl font-bold text-slate-900">
-                      {formatPrice(plan.price_monthly, plan.currency)}
+                      {formatPrice(plan.price_monthly)}
                     </span>
                     <span className="text-slate-600 ml-2">/month</span>
                   </div>

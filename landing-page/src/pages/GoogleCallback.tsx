@@ -11,7 +11,6 @@ export const GoogleCallback = () => {
   useEffect(() => {
     const token = searchParams.get("token");
     const email = searchParams.get("email");
-    const newUser = searchParams.get("new_user") === "true";
     const error = searchParams.get("error");
 
     if (error) {
