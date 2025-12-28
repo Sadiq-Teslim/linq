@@ -767,6 +767,7 @@ async def verify_payment(
             # Update existing subscription
             sub_id = org_result.data[0]["subscription_id"]
             supabase.table("subscriptions").update({
+                "organization_id": org_id,  # Ensure org link is set
                 "plan": plan.value,
                 "status": SubscriptionStatus.ACTIVE.value,
                 "price_monthly": plan_details.price_monthly,
@@ -778,9 +779,11 @@ async def verify_payment(
                 "paystack_customer_code": result.get("customer", {}).get("customer_code"),
                 "updated_at": now.isoformat(),
             }).eq("id", sub_id).execute()
+            logger.info(f"Updated subscription {sub_id} for org {org_id} to plan {plan.value}")
         else:
-            # Create new subscription
+            # Create new subscription with organization_id
             subscription_data = {
+                "organization_id": org_id,  # Link subscription to organization
                 "plan": plan.value,
                 "status": SubscriptionStatus.ACTIVE.value,
                 "price_monthly": plan_details.price_monthly,
@@ -797,10 +800,12 @@ async def verify_payment(
 
             sub_result = supabase.table("subscriptions").insert(subscription_data).execute()
             if sub_result.data:
+                sub_id = sub_result.data[0]["id"]
                 supabase.table("organizations").update({
-                    "subscription_id": sub_result.data[0]["id"],
+                    "subscription_id": sub_id,
                     "updated_at": now.isoformat(),
                 }).eq("id", org_id).execute()
+                logger.info(f"Created subscription {sub_id} for org {org_id} with plan {plan.value}")
 
         # Generate access code for extension activation
         access_code = generate_access_code()

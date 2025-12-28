@@ -107,8 +107,8 @@ def get_subscription_status(
         }
 
     try:
-        # Get organization with subscription
-        org_result = supabase.table("organizations").select("*, subscriptions(*)").eq("id", org_id).execute()
+        # Get organization with subscription_id
+        org_result = supabase.table("organizations").select("id, subscription_id").eq("id", org_id).execute()
         
         if not org_result.data:
             return {
@@ -120,7 +120,20 @@ def get_subscription_status(
             }
 
         org = org_result.data[0]
-        subscription = org.get("subscriptions")
+        subscription_id = org.get("subscription_id")
+        
+        # If no subscription_id on org, also check subscriptions table by organization_id
+        subscription = None
+        if subscription_id:
+            sub_result = supabase.table("subscriptions").select("*").eq("id", subscription_id).execute()
+            if sub_result.data:
+                subscription = sub_result.data[0]
+        
+        if not subscription:
+            # Fallback: check if there's a subscription with this organization_id
+            sub_result = supabase.table("subscriptions").select("*").eq("organization_id", org_id).order("created_at", desc=True).limit(1).execute()
+            if sub_result.data:
+                subscription = sub_result.data[0]
         
         if not subscription:
             return {
@@ -154,7 +167,9 @@ def get_subscription_status(
             "max_tracked_companies": subscription.get("max_tracked_companies"),
             "max_team_members": subscription.get("max_team_members"),
         }
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.error(f"Error getting subscription status: {e}")
         return {
             "has_subscription": False,
             "plan": "free_trial",
