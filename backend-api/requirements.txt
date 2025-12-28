@@ -36,5 +36,10 @@ feedparser==6.0.10
 python-dotenv==1.0.0
 tenacity==8.2.3
 
+# Google OAuth
+google-auth==2.27.0
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+
 # Production server (Render uses gunicorn)
 gunicorn==21.2.0

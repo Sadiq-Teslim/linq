@@ -7,12 +7,15 @@ from typing import Dict, Any, List
 from datetime import datetime, timedelta
 import secrets
 import string
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
+import logging
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Header, Query
 
 from app.db.supabase_client import get_supabase_client, SupabaseClient
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.config import settings
 from app.services.paystack_service import paystack_service, PaystackError
+
+logger = logging.getLogger(__name__)
 from app.schemas.subscription import (
     SubscriptionPlan,
     SubscriptionStatus,
@@ -50,7 +53,7 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
         name="Free Trial",
         price_monthly=0,
         price_yearly=0,
-        currency="USD",
+        currency="NGN",
         max_tracked_companies=5,
         max_team_members=1,
         max_contacts_per_company=5,
@@ -64,9 +67,9 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
     SubscriptionPlan.STARTER: PlanDetails(
         id=SubscriptionPlan.STARTER,
         name="Starter",
-        price_monthly=2900,  # $29.00
-        price_yearly=27900,  # $279.00 (2 months free)
-        currency="USD",
+        price_monthly=14500,  # ₦14,500 per month (multiply by 100 for Paystack kobo)
+        price_yearly=130500,  # ₦130,500 per year (2 months free)
+        currency="NGN",
         max_tracked_companies=25,
         max_team_members=3,
         max_contacts_per_company=10,
@@ -81,9 +84,9 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
     SubscriptionPlan.PROFESSIONAL: PlanDetails(
         id=SubscriptionPlan.PROFESSIONAL,
         name="Professional",
-        price_monthly=7900,  # $79.00
-        price_yearly=75900,  # $759.00 (2 months free)
-        currency="USD",
+        price_monthly=39500,  # ₦39,500 per month (multiply by 100 for Paystack kobo)
+        price_yearly=355500,  # ₦355,500 per year (2 months free)
+        currency="NGN",
         max_tracked_companies=100,
         max_team_members=10,
         max_contacts_per_company=25,
@@ -101,9 +104,9 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
     SubscriptionPlan.ENTERPRISE: PlanDetails(
         id=SubscriptionPlan.ENTERPRISE,
         name="Enterprise",
-        price_monthly=19900,  # $199.00
-        price_yearly=191000,  # $1910.00 (2 months free)
-        currency="USD",
+        price_monthly=99500,  # ₦99,500 per month (multiply by 100 for Paystack kobo)
+        price_yearly=895500,  # ₦895,500 per year (2 months free)
+        currency="NGN",
         max_tracked_companies=-1,  # Unlimited
         max_team_members=-1,  # Unlimited
         max_contacts_per_company=-1,  # Unlimited
@@ -581,8 +584,8 @@ def revoke_access_code(
 
 @router.post("/paystack/initialize")
 async def initialize_payment(
-    plan: SubscriptionPlan,
-    callback_url: str,
+    plan: str = Query(...),
+    callback_url: str = Query(...),
     current_user: Dict[str, Any] = Depends(get_current_user),
     supabase: SupabaseClient = Depends(get_supabase_client),
 ):
@@ -590,13 +593,29 @@ async def initialize_payment(
     Initialize a Paystack payment for subscription
     Returns a payment URL to redirect the user to
     """
-    if plan == SubscriptionPlan.FREE_TRIAL:
+    import sys
+    sys.stderr.write(f"\n\n>>> ENDPOINT REACHED\n")
+    sys.stderr.write(f">>> Plan (raw string): {plan}\n")
+    sys.stderr.write(f">>> Callback URL: {callback_url}\n")
+    sys.stderr.flush()
+    
+    # Try to convert to enum
+    try:
+        plan_enum = SubscriptionPlan(plan)
+        sys.stderr.write(f">>> Plan enum converted: {plan_enum}\n")
+        sys.stderr.flush()
+    except ValueError as e:
+        sys.stderr.write(f">>> ERROR converting plan to enum: {e}\n")
+        sys.stderr.flush()
+        return {"error": f"Invalid plan: {plan}"}
+    
+    if plan_enum == SubscriptionPlan.FREE_TRIAL:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Free trial does not require payment"
         )
 
-    plan_details = PLAN_DETAILS.get(plan)
+    plan_details = PLAN_DETAILS.get(plan_enum)
     if not plan_details:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -608,15 +627,31 @@ async def initialize_payment(
 
     try:
         # Initialize transaction with Paystack
+        # Paystack requires amounts in kobo (smallest currency unit)
+        # 1 Naira = 100 Kobo
+        # So we multiply the Naira amount by 100 to get kobo
+        amount_in_naira = plan_details.price_monthly  # Already in Naira (e.g., 14500 = ₦14,500)
+        amount_in_kobo = amount_in_naira * 100  # Convert to kobo (e.g., 1,450,000 kobo)
+        
+        import sys
+        sys.stderr.write(f"\n\n=== PAYSTACK PAYMENT INIT ===\n")
+        sys.stderr.write(f"Plan: {plan_enum}\n")
+        sys.stderr.write(f"Email: {email}\n")
+        sys.stderr.write(f"Amount (Naira): ₦{amount_in_naira:,}\n")
+        sys.stderr.write(f"Amount (Kobo): {amount_in_kobo:,} kobo\n")
+        sys.stderr.write(f"Callback URL: {callback_url}\n")
+        sys.stderr.write(f"================================\n\n")
+        sys.stderr.flush()
+        
         result = await paystack_service.initialize_transaction(
             email=email,
-            amount=plan_details.price_monthly,  # Amount in cents
-            currency=plan_details.currency,
+            amount=amount_in_kobo,  # Paystack expects amount in kobo
             callback_url=callback_url,
+            currency=plan_details.currency,  # NGN
             metadata={
                 "organization_id": org_id,
                 "user_id": current_user["id"],
-                "plan": plan.value,
+                "plan": plan_enum.value,
             },
         )
 
@@ -627,6 +662,7 @@ async def initialize_payment(
         }
 
     except PaystackError as e:
+        logger.error(f"Paystack error: {e.message}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Payment initialization failed: {e.message}"
@@ -769,12 +805,43 @@ async def paystack_webhook(
             # Payment successful - activate subscription
             metadata = data.get("metadata", {})
             org_id = metadata.get("organization_id")
+            user_id = metadata.get("user_id")
             plan_value = metadata.get("plan")
+            reference = data.get("reference")
+            amount = data.get("amount", 0)  # Amount in kobo
+            currency = data.get("currency", "NGN")
+            customer_code = data.get("customer", {}).get("customer_code") if isinstance(data.get("customer"), dict) else None
+            authorization_code = data.get("authorization", {}).get("authorization_code") if isinstance(data.get("authorization"), dict) else None
 
-            if org_id and plan_value:
+            if org_id and plan_value and reference:
                 plan = SubscriptionPlan(plan_value)
                 plan_details = PLAN_DETAILS[plan]
                 now = datetime.utcnow()
+
+                # Store transaction in database
+                transaction_data = {
+                    "organization_id": org_id,
+                    "user_id": user_id,
+                    "paystack_reference": reference,
+                    "paystack_customer_code": customer_code,
+                    "paystack_authorization_code": authorization_code,
+                    "amount": amount,
+                    "currency": currency,
+                    "plan": plan.value,
+                    "status": "success",
+                    "gateway_response": data.get("gateway_response", ""),
+                    "metadata": metadata,
+                    "transaction_date": data.get("paid_at") or now.isoformat(),
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                }
+
+                # Insert transaction (ignore if already exists)
+                try:
+                    supabase.table("transactions").insert(transaction_data).execute()
+                except Exception as e:
+                    # Transaction might already exist, that's okay
+                    logger.warning(f"Transaction already exists or insert failed: {e}")
 
                 # Update or create subscription
                 org_result = supabase.table("organizations").select("subscription_id").eq("id", org_id).execute()
@@ -786,8 +853,32 @@ async def paystack_webhook(
                         "status": SubscriptionStatus.ACTIVE.value,
                         "current_period_start": now.isoformat(),
                         "current_period_end": (now + timedelta(days=30)).isoformat(),
+                        "paystack_customer_code": customer_code,
                         "updated_at": now.isoformat(),
                     }).eq("id", sub_id).execute()
+                else:
+                    # Create new subscription
+                    subscription_data = {
+                        "plan": plan.value,
+                        "status": SubscriptionStatus.ACTIVE.value,
+                        "price_monthly": plan_details.price_monthly,
+                        "currency": plan_details.currency,
+                        "max_tracked_companies": plan_details.max_tracked_companies,
+                        "max_team_members": plan_details.max_team_members,
+                        "max_contacts_per_company": plan_details.max_contacts_per_company,
+                        "current_period_start": now.isoformat(),
+                        "current_period_end": (now + timedelta(days=30)).isoformat(),
+                        "paystack_customer_code": customer_code,
+                        "created_at": now.isoformat(),
+                        "updated_at": now.isoformat(),
+                    }
+
+                    sub_result = supabase.table("subscriptions").insert(subscription_data).execute()
+                    if sub_result.data:
+                        supabase.table("organizations").update({
+                            "subscription_id": sub_result.data[0]["id"],
+                            "updated_at": now.isoformat(),
+                        }).eq("id", org_id).execute()
 
         elif event == "subscription.disable":
             # Subscription cancelled
@@ -843,3 +934,41 @@ async def create_paystack_customer(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to create customer: {e.message}"
         )
+
+
+@router.get("/payment-history")
+async def get_payment_history(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    supabase: SupabaseClient = Depends(get_supabase_client),
+):
+    """
+    Get payment history for the current user's organization
+    Returns transactions stored in the database
+    """
+    org_id = current_user.get("organization_id")
+    if not org_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with an organization"
+        )
+
+    # Get transactions from database
+    result = supabase.table("transactions").select("*").eq("organization_id", org_id).order("transaction_date", desc=True).execute()
+
+    transactions = result.data if result.data else []
+
+    # Format transactions for frontend
+    payments = []
+    for tx in transactions:
+        payments.append({
+            "id": tx.get("id"),
+            "reference": tx.get("paystack_reference"),
+            "amount": tx.get("amount"),
+            "currency": tx.get("currency", "NGN"),
+            "plan": tx.get("plan"),
+            "status": tx.get("status"),
+            "date": tx.get("transaction_date") or tx.get("created_at"),
+            "gateway_response": tx.get("gateway_response"),
+        })
+
+    return {"payments": payments}

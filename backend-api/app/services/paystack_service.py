@@ -3,9 +3,12 @@ Paystack Payment Integration Service
 Real API integration for subscription payments
 """
 import httpx
+import logging
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class PaystackService:
@@ -42,8 +45,18 @@ class PaystackService:
             )
 
             result = response.json()
+            
+            # Force print to stderr
+            import sys
+            sys.stderr.write(f"\n>>> Paystack API Call: {method} {endpoint}\n")
+            sys.stderr.write(f">>> Request data: {data}\n")
+            sys.stderr.write(f">>> Response status: {response.status_code}\n")
+            sys.stderr.write(f">>> Response body: {result}\n\n")
+            sys.stderr.flush()
 
             if not result.get("status"):
+                sys.stderr.write(f">>> Paystack error - status false: {result}\n\n")
+                sys.stderr.flush()
                 raise PaystackError(
                     message=result.get("message", "Paystack request failed"),
                     response=result,
@@ -204,20 +217,24 @@ class PaystackService:
     async def initialize_transaction(
         self,
         email: str,
-        amount: int,  # Amount in kobo/cents
+        amount: int,  # Amount in kobo (smallest currency unit for NGN)
         callback_url: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        plan: Optional[str] = None,  # For subscription payments
-        currency: str = "USD",
+        plan: Optional[str] = None,
+        currency: str = "NGN",  # Default to NGN as Paystack primarily supports NGN
     ) -> Dict[str, Any]:
         """
         Initialize a transaction (get payment URL)
         https://paystack.com/docs/api/transaction/#initialize
+        
+        Note: Paystack requires amounts in the smallest currency unit (kobo for NGN)
+        - 1 Naira = 100 Kobo
+        - Example: ₦14,500 = 1,450,000 kobo
         """
         data = {
             "email": email,
-            "amount": amount,
-            "currency": currency,
+            "amount": amount,  # Amount in kobo
+            "currency": currency,  # NGN for Nigerian Naira
             "callback_url": callback_url,
             "metadata": metadata or {},
         }

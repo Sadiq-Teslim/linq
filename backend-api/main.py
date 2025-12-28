@@ -3,8 +3,10 @@ LINQ AI Backend API - Entry Point
 B2B Sales Intelligence Platform
 """
 import os
-from fastapi import FastAPI
+import sys
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
 from app.core.config import settings, get_port
@@ -24,6 +26,20 @@ app = FastAPI(
 )
 
 # =============================================================================
+# GLOBAL EXCEPTION HANDLER
+# =============================================================================
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch all exceptions and log them"""
+    sys.stderr.write(f"\n\n>>> GLOBAL EXCEPTION: {type(exc).__name__}\n")
+    sys.stderr.write(f">>> Message: {str(exc)}\n")
+    sys.stderr.write(f">>> URL: {request.url}\n")
+    sys.stderr.write(f">>> Method: {request.method}\n")
+    sys.stderr.flush()
+    raise exc
+
+# =============================================================================
 # MIDDLEWARE
 # =============================================================================
 
@@ -32,12 +48,22 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # CORS middleware - uses environment-aware origins
+# In development, allow common localhost ports
+development_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=development_origins if settings.is_development else settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # =============================================================================

@@ -3,7 +3,7 @@ API v1 Router - Aggregates all endpoints
 """
 from fastapi import APIRouter
 
-from .endpoints import auth, search, feed, export, companies, subscription
+from .endpoints import auth, search, feed, export, companies, subscription, analytics, organization
 
 api_router = APIRouter()
 
@@ -47,4 +47,18 @@ api_router.include_router(
     export.router,
     prefix="/export",
     tags=["Data Export"],
+)
+
+# Analytics and usage statistics endpoints
+api_router.include_router(
+    analytics.router,
+    prefix="/analytics",
+    tags=["Analytics"],
+)
+
+# Organization and team management endpoints
+api_router.include_router(
+    organization.router,
+    prefix="/organization",
+    tags=["Organization"],
 )

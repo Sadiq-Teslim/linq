@@ -3,14 +3,16 @@ Authentication endpoints (F3.1, F3.2)
 Implements login, logout, and single-session enforcement
 Using Supabase for database operations
 """
-from typing import Dict, Any
-from fastapi import APIRouter, Depends, Request, HTTPException, status
+from typing import Dict, Any, Optional
+from fastapi import APIRouter, Depends, Request, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.responses import RedirectResponse, JSONResponse
 
 from app.db.supabase_client import get_supabase_client, SupabaseClient
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth_service import AuthService
+from app.services.google_oauth_service import google_oauth_service
 from app.core.config import settings
 from app.core.exceptions import AuthenticationError
 
@@ -148,3 +150,73 @@ def check_session_status(
         "user_id": user["id"],
         "email": user["email"],
     }
+
+
+@router.get("/google")
+def google_auth(
+    state: Optional[str] = Query(None),
+):
+    """
+    Initiate Google OAuth flow
+    Returns the Google OAuth URL for frontend redirect
+    """
+    try:
+        auth_url = google_oauth_service.get_authorization_url(state=state)
+        return {
+            "auth_url": auth_url,
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate OAuth URL: {str(e)}"
+        )
+
+
+@router.get("/google/callback")
+async def google_callback(
+    code: str = Query(...),
+    state: Optional[str] = Query(None),
+    error: Optional[str] = Query(None),
+    supabase: SupabaseClient = Depends(get_supabase_client),
+):
+    """
+    Handle Google OAuth callback
+    This endpoint processes the OAuth callback and creates/authenticates the user
+    Redirects to frontend with token or error
+    """
+    if error:
+        # User denied access or error occurred
+        frontend_url = f"{settings.FRONTEND_URL}/auth/login?error={error}"
+        return RedirectResponse(url=frontend_url)
+
+    if not code:
+        frontend_url = f"{settings.FRONTEND_URL}/auth/login?error=no_code"
+        return RedirectResponse(url=frontend_url)
+
+    try:
+        # Complete OAuth flow
+        result = await google_oauth_service.authenticate_user(code, supabase)
+        
+        user = result["user"]
+        access_token = result["access_token"]
+        is_new_user = result.get("is_new_user", False)
+
+        # Redirect to frontend with token
+        # In production, use a more secure method (e.g., httpOnly cookie)
+        frontend_url = f"{settings.FRONTEND_URL}/auth/google/callback?token={access_token}&email={user['email']}&new_user={is_new_user}"
+        return RedirectResponse(url=frontend_url)
+
+    except Exception as e:
+        # Log error
+        import sys
+        sys.stderr.write(f"\n>>> Google OAuth Error: {str(e)}\n")
+        sys.stderr.flush()
+        
+        # Redirect to frontend with error
+        frontend_url = f"{settings.FRONTEND_URL}/auth/login?error=oauth_failed&message={str(e)}"
+        return RedirectResponse(url=frontend_url)
