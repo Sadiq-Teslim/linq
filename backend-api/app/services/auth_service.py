@@ -258,17 +258,22 @@ class AuthService:
             expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
         )
 
-        # Create session record
-        session_data = {
-            "user_id": user_id or 0,  # 0 for org-only sessions
-            "session_token": access_token,
-            "device_info": "Chrome Extension",
-            "is_active": True,
-            "created_at": datetime.utcnow().isoformat(),
-            "last_activity": datetime.utcnow().isoformat(),
-        }
-
-        self.supabase.table("user_sessions").insert(session_data).execute()
+        # Only create session record if we have a user_id
+        # Extension activations may not have a user yet
+        if user_id:
+            session_data = {
+                "user_id": user_id,
+                "session_token": access_token,
+                "device_info": "Chrome Extension",
+                "is_active": True,
+                "created_at": datetime.utcnow().isoformat(),
+                "last_activity": datetime.utcnow().isoformat(),
+            }
+            try:
+                self.supabase.table("user_sessions").insert(session_data).execute()
+            except Exception:
+                # Session creation is optional for extension access
+                pass
 
         return access_token
 

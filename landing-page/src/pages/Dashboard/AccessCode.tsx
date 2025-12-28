@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
-import { AlertModal } from "../../components/Modal";
+import { AlertModal, ConfirmModal } from "../../components/Modal";
 
 export const DashboardAccessCode = () => {
   const { token } = useAuthStore();
@@ -9,6 +9,7 @@ export const DashboardAccessCode = () => {
   const [accessCodes, setAccessCodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -17,6 +18,10 @@ export const DashboardAccessCode = () => {
     message: string;
     type: "success" | "error" | "info" | "warning";
   }>({ title: "", message: "", type: "info" });
+
+  // Confirm modal state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [codeToDelete, setCodeToDelete] = useState<any | null>(null);
 
   const showModal = (title: string, message: string, type: "success" | "error" | "info" | "warning" = "info") => {
     setModalConfig({ title, message, type });
@@ -64,6 +69,33 @@ export const DashboardAccessCode = () => {
     setTimeout(() => setCopiedMessage(""), 2000);
   };
 
+  const confirmDelete = (code: any) => {
+    setCodeToDelete(code);
+    setConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!token || !codeToDelete) return;
+    setDeletingId(codeToDelete.id);
+    setConfirmOpen(false);
+    
+    try {
+      await api.subscription.deleteAccessCode(token, codeToDelete.id);
+      setAccessCodes(accessCodes.filter((c) => c.id !== codeToDelete.id));
+      showModal("Deleted", "Access code deleted successfully.", "success");
+    } catch (error: any) {
+      console.error("Failed to delete access code:", error);
+      showModal(
+        "Error",
+        error.response?.data?.detail || "Failed to delete access code. Please try again.",
+        "error"
+      );
+    } finally {
+      setDeletingId(null);
+      setCodeToDelete(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -76,13 +108,23 @@ export const DashboardAccessCode = () => {
 
   return (
     <div className="space-y-8">
-      {/* Modal */}
+      {/* Modals */}
       <AlertModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={modalConfig.title}
         message={modalConfig.message}
         type={modalConfig.type}
+      />
+      <ConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Access Code"
+        message={`Are you sure you want to delete this access code? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="error"
       />
 
       {/* Header */}
@@ -133,26 +175,41 @@ export const DashboardAccessCode = () => {
               </span>
             )}
           </div>
-          <button
-            onClick={() => handleCopy(activeCode.code)}
-            className="px-8 py-3 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all inline-flex items-center gap-2"
-          >
-            {copiedMessage === activeCode.code ? (
-              <>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => handleCopy(activeCode.code)}
+              className="px-8 py-3 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all inline-flex items-center gap-2"
+            >
+              {copiedMessage === activeCode.code ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Copy Code
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => confirmDelete(activeCode)}
+              disabled={deletingId === activeCode.id}
+              className="px-4 py-3 rounded-lg font-medium text-sm text-red-400 border border-red-500/20 hover:bg-red-500/10 transition-all inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              {deletingId === activeCode.id ? (
+                <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>
+              ) : (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                Copied!
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                Copy Code
-              </>
-            )}
-          </button>
+              )}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="p-12 rounded-xl bg-white/[0.02] border border-white/5 text-center">
@@ -180,7 +237,7 @@ export const DashboardAccessCode = () => {
             {accessCodes.map((code, index) => (
               <div
                 key={code.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+                className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex-1 min-w-0">
@@ -203,12 +260,28 @@ export const DashboardAccessCode = () => {
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleCopy(code.code)}
-                  className="text-sm px-4 py-2 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition-all"
-                >
-                  {copiedMessage === code.code ? "Copied!" : "Copy"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleCopy(code.code)}
+                    className="text-sm px-4 py-2 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                  >
+                    {copiedMessage === code.code ? "Copied!" : "Copy"}
+                  </button>
+                  <button
+                    onClick={() => confirmDelete(code)}
+                    disabled={deletingId === code.id}
+                    className="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                    title="Delete"
+                  >
+                    {deletingId === code.id ? (
+                      <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
