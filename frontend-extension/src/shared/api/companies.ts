@@ -92,8 +92,22 @@ export const companiesApi = {
   },
 
   // Trigger manual refresh for a company
-  refreshCompany: async (companyId: string): Promise<TrackedCompanyDetails> => {
-    const response = await api.post<TrackedCompanyDetails>(`/companies/tracked/${companyId}/refresh`);
+  refresh: async (companyId: string): Promise<TrackedCompany> => {
+    const response = await api.post<TrackedCompany>(`/companies/tracked/${companyId}/refresh`);
+    return response.data;
+  },
+
+  // Update company settings (alias for updateTracking)
+  updateSettings: async (
+    companyId: string,
+    settings: {
+      is_priority?: boolean;
+      update_frequency?: 'daily' | 'weekly' | 'monthly';
+      tags?: string[];
+      notes?: string;
+    }
+  ): Promise<TrackedCompany> => {
+    const response = await api.patch<TrackedCompany>(`/companies/tracked/${companyId}`, settings);
     return response.data;
   },
 };

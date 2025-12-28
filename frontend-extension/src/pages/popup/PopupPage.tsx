@@ -1,21 +1,48 @@
-import { useAuthStore } from '@/entities/user/authStore';
-import { AddCompanySearch } from '@/features/add-company';
-import { MonitorBoard } from '@/widgets/monitor-board';
-import { MarketPulse } from '@/widgets/market-pulse';
-import { ToastProvider } from '@/shared/ui/Toast';
-import { LogOut, Sparkles, Settings, Bell, Crown, ExternalLink } from 'lucide-react';
-import { useCompanyStore } from '@/entities/company/store';
+import { useEffect } from "react";
+import { useAuthStore } from "@/entities/user/authStore";
+import { AddCompanySearch } from "@/features/add-company";
+import { MonitorBoard } from "@/widgets/monitor-board";
+import { MarketPulse } from "@/widgets/market-pulse";
+import { ToastProvider } from "@/shared/ui/Toast";
+import {
+  LogOut,
+  Sparkles,
+  Settings,
+  Bell,
+  Crown,
+  ExternalLink,
+  RefreshCw,
+} from "lucide-react";
+import { useCompanyStore } from "@/entities/company/store";
 
 export const PopupPage = () => {
-  const { logout, user } = useAuthStore();
-  const { unreadCount } = useCompanyStore();
+  const { logout, user, refreshUser } = useAuthStore();
+  const { unreadCount, fetchTrackedCompanies, fetchUpdates, isRefreshing } =
+    useCompanyStore();
 
-  const planLabel = user?.subscription?.plan === 'enterprise' ? 'Enterprise' :
-                    user?.subscription?.plan === 'professional' ? 'Professional' :
-                    user?.subscription?.plan === 'starter' ? 'Starter' : 'Trial';
+  // Fetch data on mount
+  useEffect(() => {
+    fetchTrackedCompanies();
+    fetchUpdates();
+    refreshUser();
+  }, []);
+
+  const planLabel =
+    user?.subscription?.plan === "enterprise"
+      ? "Enterprise"
+      : user?.subscription?.plan === "professional"
+      ? "Professional"
+      : user?.subscription?.plan === "starter"
+      ? "Starter"
+      : "Trial";
 
   const handleOpenDashboard = () => {
-    window.open('https://use-linq.netlify.app/dashboard/overview', '_blank');
+    window.open("https://use-linq.netlify.app/dashboard/overview", "_blank");
+  };
+
+  const handleRefresh = () => {
+    fetchTrackedCompanies();
+    fetchUpdates();
   };
 
   return (
@@ -31,7 +58,9 @@ export const PopupPage = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-serif font-bold text-white tracking-tight text-base">LINQ</span>
+                    <span className="font-serif font-bold text-white tracking-tight text-base">
+                      LINQ
+                    </span>
                     <span className="text-[9px] bg-gradient-to-r from-gold-500 to-gold-400 text-navy-950 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
                       <Crown className="w-2.5 h-2.5" />
                       {planLabel}
@@ -43,6 +72,18 @@ export const PopupPage = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1">
+                {/* Refresh */}
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500
+                           hover:text-gold-400 hover:bg-white/5 transition-all disabled:opacity-50"
+                  title="Refresh data"
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                  />
+                </button>
                 {/* Notifications */}
                 <button
                   className="relative w-8 h-8 flex items-center justify-center rounded-lg text-slate-500
@@ -52,7 +93,7 @@ export const PopupPage = () => {
                   <Bell className="w-4 h-4" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold-500 text-navy-950 text-[9px] font-bold rounded-full flex items-center justify-center">
-                      {unreadCount > 9 ? '9+' : unreadCount}
+                      {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
                 </button>
@@ -90,7 +131,9 @@ export const PopupPage = () => {
           <div className="bg-white/[0.02] rounded-2xl border border-white/5 p-4 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1.5 h-5 bg-gradient-to-b from-gold-500 to-gold-400 rounded-full" />
-              <h2 className="text-sm font-semibold text-white">Track Companies</h2>
+              <h2 className="text-sm font-semibold text-white">
+                Track Companies
+              </h2>
             </div>
             <AddCompanySearch />
           </div>
@@ -113,7 +156,7 @@ export const PopupPage = () => {
             </div>
             <span className="text-[10px] text-slate-500">
               {user?.subscription?.max_tracked_companies === -1
-                ? 'Unlimited'
+                ? "Unlimited"
                 : `${user?.subscription?.max_tracked_companies || 5} companies`}
             </span>
           </div>

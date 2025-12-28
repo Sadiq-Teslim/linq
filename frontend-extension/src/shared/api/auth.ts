@@ -47,11 +47,12 @@ export interface ActivationCodeRequest {
 
 export interface ActivationResponse {
   success: boolean;
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-  user: UserResponse;
-  organization: Organization;
+  access_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  user?: UserResponse;
+  organization?: Organization;
+  message?: string;
 }
 
 export const authApi = {

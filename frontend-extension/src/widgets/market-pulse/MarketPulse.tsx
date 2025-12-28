@@ -2,73 +2,86 @@
  * Industry News Feed Widget
  * Shows latest news and updates relevant to the user's industry
  */
-import { useState, useEffect } from 'react';
-import { useAuthStore } from '@/entities/user/authStore';
-import { feedApi, type IndustryNews } from '@/shared/api';
-import { parseApiError } from '@/shared/lib/errors';
+import { useState, useEffect } from "react";
+import { useAuthStore } from "@/entities/user/authStore";
+import { feedApi, type IndustryNews } from "@/shared/api";
+import { parseApiError } from "@/shared/lib/errors";
 import {
-  TrendingUp, DollarSign, Handshake, Rocket, Layers, Scale,
-  AlertCircle, RefreshCw, ExternalLink, Bookmark, BookmarkCheck,
-  Zap, Radio, ArrowRight, Sparkles
-} from 'lucide-react';
+  TrendingUp,
+  DollarSign,
+  Handshake,
+  Rocket,
+  Layers,
+  Scale,
+  AlertCircle,
+  RefreshCw,
+  ExternalLink,
+  Bookmark,
+  BookmarkCheck,
+  Zap,
+  Radio,
+  ArrowRight,
+  Sparkles,
+  Newspaper,
+} from "lucide-react";
 
 const getNewsConfig = (newsType: string) => {
   switch (newsType) {
-    case 'funding':
+    case "funding":
       return {
         icon: DollarSign,
-        bg: 'bg-emerald-500/10',
-        border: 'border-emerald-500/20',
-        text: 'text-emerald-400',
-        label: 'Funding'
+        bg: "bg-emerald-500/10",
+        border: "border-emerald-500/20",
+        text: "text-emerald-400",
+        label: "Funding",
       };
-    case 'merger':
+    case "merger":
       return {
         icon: Handshake,
-        bg: 'bg-blue-500/10',
-        border: 'border-blue-500/20',
-        text: 'text-blue-400',
-        label: 'M&A'
+        bg: "bg-blue-500/10",
+        border: "border-blue-500/20",
+        text: "text-blue-400",
+        label: "M&A",
       };
-    case 'expansion':
+    case "expansion":
       return {
         icon: TrendingUp,
-        bg: 'bg-orange-500/10',
-        border: 'border-orange-500/20',
-        text: 'text-orange-400',
-        label: 'Expansion'
+        bg: "bg-orange-500/10",
+        border: "border-orange-500/20",
+        text: "text-orange-400",
+        label: "Expansion",
       };
-    case 'product':
+    case "product":
       return {
         icon: Rocket,
-        bg: 'bg-purple-500/10',
-        border: 'border-purple-500/20',
-        text: 'text-purple-400',
-        label: 'Product'
+        bg: "bg-purple-500/10",
+        border: "border-purple-500/20",
+        text: "text-purple-400",
+        label: "Product",
       };
-    case 'partnership':
+    case "partnership":
       return {
         icon: Layers,
-        bg: 'bg-indigo-500/10',
-        border: 'border-indigo-500/20',
-        text: 'text-indigo-400',
-        label: 'Partnership'
+        bg: "bg-indigo-500/10",
+        border: "border-indigo-500/20",
+        text: "text-indigo-400",
+        label: "Partnership",
       };
-    case 'regulation':
+    case "regulation":
       return {
         icon: Scale,
-        bg: 'bg-slate-500/10',
-        border: 'border-slate-500/20',
-        text: 'text-slate-400',
-        label: 'Regulation'
+        bg: "bg-slate-500/10",
+        border: "border-slate-500/20",
+        text: "text-slate-400",
+        label: "Regulation",
       };
     default:
       return {
         icon: Sparkles,
-        bg: 'bg-gold-500/10',
-        border: 'border-gold-500/20',
-        text: 'text-gold-400',
-        label: 'Trend'
+        bg: "bg-gold-500/10",
+        border: "border-gold-500/20",
+        text: "text-gold-400",
+        label: "Trend",
       };
   }
 };
@@ -86,62 +99,6 @@ const formatTimeAgo = (dateString: string) => {
   return `${diffDays}d`;
 };
 
-// Demo industry news
-const DEMO_NEWS: IndustryNews[] = [
-  {
-    id: '1',
-    headline: 'OpenAI raises $6.6B at $157B valuation',
-    summary: 'The AI leader secures record funding round as enterprise adoption accelerates.',
-    industry: 'Technology',
-    companies_mentioned: ['OpenAI', 'Microsoft'],
-    news_type: 'funding',
-    source_url: 'https://techcrunch.com',
-    source_name: 'TechCrunch',
-    published_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    relevance_score: 0.95,
-    is_bookmarked: false,
-  },
-  {
-    id: '2',
-    headline: 'Salesforce acquires data analytics startup for $2B',
-    summary: 'Strategic acquisition to enhance CRM capabilities with advanced analytics.',
-    industry: 'Technology',
-    companies_mentioned: ['Salesforce'],
-    news_type: 'merger',
-    source_url: 'https://bloomberg.com',
-    source_name: 'Bloomberg',
-    published_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    relevance_score: 0.88,
-    is_bookmarked: false,
-  },
-  {
-    id: '3',
-    headline: 'HubSpot launches AI-powered sales assistant',
-    summary: 'New feature uses generative AI to automate prospect research and outreach.',
-    industry: 'Technology',
-    companies_mentioned: ['HubSpot'],
-    news_type: 'product',
-    source_url: 'https://hubspot.com',
-    source_name: 'HubSpot Blog',
-    published_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    relevance_score: 0.82,
-    is_bookmarked: true,
-  },
-  {
-    id: '4',
-    headline: 'EU announces new AI regulations for enterprise software',
-    summary: 'Companies have 18 months to comply with new transparency requirements.',
-    industry: 'Technology',
-    companies_mentioned: [],
-    news_type: 'regulation',
-    source_url: 'https://reuters.com',
-    source_name: 'Reuters',
-    published_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    relevance_score: 0.75,
-    is_bookmarked: false,
-  },
-];
-
 interface MarketPulseProps {
   limit?: number;
 }
@@ -153,7 +110,7 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const industry = user?.industry || 'Technology';
+  const industry = user?.industry || "Technology";
 
   const fetchFeed = async (showRefresh = false) => {
     if (showRefresh) setIsRefreshing(true);
@@ -165,10 +122,9 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
       setItems(response.items);
     } catch (err) {
       const apiError = parseApiError(err);
-      console.error('Failed to fetch industry feed:', apiError.message);
+      console.error("Failed to fetch industry feed:", apiError.message);
       setError(apiError.message);
-      // Use demo data as fallback
-      setItems(DEMO_NEWS.slice(0, limit));
+      setItems([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -247,14 +203,14 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
                      text-slate-400 hover:bg-white/10 hover:text-white transition-all"
             title="Refresh feed"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
 
       {/* Content */}
       <div className="p-3">
-        {error && items.length === 0 ? (
+        {error ? (
           <div className="bg-red-500/10 rounded-xl border border-red-500/20 p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-red-500/10 rounded-lg border border-red-500/20">
@@ -272,6 +228,14 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
               </button>
             </div>
           </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-6">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
+              <Newspaper className="w-6 h-6 text-slate-500" />
+            </div>
+            <p className="text-sm text-slate-400">No news available</p>
+            <p className="text-xs text-slate-500 mt-1">Check back later for updates</p>
+          </div>
         ) : (
           <div className="space-y-2 max-h-52 overflow-y-auto">
             {items.map((item) => {
@@ -286,14 +250,18 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
                 >
                   <div className="flex items-start gap-3">
                     {/* Icon */}
-                    <div className={`p-2 rounded-lg ${config.bg} ${config.border} border flex-shrink-0`}>
+                    <div
+                      className={`p-2 rounded-lg ${config.bg} ${config.border} border flex-shrink-0`}
+                    >
                       <Icon className={`w-4 h-4 ${config.text}`} />
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-bold uppercase tracking-wide ${config.text}`}>
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wide ${config.text}`}
+                        >
                           {config.label}
                         </span>
                         <span className="text-[10px] text-slate-500">
@@ -323,8 +291,8 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
                         onClick={() => toggleBookmark(item.id)}
                         className={`p-1.5 rounded-lg transition-colors ${
                           item.is_bookmarked
-                            ? 'text-gold-400 bg-gold-500/10'
-                            : 'text-slate-500 hover:text-gold-400 hover:bg-gold-500/10'
+                            ? "text-gold-400 bg-gold-500/10"
+                            : "text-slate-500 hover:text-gold-400 hover:bg-gold-500/10"
                         }`}
                       >
                         {item.is_bookmarked ? (
