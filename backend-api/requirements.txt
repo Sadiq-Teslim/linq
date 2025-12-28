@@ -3,43 +3,43 @@
 # =============================================================================
 
 # FastAPI and server
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-multipart==0.0.6
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.19
 
 # Supabase (lightweight - just postgrest and auth)
-postgrest==0.13.0
-httpx==0.26.0
+postgrest==0.17.1
+httpx==0.28.1
 
 # Authentication
 passlib[bcrypt]==1.7.4
-bcrypt==4.1.2
+bcrypt==4.2.1
 python-jose[cryptography]==3.3.0
 
 # Validation and settings
-pydantic==2.5.3
-pydantic-settings==2.1.0
-email-validator==2.1.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.2.0
 
 # HTTP client for async operations
-aiohttp==3.9.1
+aiohttp==3.11.11
 
 # Google Gemini AI
-google-generativeai==0.3.2
+google-generativeai==0.8.3
 
 # Web scraping
 beautifulsoup4==4.12.3
-lxml==5.1.0
-feedparser==6.0.10
+lxml==5.3.0
+feedparser==6.0.11
 
 # Utilities
-python-dotenv==1.0.0
-tenacity==8.2.3
+python-dotenv==1.0.1
+tenacity==9.0.0
 
 # Google OAuth
-google-auth==2.27.0
-google-auth-oauthlib==1.2.0
+google-auth==2.37.0
+google-auth-oauthlib==1.2.1
 google-auth-httplib2==0.2.0
 
 # Production server (Render uses gunicorn)
-gunicorn==21.2.0
+gunicorn==23.0.0
