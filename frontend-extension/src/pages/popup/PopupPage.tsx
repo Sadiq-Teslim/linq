@@ -4,6 +4,7 @@ import { AddCompanySearch } from "@/features/add-company";
 import { MonitorBoard } from "@/widgets/monitor-board";
 import { MarketPulse } from "@/widgets/market-pulse";
 import { ToastProvider } from "@/shared/ui/Toast";
+import { CONFIG } from "@/shared/config";
 import {
   LogOut,
   Sparkles,
@@ -37,7 +38,7 @@ export const PopupPage = () => {
       : "Trial";
 
   const handleOpenDashboard = () => {
-    window.open("https://use-linq.netlify.app/dashboard/overview", "_blank");
+    window.open(`${CONFIG.DASHBOARD_URL}/dashboard/overview`, "_blank");
   };
 
   const handleRefresh = () => {

@@ -1,5 +1,9 @@
-import { api } from './client';
-import type { Organization, SubscriptionInfo } from './types';
+/**
+ * Authentication API
+ * Updated to match backend endpoint structure
+ */
+import { api } from "./client";
+import type { Organization, SubscriptionInfo } from "./types";
 
 export interface LoginRequest {
   username: string; // OAuth2PasswordRequestForm uses 'username' for email
@@ -25,7 +29,7 @@ export interface UserResponse {
   id: string;
   email: string;
   full_name?: string;
-  role: 'owner' | 'admin' | 'member';
+  role: "owner" | "admin" | "member";
   organization_id: string;
   organization_name: string;
   industry: string;
@@ -35,7 +39,7 @@ export interface UserResponse {
 }
 
 export interface SessionStatus {
-  status: 'active' | 'revoked';
+  status: "active" | "revoked";
   user_id: string;
   email: string;
 }
@@ -56,74 +60,71 @@ export interface ActivationResponse {
 }
 
 export const authApi = {
-  // Traditional email/password login (backup method)
+  // Traditional email/password login
+  // Backend: POST /auth/login
   login: async (email: string, password: string): Promise<TokenResponse> => {
     const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', password);
+    formData.append("username", email);
+    formData.append("password", password);
 
-    const response = await api.post<TokenResponse>('/auth/login', formData, {
+    const response = await api.post<TokenResponse>("/auth/login", formData, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
     return response.data;
   },
 
   // Register via web (returns user, payment happens on web)
+  // Backend: POST /auth/register
   register: async (data: RegisterRequest): Promise<UserResponse> => {
-    const response = await api.post<UserResponse>('/auth/register', data);
+    const response = await api.post<UserResponse>("/auth/register", data);
     return response.data;
   },
 
   // Activate extension with access code from web signup
+  // Backend: POST /subscription/access-codes/activate
   activateWithCode: async (accessCode: string): Promise<ActivationResponse> => {
-    const response = await api.post<ActivationResponse>('/subscription/access-codes/activate', {
-      code: accessCode,
-    });
+    const response = await api.post<ActivationResponse>(
+      "/subscription/access-codes/activate",
+      {
+        code: accessCode,
+      }
+    );
     return response.data;
   },
 
   // Validate access code without activating
-  validateCode: async (accessCode: string): Promise<{
+  // Backend: POST /subscription/access-codes/validate
+  validateCode: async (
+    accessCode: string
+  ): Promise<{
     valid: boolean;
     organization_name?: string;
     plan?: string;
     expires_at?: string;
     message?: string;
   }> => {
-    const response = await api.post('/subscription/access-codes/validate', {
+    const response = await api.post("/subscription/access-codes/validate", {
       code: accessCode,
     });
     return response.data;
   },
 
-  // Generate new access code (from web dashboard)
-  generateAccessCode: async (): Promise<{
-    access_code: string;
-    expires_at: string;
-  }> => {
-    const response = await api.post('/auth/generate-code');
-    return response.data;
-  },
-
+  // Backend: POST /auth/logout
   logout: async (): Promise<void> => {
-    await api.post('/auth/logout');
+    await api.post("/auth/logout");
   },
 
+  // Backend: GET /auth/me
   getMe: async (): Promise<UserResponse> => {
-    const response = await api.get<UserResponse>('/auth/me');
+    const response = await api.get<UserResponse>("/auth/me");
     return response.data;
   },
 
+  // Backend: GET /auth/session/status
   checkSession: async (): Promise<SessionStatus> => {
-    const response = await api.get<SessionStatus>('/auth/session/status');
-    return response.data;
-  },
-
-  // Refresh token
-  refreshToken: async (): Promise<TokenResponse> => {
-    const response = await api.post<TokenResponse>('/auth/refresh');
+    const response = await api.get<SessionStatus>("/auth/session/status");
     return response.data;
   },
 };

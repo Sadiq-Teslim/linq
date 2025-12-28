@@ -1,13 +1,14 @@
 /**
  * Industry Feed API - News and updates for user's industry
+ * Updated to match backend endpoint structure
  */
-import { api } from './client';
-import type { IndustryNews, IndustryFeedResponse } from './types';
+import { api } from "./client";
+import type { IndustryNews, IndustryFeedResponse } from "./types";
 
 // Legacy types for backward compatibility
 export interface ActivityFeedItem {
   id: number;
-  event_type: 'funding' | 'partnership' | 'hiring' | 'expansion' | 'news';
+  event_type: "funding" | "partnership" | "hiring" | "expansion" | "news";
   headline: string;
   summary?: string;
   company_name?: string;
@@ -50,33 +51,45 @@ export interface EventType {
 
 export const feedApi = {
   // Get industry-specific news feed based on organization's industry
+  // Backend: GET /feed/industry
   getIndustryFeed: async (
     page = 1,
     limit = 20,
     newsType?: string
   ): Promise<IndustryFeedResponse> => {
-    const params: Record<string, string | number> = { page, limit };
+    const params: Record<string, string | number> = {
+      page,
+      page_size: limit, // Backend uses page_size
+    };
     if (newsType) params.news_type = newsType;
 
-    const response = await api.get<IndustryFeedResponse>('/feed/industry', { params });
-    return response.data;
-  },
-
-  // Bookmark/unbookmark a news item
-  toggleBookmark: async (newsId: string): Promise<IndustryNews> => {
-    const response = await api.post<IndustryNews>(`/feed/industry/${newsId}/bookmark`);
-    return response.data;
-  },
-
-  // Get bookmarked news
-  getBookmarked: async (page = 1, limit = 20): Promise<IndustryFeedResponse> => {
-    const response = await api.get<IndustryFeedResponse>('/feed/industry/bookmarked', {
-      params: { page, limit },
+    const response = await api.get<IndustryFeedResponse>("/feed/industry", {
+      params,
     });
     return response.data;
   },
 
+  // Bookmark/unbookmark a news item
+  // Backend: POST /feed/industry/bookmark with body { news_id: ... }
+  toggleBookmark: async (newsId: string): Promise<{ bookmarked: boolean }> => {
+    const response = await api.post<{ bookmarked: boolean }>(
+      "/feed/industry/bookmark",
+      {
+        news_id: parseInt(newsId, 10),
+      }
+    );
+    return response.data;
+  },
+
+  // Get bookmarked news
+  // Backend: GET /feed/industry/bookmarks (returns array, no pagination)
+  getBookmarked: async (): Promise<IndustryNews[]> => {
+    const response = await api.get<IndustryNews[]>("/feed/industry/bookmarks");
+    return response.data;
+  },
+
   // Legacy feed endpoint (for backward compatibility)
+  // Backend: GET /feed/
   getFeed: async (
     page = 1,
     pageSize = 20,
@@ -87,22 +100,45 @@ export const feedApi = {
     if (eventType) params.event_type = eventType;
     if (industry) params.industry = industry;
 
-    const response = await api.get<FeedResponse>('/feed/', { params });
+    const response = await api.get<FeedResponse>("/feed/", { params });
     return response.data;
   },
 
-  refreshFeed: async (): Promise<{ status: string; items_added: number; timestamp: string }> => {
-    const response = await api.get('/feed/refresh');
+  // Backend: GET /feed/refresh
+  refreshFeed: async (): Promise<{
+    status: string;
+    items_added: number;
+    timestamp: string;
+  }> => {
+    const response = await api.get("/feed/refresh");
     return response.data;
   },
 
+  // Backend: GET /feed/stats
   getStats: async (): Promise<FeedStats> => {
-    const response = await api.get<FeedStats>('/feed/stats');
+    const response = await api.get<FeedStats>("/feed/stats");
     return response.data;
   },
 
+  // Backend: GET /feed/event-types
   getEventTypes: async (): Promise<{ event_types: EventType[] }> => {
-    const response = await api.get('/feed/event-types');
+    const response = await api.get("/feed/event-types");
+    return response.data;
+  },
+
+  // Get news types for industry feed
+  // Backend: GET /feed/industry/news-types
+  getNewsTypes: async (): Promise<{
+    news_types: { value: string; label: string; description: string }[];
+  }> => {
+    const response = await api.get("/feed/industry/news-types");
+    return response.data;
+  },
+
+  // Get available industries
+  // Backend: GET /feed/industry/industries
+  getIndustries: async (): Promise<{ industries: string[] }> => {
+    const response = await api.get("/feed/industry/industries");
     return response.data;
   },
 };

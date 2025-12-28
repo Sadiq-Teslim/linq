@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/entities/user/authStore";
 import { Button } from "@/shared/ui/Button";
+import { CONFIG } from "@/shared/config";
 import {
   Key,
   Sparkles,
@@ -308,7 +309,7 @@ export const LoginPage = () => {
           Don't have an account?
         </p>
         <a
-          href="https://use-linq.netlify.app/auth/signup"
+          href={`${CONFIG.DASHBOARD_URL}/auth/signup`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-1.5 text-sm font-medium text-gold-400 hover:text-gold-300 transition-colors"
