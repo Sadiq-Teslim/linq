@@ -22,20 +22,21 @@ export function useAuthFlow(): AuthFlowResult {
     try {
       // Session check logic will be implemented here
       return false;
-    } catch (err) {
+    } catch {
       setState('error');
       setError('Session check failed');
       return false;
     }
   }, []);
 
-  const startLogin = useCallback(async (email: string, password: string) => {
+  const startLogin = useCallback(async (_email: string, _password: string) => {
     setState('logging_in');
     setError(null);
     try {
-      // Login logic will be implemented here
+      // Login logic will be implemented here using _email and _password
+      console.log('Login attempt:', _email);
       setState('authenticated');
-    } catch (err) {
+    } catch {
       setState('error');
       setError('Login failed');
     }

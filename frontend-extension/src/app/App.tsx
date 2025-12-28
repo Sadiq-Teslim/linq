@@ -7,7 +7,7 @@ function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   return (
-    <div className="font-sans antialiased text-slate-900">
+    <div className="font-sans antialiased bg-navy-950 text-slate-100">
       {isAuthenticated ? <PopupPage /> : <LoginPage />}
     </div>
   );

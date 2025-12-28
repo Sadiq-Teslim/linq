@@ -66,9 +66,9 @@ export const AddCompanySearch = () => {
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
           {isSearching ? (
-            <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
+            <Loader2 className="h-4 w-4 text-gold-400 animate-spin" />
           ) : (
-            <Search className="h-4 w-4 text-slate-400" />
+            <Search className="h-4 w-4 text-slate-500" />
           )}
         </div>
         <input
@@ -77,15 +77,15 @@ export const AddCompanySearch = () => {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query && setShowResults(true)}
           placeholder="Search companies to track..."
-          className="w-full pl-10 pr-10 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm
-                     placeholder:text-slate-400 text-slate-700
-                     focus:outline-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50
+          className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-sm
+                     placeholder:text-slate-500 text-white
+                     focus:outline-none focus:bg-white/[0.07] focus:border-gold-500/30 focus:ring-2 focus:ring-gold-500/10
                      transition-all duration-200"
         />
         {query && (
           <button
             onClick={handleClear}
-            className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+            className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -94,19 +94,19 @@ export const AddCompanySearch = () => {
 
       {/* Search Results Dropdown */}
       {showResults && searchResults.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+        <div className="absolute z-50 w-full mt-2 bg-navy-800 rounded-xl border border-white/10 shadow-xl overflow-hidden">
           <div className="max-h-64 overflow-y-auto">
             {searchResults.map((company, index) => (
               <div
                 key={`${company.name}-${index}`}
-                className={`p-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors ${
+                className={`p-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors ${
                   company.is_already_tracked ? 'opacity-60' : ''
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     {/* Company Logo/Icon */}
-                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0 border border-white/5">
                       {company.logo_url ? (
                         <img
                           src={company.logo_url}
@@ -117,18 +117,18 @@ export const AddCompanySearch = () => {
                           }}
                         />
                       ) : (
-                        <Building2 className="w-5 h-5 text-slate-400" />
+                        <Building2 className="w-5 h-5 text-slate-500" />
                       )}
                     </div>
 
                     {/* Company Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-sm text-slate-800 truncate">
+                        <p className="font-semibold text-sm text-white truncate">
                           {company.name}
                         </p>
                         {company.is_already_tracked && (
-                          <span className="flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
                             <CheckCircle className="w-2.5 h-2.5" />
                             Tracking
                           </span>
@@ -183,11 +183,11 @@ export const AddCompanySearch = () => {
 
       {/* No Results */}
       {showResults && query && !isSearching && searchResults.length === 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white rounded-xl border border-slate-200 shadow-lg p-4">
-          <p className="text-sm text-slate-500 text-center">
+        <div className="absolute z-50 w-full mt-2 bg-navy-800 rounded-xl border border-white/10 shadow-xl p-4">
+          <p className="text-sm text-slate-400 text-center">
             No companies found for "{query}"
           </p>
-          <p className="text-xs text-slate-400 text-center mt-1">
+          <p className="text-xs text-slate-500 text-center mt-1">
             Try a different search term
           </p>
         </div>

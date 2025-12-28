@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://linq-api.onrender.com/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },

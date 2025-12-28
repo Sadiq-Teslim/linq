@@ -9,7 +9,6 @@ import {
   DEMO_PLANS,
   type Organization,
   type TeamMember,
-  type SubscriptionInfo,
   type PlanDetails,
 } from '@/shared/api';
 import { parseApiError } from '@/shared/lib/errors';
@@ -65,7 +64,7 @@ const DEMO_TEAM: TeamMember[] = [
 
 export const useOrganizationStore = create<OrganizationState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       organization: null,
       teamMembers: [],
       plans: DEMO_PLANS,

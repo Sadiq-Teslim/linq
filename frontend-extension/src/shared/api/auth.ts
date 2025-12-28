@@ -77,8 +77,8 @@ export const authApi = {
 
   // Activate extension with access code from web signup
   activateWithCode: async (accessCode: string): Promise<ActivationResponse> => {
-    const response = await api.post<ActivationResponse>('/auth/activate', {
-      access_code: accessCode,
+    const response = await api.post<ActivationResponse>('/subscription/access-codes/activate', {
+      code: accessCode,
     });
     return response.data;
   },
@@ -89,9 +89,10 @@ export const authApi = {
     organization_name?: string;
     plan?: string;
     expires_at?: string;
+    message?: string;
   }> => {
-    const response = await api.post('/auth/validate-code', {
-      access_code: accessCode,
+    const response = await api.post('/subscription/access-codes/validate', {
+      code: accessCode,
     });
     return response.data;
   },

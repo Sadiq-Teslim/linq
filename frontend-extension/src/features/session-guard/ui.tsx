@@ -2,7 +2,7 @@
  * Session Guard Feature
  * Wrapper that listens for session revocation (Netflix model)
  */
-import { ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { useSessionGuard } from './model';
 
 interface SessionGuardProps {

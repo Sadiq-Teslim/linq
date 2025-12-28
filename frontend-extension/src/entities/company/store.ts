@@ -225,7 +225,7 @@ export const useCompanyStore = create<CompanyState>()(
             isLoading: false,
           }));
         } catch (error) {
-          const apiError = parseApiError(error);
+          parseApiError(error); // Log error
           // Demo mode: add locally
           const demoTracked: TrackedCompany = {
             id: `company-${Date.now()}`,

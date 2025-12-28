@@ -7,9 +7,8 @@
 function detectCompanyInfo(): { name?: string; domain?: string } | null {
   const domain = window.location.hostname;
 
-  // Try to extract company name from page title or meta tags
+  // Try to extract company name from page title
   const title = document.title;
-  const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content');
 
   return {
     domain,
@@ -18,13 +17,15 @@ function detectCompanyInfo(): { name?: string; domain?: string } | null {
 }
 
 // Listen for messages from the extension popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'GET_PAGE_INFO') {
-    const companyInfo = detectCompanyInfo();
-    sendResponse(companyInfo);
+chrome.runtime.onMessage.addListener(
+  (message: { type: string }, _sender: chrome.runtime.MessageSender, sendResponse: (response: unknown) => void) => {
+    if (message.type === 'GET_PAGE_INFO') {
+      const companyInfo = detectCompanyInfo();
+      sendResponse(companyInfo);
+    }
+    return true;
   }
-  return true;
-});
+);
 
 // Notify that content script is ready
 console.log('LINQ AI Content Script loaded');

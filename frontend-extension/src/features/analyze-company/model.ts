@@ -14,14 +14,15 @@ export function useAnalyzeCompany() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const analyze = useCallback(async (companyName: string) => {
+  const analyze = useCallback(async (_companyName: string) => {
     setIsLoading(true);
     setError(null);
     try {
       // API call will be implemented here
-      // const response = await api.analyzeCompany(companyName);
+      // const response = await api.analyzeCompany(_companyName);
       // setResult(response);
-    } catch (err) {
+      setResult(null); // Placeholder
+    } catch {
       setError('Failed to analyze company');
     } finally {
       setIsLoading(false);

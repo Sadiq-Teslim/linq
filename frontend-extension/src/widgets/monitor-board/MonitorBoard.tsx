@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useCompanyStore } from '@/entities/company/store';
 import {
-  Building2, Star, StarOff, RefreshCw, ExternalLink, Bell, Clock,
+  Building2, Star, StarOff, ExternalLink, Bell, Clock,
   ChevronRight, Users, Trash2, MoreVertical
 } from 'lucide-react';
 import { useState } from 'react';
@@ -57,18 +57,18 @@ export const MonitorBoard = () => {
 
   if (isLoading && trackedCompanies.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-        <div className="p-4 border-b border-slate-100">
-          <div className="h-5 bg-slate-200 rounded w-32 animate-pulse" />
+      <div className="bg-white/[0.02] rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm">
+        <div className="p-4 border-b border-white/5">
+          <div className="h-5 bg-white/10 rounded w-32 animate-pulse" />
         </div>
         <div className="p-3 space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-3 rounded-xl bg-slate-50 animate-pulse">
+            <div key={i} className="p-3 rounded-xl bg-white/[0.02] animate-pulse">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-slate-200" />
+                <div className="w-10 h-10 rounded-lg bg-white/10" />
                 <div className="flex-1">
-                  <div className="h-4 bg-slate-200 rounded w-24 mb-1" />
-                  <div className="h-3 bg-slate-200 rounded w-16" />
+                  <div className="h-4 bg-white/10 rounded w-24 mb-1" />
+                  <div className="h-3 bg-white/10 rounded w-16" />
                 </div>
               </div>
             </div>
@@ -80,12 +80,12 @@ export const MonitorBoard = () => {
 
   if (trackedCompanies.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 p-6">
+      <div className="bg-white/[0.02] rounded-2xl border border-white/5 p-6 backdrop-blur-sm">
         <div className="flex flex-col items-center text-center py-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mb-4">
-            <Building2 className="w-7 h-7 text-indigo-600" />
+          <div className="w-14 h-14 bg-gradient-to-br from-gold-500/20 to-gold-400/10 rounded-2xl flex items-center justify-center mb-4">
+            <Building2 className="w-7 h-7 text-gold-400" />
           </div>
-          <h3 className="font-semibold text-slate-800 text-sm">No Companies Yet</h3>
+          <h3 className="font-semibold text-white text-sm">No Companies Yet</h3>
           <p className="text-slate-500 text-xs mt-1 max-w-[200px]">
             Search and add companies above to start monitoring their updates
           </p>
@@ -95,17 +95,18 @@ export const MonitorBoard = () => {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+    <div className="bg-white/[0.02] rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-slate-800">Monitor Board</h3>
-          <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+          <div className="w-1.5 h-5 bg-gradient-to-b from-gold-500 to-gold-400 rounded-full" />
+          <h3 className="text-sm font-semibold text-white">Monitor Board</h3>
+          <span className="text-[10px] bg-white/5 text-slate-400 px-2 py-0.5 rounded-full border border-white/5">
             {trackedCompanies.length} companies
           </span>
         </div>
         {unreadCount > 0 && (
-          <span className="flex items-center gap-1 text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded-full">
+          <span className="flex items-center gap-1 text-[10px] bg-gold-500/10 text-gold-400 px-2 py-1 rounded-full border border-gold-500/20">
             <Bell className="w-3 h-3" />
             {unreadCount} new
           </span>
@@ -113,19 +114,19 @@ export const MonitorBoard = () => {
       </div>
 
       {/* Company List */}
-      <div className="divide-y divide-slate-50 max-h-64 overflow-y-auto">
+      <div className="divide-y divide-white/5 max-h-64 overflow-y-auto">
         {sortedCompanies.map((company) => {
           const companyUpdates = updates.filter((u) => u.company_id === company.id && !u.is_read);
 
           return (
             <div
               key={company.id}
-              className="relative group hover:bg-slate-50/50 transition-colors"
+              className="relative group hover:bg-white/[0.02] transition-colors"
             >
               <div className="p-3 flex items-center gap-3">
                 {/* Logo */}
                 <div className="relative">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
+                  <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-white/5">
                     {company.logo_url ? (
                       <img
                         src={company.logo_url}
@@ -134,17 +135,17 @@ export const MonitorBoard = () => {
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                           (e.target as HTMLImageElement).parentElement!.innerHTML =
-                            '<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>';
+                            '<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>';
                         }}
                       />
                     ) : (
-                      <Building2 className="w-5 h-5 text-slate-400" />
+                      <Building2 className="w-5 h-5 text-slate-500" />
                     )}
                   </div>
                   {/* Priority indicator */}
                   {company.is_priority && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
-                      <Star className="w-2.5 h-2.5 text-white fill-white" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 rounded-full flex items-center justify-center">
+                      <Star className="w-2.5 h-2.5 text-navy-950 fill-navy-950" />
                     </div>
                   )}
                 </div>
@@ -155,11 +156,11 @@ export const MonitorBoard = () => {
                   onClick={() => selectCompany(company.id)}
                 >
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm text-slate-800 truncate">
+                    <p className="font-medium text-sm text-white truncate">
                       {company.company_name}
                     </p>
                     {companyUpdates.length > 0 && (
-                      <span className="flex items-center justify-center w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full">
+                      <span className="flex items-center justify-center w-4 h-4 bg-gold-500 text-navy-950 text-[9px] font-bold rounded-full">
                         {companyUpdates.length}
                       </span>
                     )}
@@ -168,7 +169,7 @@ export const MonitorBoard = () => {
                     {company.industry && (
                       <span className="text-[10px] text-slate-500">{company.industry}</span>
                     )}
-                    <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
+                    <span className="text-[10px] text-slate-600 flex items-center gap-0.5">
                       <Clock className="w-2.5 h-2.5" />
                       {formatTimeAgo(company.last_updated)}
                     </span>
@@ -181,8 +182,8 @@ export const MonitorBoard = () => {
                     onClick={() => togglePriority(company.id, company.is_priority)}
                     className={`p-1.5 rounded-lg transition-colors ${
                       company.is_priority
-                        ? 'text-amber-500 hover:bg-amber-50'
-                        : 'text-slate-400 hover:bg-slate-100 hover:text-amber-500'
+                        ? 'text-gold-400 hover:bg-gold-500/10'
+                        : 'text-slate-500 hover:bg-white/5 hover:text-gold-400'
                     }`}
                     title={company.is_priority ? 'Remove priority' : 'Mark as priority'}
                   >
@@ -196,7 +197,7 @@ export const MonitorBoard = () => {
                   <div className="relative">
                     <button
                       onClick={() => setExpandedMenu(expandedMenu === company.id ? null : company.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                      className="p-1.5 rounded-lg text-slate-500 hover:bg-white/5 hover:text-slate-300 transition-colors"
                     >
                       <MoreVertical className="w-4 h-4" />
                     </button>
@@ -207,10 +208,10 @@ export const MonitorBoard = () => {
                           className="fixed inset-0 z-40"
                           onClick={() => setExpandedMenu(null)}
                         />
-                        <div className="absolute right-0 top-8 z-50 bg-white rounded-lg shadow-lg border border-slate-100 py-1 w-36">
+                        <div className="absolute right-0 top-8 z-50 bg-navy-800 rounded-lg shadow-xl border border-white/10 py-1 w-36">
                           <button
                             onClick={() => selectCompany(company.id)}
-                            className="w-full px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 flex items-center gap-2"
+                            className="w-full px-3 py-2 text-left text-xs text-slate-300 hover:bg-white/5 flex items-center gap-2"
                           >
                             <Users className="w-3.5 h-3.5" />
                             View Contacts
@@ -220,7 +221,7 @@ export const MonitorBoard = () => {
                               href={company.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-full px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 flex items-center gap-2"
+                              className="w-full px-3 py-2 text-left text-xs text-slate-300 hover:bg-white/5 flex items-center gap-2"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                               Visit Website
@@ -228,7 +229,7 @@ export const MonitorBoard = () => {
                           )}
                           <button
                             onClick={() => handleUntrack(company.id)}
-                            className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            className="w-full px-3 py-2 text-left text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             Stop Tracking
@@ -238,7 +239,7 @@ export const MonitorBoard = () => {
                     )}
                   </div>
 
-                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                  <ChevronRight className="w-4 h-4 text-slate-600" />
                 </div>
               </div>
             </div>
@@ -247,8 +248,8 @@ export const MonitorBoard = () => {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/50">
-        <button className="text-[10px] text-indigo-600 hover:text-indigo-700 font-medium">
+      <div className="px-4 py-2 border-t border-white/5 bg-white/[0.01]">
+        <button className="text-[10px] text-gold-400 hover:text-gold-300 font-medium transition-colors">
           View all companies →
         </button>
       </div>

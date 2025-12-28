@@ -7,23 +7,50 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#4f46e5', // Indigo
-        secondary: '#8b5cf6', // Purple
-        bg: '#f8fafc', // Light Background
+        navy: {
+          950: '#0a0f1c',
+          900: '#0f172a',
+          800: '#1e293b',
+          700: '#334155',
+          600: '#475569',
+          500: '#64748b',
+          400: '#94a3b8',
+          300: '#cbd5e1',
+          200: '#e2e8f0',
+          100: '#f1f5f9',
+        },
+        gold: {
+          500: '#d4a853',
+          400: '#e5be6a',
+          300: '#f0d590',
+        },
+        primary: '#d4a853',
+        secondary: '#e5be6a',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        serif: ['DM Serif Display', 'serif'],
       },
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-out forwards',
+        'fade-in-up': 'fadeInUp 0.4s ease-out forwards',
+        'scale-in': 'scaleIn 0.2s ease-out forwards',
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-in-right': 'slideInRight 0.3s ease-out',
-        'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
@@ -33,15 +60,15 @@ export default {
           '0%': { opacity: '0', transform: 'translateX(100%)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
-        pulseSoft: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.7' },
+        pulseGlow: {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(212, 168, 83, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(212, 168, 83, 0.5)' },
         },
       },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'glow-indigo': '0 0 20px rgba(79, 70, 229, 0.3)',
-        'glow-emerald': '0 0 20px rgba(16, 185, 129, 0.3)',
+        'glow-gold': '0 0 20px rgba(212, 168, 83, 0.3)',
+        'glow-green': '0 0 20px rgba(16, 185, 129, 0.3)',
       },
     },
   },

@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 body {
-    margin: 0;
-    padding: 0;
-    width: 350px;
-    height: 500px; /* Fixed size for extension popup */
+  margin: 0;
+  padding: 0;
+  width: 380px;
+  height: 560px;
+  background: linear-gradient(180deg, #0a0f1c 0%, #0f172a 100%);
+  color: #f1f5f9;
 }

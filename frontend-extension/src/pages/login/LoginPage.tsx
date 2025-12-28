@@ -9,6 +9,7 @@ export const LoginPage = () => {
     valid: boolean;
     organization_name?: string;
     plan?: string;
+    message?: string;
   } | null>(null);
 
   const {
@@ -25,7 +26,7 @@ export const LoginPage = () => {
     clearError();
     setValidationResult(null);
 
-    // Auto-validate when code looks complete (format: LINQ-XXXX-XXXX or similar)
+    // Auto-validate when code looks complete
     if (code.length >= 4) {
       const result = await validateAccessCode(code);
       setValidationResult(result);
@@ -38,70 +39,103 @@ export const LoginPage = () => {
     await activateWithCode(accessCode.trim());
   };
 
+  const formatPlan = (plan?: string) => {
+    if (!plan) return 'Free Trial';
+    return plan.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
   return (
-    <div className="h-[500px] w-[350px] flex flex-col bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+    <div className="h-[560px] w-[380px] flex flex-col bg-gradient-to-b from-navy-950 to-navy-900">
+      {/* Decorative Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-gold-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gold-500/3 rounded-full blur-3xl" />
+      </div>
+
+      {/* Main Content */}
+      <div className="relative flex-1 flex flex-col items-center justify-center p-6 z-10">
         {/* Logo */}
-        <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/25 mb-4">
-          <Sparkles className="w-8 h-8 text-white" />
+        <div className="mb-8 text-center animate-fade-in-up">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gold-500 to-gold-400 flex items-center justify-center shadow-lg shadow-gold-500/30 animate-pulse-glow">
+            <Sparkles className="w-8 h-8 text-navy-950" />
+          </div>
+          <h1 className="text-3xl font-serif text-white mb-1">LINQ</h1>
+          <p className="text-sm text-slate-400">
+            B2B Sales Intelligence
+          </p>
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-1">LINQ AI</h1>
-        <p className="text-sm text-slate-500 mb-8 text-center">
-          B2B Sales Intelligence Platform
-        </p>
-
         {/* Access Code Form */}
-        <form onSubmit={handleActivate} className="w-full space-y-4">
+        <form onSubmit={handleActivate} className="w-full space-y-5 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-2">
+            <label className="block text-xs font-medium text-slate-400 mb-2.5 uppercase tracking-wider">
               Enter your access code
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <Key className="h-4 w-4 text-slate-400" />
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Key className="h-4 w-4 text-slate-500" />
               </div>
               <input
                 type="text"
                 placeholder="LINQ-XXXX-XXXX"
                 value={accessCode}
                 onChange={(e) => handleCodeChange(e.target.value.toUpperCase())}
-                className="w-full pl-10 pr-10 py-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-mono
-                           placeholder:text-slate-400 text-slate-700 uppercase tracking-wider
-                           focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50
+                className="w-full pl-11 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-sm font-mono
+                           placeholder:text-slate-600 text-white uppercase tracking-wider
+                           focus:outline-none focus:border-gold-500/50 focus:ring-2 focus:ring-gold-500/20
                            transition-all duration-200"
               />
               {/* Validation indicator */}
-              <div className="absolute inset-y-0 right-3 flex items-center">
+              <div className="absolute inset-y-0 right-4 flex items-center">
                 {isValidating && (
-                  <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                  <Loader2 className="w-4 h-4 text-gold-400 animate-spin" />
                 )}
                 {!isValidating && validationResult?.valid && (
-                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
                 )}
                 {!isValidating && validationResult && !validationResult.valid && accessCode.length >= 4 && (
-                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  <AlertCircle className="w-4 h-4 text-red-400" />
                 )}
               </div>
             </div>
 
             {/* Validation feedback */}
             {validationResult?.valid && (
-              <div className="mt-2 p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
-                <p className="text-xs text-emerald-700 font-medium">
-                  {validationResult.organization_name}
-                </p>
-                <p className="text-[10px] text-emerald-600 mt-0.5">
-                  {validationResult.plan} Plan
-                </p>
+              <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-emerald-300 font-medium">
+                      {validationResult.organization_name}
+                    </p>
+                    <p className="text-xs text-emerald-400/80">
+                      {formatPlan(validationResult.plan)} Plan
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {validationResult && !validationResult.valid && accessCode.length >= 4 && (
+              <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <p className="text-sm text-red-300">
+                    {validationResult.message || 'Invalid access code'}
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
-              <p className="text-xs text-red-600">{error}</p>
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-fade-in">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <p className="text-sm text-red-300">{error}</p>
+              </div>
             </div>
           )}
 
@@ -110,6 +144,7 @@ export const LoginPage = () => {
             isLoading={isLoading}
             disabled={!accessCode.trim() || (validationResult !== null && !validationResult.valid)}
             className="w-full"
+            size="lg"
           >
             <Key className="w-4 h-4" />
             Activate Extension
@@ -117,28 +152,28 @@ export const LoginPage = () => {
         </form>
 
         {/* Demo hint */}
-        <div className="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-lg w-full">
-          <p className="text-[10px] text-indigo-600 text-center">
-            <span className="font-semibold">Demo Mode:</span> Use code{' '}
-            <code className="bg-indigo-100 px-1.5 py-0.5 rounded font-mono">DEMO</code>
+        <div className="mt-5 p-3 bg-gold-500/5 border border-gold-500/10 rounded-xl w-full animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <p className="text-xs text-gold-300/80 text-center">
+            <span className="font-medium">Demo Mode:</span> Use code{' '}
+            <code className="bg-gold-500/10 px-1.5 py-0.5 rounded font-mono text-gold-400">DEMO</code>
             {' '}to try LINQ
           </p>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-100 bg-white/80">
-        <p className="text-[10px] text-slate-500 text-center mb-2">
+      <div className="relative p-4 border-t border-white/5 bg-navy-950/50 backdrop-blur-sm z-10">
+        <p className="text-xs text-slate-500 text-center mb-2">
           Don't have an access code?
         </p>
         <a
-          href="https://linq.ai/signup"
+          href="https://use-linq.netlify.app/auth/signup"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+          className="flex items-center justify-center gap-1.5 text-sm font-medium text-gold-400 hover:text-gold-300 transition-colors"
         >
           Sign up at linq.ai
-          <ExternalLink className="w-3 h-3" />
+          <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
     </div>

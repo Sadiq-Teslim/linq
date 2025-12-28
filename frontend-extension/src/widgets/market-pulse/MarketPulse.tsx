@@ -17,57 +17,57 @@ const getNewsConfig = (newsType: string) => {
     case 'funding':
       return {
         icon: DollarSign,
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-200',
-        text: 'text-emerald-700',
+        bg: 'bg-emerald-500/10',
+        border: 'border-emerald-500/20',
+        text: 'text-emerald-400',
         label: 'Funding'
       };
     case 'merger':
       return {
         icon: Handshake,
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        text: 'text-blue-700',
+        bg: 'bg-blue-500/10',
+        border: 'border-blue-500/20',
+        text: 'text-blue-400',
         label: 'M&A'
       };
     case 'expansion':
       return {
         icon: TrendingUp,
-        bg: 'bg-orange-50',
-        border: 'border-orange-200',
-        text: 'text-orange-700',
+        bg: 'bg-orange-500/10',
+        border: 'border-orange-500/20',
+        text: 'text-orange-400',
         label: 'Expansion'
       };
     case 'product':
       return {
         icon: Rocket,
-        bg: 'bg-purple-50',
-        border: 'border-purple-200',
-        text: 'text-purple-700',
+        bg: 'bg-purple-500/10',
+        border: 'border-purple-500/20',
+        text: 'text-purple-400',
         label: 'Product'
       };
     case 'partnership':
       return {
         icon: Layers,
-        bg: 'bg-indigo-50',
-        border: 'border-indigo-200',
-        text: 'text-indigo-700',
+        bg: 'bg-indigo-500/10',
+        border: 'border-indigo-500/20',
+        text: 'text-indigo-400',
         label: 'Partnership'
       };
     case 'regulation':
       return {
         icon: Scale,
-        bg: 'bg-slate-50',
-        border: 'border-slate-200',
-        text: 'text-slate-700',
+        bg: 'bg-slate-500/10',
+        border: 'border-slate-500/20',
+        text: 'text-slate-400',
         label: 'Regulation'
       };
     default:
       return {
         icon: Sparkles,
-        bg: 'bg-pink-50',
-        border: 'border-pink-200',
-        text: 'text-pink-700',
+        bg: 'bg-gold-500/10',
+        border: 'border-gold-500/20',
+        text: 'text-gold-400',
         label: 'Trend'
       };
   }
@@ -202,167 +202,163 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
   // Loading State
   if (isLoading) {
     return (
-      <div className="mt-5">
-        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-white/20 animate-pulse" />
-              <div className="h-4 bg-white/20 rounded w-28 animate-pulse" />
-            </div>
+      <div className="bg-white/[0.02] rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm">
+        <div className="bg-gradient-to-r from-gold-500/20 to-gold-400/10 px-4 py-3 border-b border-white/5">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full bg-white/10 animate-pulse" />
+            <div className="h-4 bg-white/10 rounded w-28 animate-pulse" />
           </div>
-          <div className="p-3 space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="p-3 rounded-xl bg-slate-50 animate-pulse">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-200" />
-                  <div className="flex-1">
-                    <div className="h-3 bg-slate-200 rounded w-16 mb-2" />
-                    <div className="h-4 bg-slate-200 rounded w-full" />
-                  </div>
+        </div>
+        <div className="p-3 space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-3 rounded-xl bg-white/[0.02] animate-pulse">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/10" />
+                <div className="flex-1">
+                  <div className="h-3 bg-white/10 rounded w-16 mb-2" />
+                  <div className="h-4 bg-white/10 rounded w-full" />
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mt-5">
-      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center">
-                <Radio className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-white">Industry Pulse</h3>
-                <span className="text-[10px] text-white/60">{industry}</span>
-              </div>
+    <div className="bg-white/[0.02] rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-gold-500/10 to-transparent px-4 py-3 border-b border-white/5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-gold-500/10 rounded-lg flex items-center justify-center border border-gold-500/20">
+              <Radio className="w-4 h-4 text-gold-400" />
             </div>
-            <button
-              onClick={() => fetchFeed(true)}
-              disabled={isRefreshing}
-              className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10
-                       text-white/80 hover:bg-white/20 hover:text-white transition-all"
-              title="Refresh feed"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
+            <div>
+              <h3 className="text-sm font-semibold text-white">Industry Pulse</h3>
+              <span className="text-[10px] text-slate-500">{industry}</span>
+            </div>
           </div>
+          <button
+            onClick={() => fetchFeed(true)}
+            disabled={isRefreshing}
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5
+                     text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+            title="Refresh feed"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="p-3">
-          {error && items.length === 0 ? (
-            <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-100 p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-red-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-red-800">Failed to load</p>
-                  <p className="text-xs text-red-600 mt-0.5">{error}</p>
-                </div>
-                <button
-                  onClick={() => fetchFeed()}
-                  className="text-xs font-medium text-red-700 hover:text-red-800 flex items-center gap-1"
-                >
-                  <RefreshCw className="w-3 h-3" /> Retry
-                </button>
+      {/* Content */}
+      <div className="p-3">
+        {error && items.length === 0 ? (
+          <div className="bg-red-500/10 rounded-xl border border-red-500/20 p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-500/10 rounded-lg border border-red-500/20">
+                <AlertCircle className="w-4 h-4 text-red-400" />
               </div>
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-52 overflow-y-auto">
-              {items.map((item) => {
-                const config = getNewsConfig(item.news_type);
-                const Icon = config.icon;
-
-                return (
-                  <div
-                    key={item.id}
-                    className="group relative p-3 rounded-xl border bg-slate-50/50 border-slate-100
-                               hover:border-slate-200 hover:bg-white hover:shadow-sm transition-all"
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Icon */}
-                      <div className={`p-2 rounded-lg ${config.bg} ${config.border} border flex-shrink-0`}>
-                        <Icon className={`w-4 h-4 ${config.text}`} />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-[10px] font-bold uppercase tracking-wide ${config.text}`}>
-                            {config.label}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            {formatTimeAgo(item.published_at)}
-                          </span>
-                        </div>
-                        <p className="text-xs font-medium text-slate-700 leading-relaxed line-clamp-2 group-hover:text-slate-900 transition-colors">
-                          {item.headline}
-                        </p>
-                        {item.companies_mentioned.length > 0 && (
-                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                            {item.companies_mentioned.slice(0, 3).map((company, i) => (
-                              <span
-                                key={i}
-                                className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded"
-                              >
-                                {company}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => toggleBookmark(item.id)}
-                          className={`p-1.5 rounded-lg transition-colors ${
-                            item.is_bookmarked
-                              ? 'text-indigo-600 bg-indigo-50'
-                              : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'
-                          }`}
-                        >
-                          {item.is_bookmarked ? (
-                            <BookmarkCheck className="w-3.5 h-3.5" />
-                          ) : (
-                            <Bookmark className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                        <a
-                          href={item.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Footer */}
-          {items.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-slate-100">
-              <button className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors py-1.5">
-                <Zap className="w-3 h-3" />
-                View all {industry} news
-                <ArrowRight className="w-3 h-3" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-400">Failed to load</p>
+                <p className="text-xs text-red-400/70 mt-0.5">{error}</p>
+              </div>
+              <button
+                onClick={() => fetchFeed()}
+                className="text-xs font-medium text-red-400 hover:text-red-300 flex items-center gap-1"
+              >
+                <RefreshCw className="w-3 h-3" /> Retry
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-52 overflow-y-auto">
+            {items.map((item) => {
+              const config = getNewsConfig(item.news_type);
+              const Icon = config.icon;
+
+              return (
+                <div
+                  key={item.id}
+                  className="group relative p-3 rounded-xl border bg-white/[0.02] border-white/5
+                             hover:border-white/10 hover:bg-white/[0.03] transition-all"
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Icon */}
+                    <div className={`p-2 rounded-lg ${config.bg} ${config.border} border flex-shrink-0`}>
+                      <Icon className={`w-4 h-4 ${config.text}`} />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-bold uppercase tracking-wide ${config.text}`}>
+                          {config.label}
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          {formatTimeAgo(item.published_at)}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-slate-300 leading-relaxed line-clamp-2 group-hover:text-white transition-colors">
+                        {item.headline}
+                      </p>
+                      {item.companies_mentioned.length > 0 && (
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          {item.companies_mentioned.slice(0, 3).map((company, i) => (
+                            <span
+                              key={i}
+                              className="text-[9px] bg-white/5 text-slate-400 px-1.5 py-0.5 rounded border border-white/5"
+                            >
+                              {company}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => toggleBookmark(item.id)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          item.is_bookmarked
+                            ? 'text-gold-400 bg-gold-500/10'
+                            : 'text-slate-500 hover:text-gold-400 hover:bg-gold-500/10'
+                        }`}
+                      >
+                        {item.is_bookmarked ? (
+                          <BookmarkCheck className="w-3.5 h-3.5" />
+                        ) : (
+                          <Bookmark className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      <a
+                        href={item.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Footer */}
+        {items.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-white/5">
+            <button className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-slate-500 hover:text-gold-400 transition-colors py-1.5">
+              <Zap className="w-3 h-3" />
+              View all {industry} news
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
