@@ -5,7 +5,7 @@ import { PopupPage } from "@/pages/popup/PopupPage";
 import "./styles/index.css";
 
 function App() {
-  const { isAuthenticated, isActivated, checkSession, token } = useAuthStore();
+  const { isAuthenticated, checkSession, token } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
 
   // Check session on mount
@@ -47,7 +47,7 @@ function App() {
 
   return (
     <div className="font-sans antialiased bg-navy-950 text-slate-100">
-      {isAuthenticated && isActivated ? <PopupPage /> : <LoginPage />}
+      {isAuthenticated ? <PopupPage /> : <LoginPage />}
     </div>
   );
 }

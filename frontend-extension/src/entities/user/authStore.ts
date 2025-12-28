@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { authApi, type UserResponse, type Organization } from '@/shared/api';
-import { parseApiError } from '@/shared/lib/errors';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { authApi, type UserResponse, type Organization } from "@/shared/api";
+import { parseApiError } from "@/shared/lib/errors";
 
 interface AuthState {
   token: string | null;
@@ -13,11 +13,17 @@ interface AuthState {
   isValidating: boolean;
   error: string | null;
 
-  // Login with email/password (like web app)
+  // Combined login: email + password + access code (one-time)
+  loginWithAccessCode: (
+    email: string,
+    password: string,
+    accessCode: string
+  ) => Promise<boolean>;
+
+  // Login with email/password only (after first activation)
   login: (email: string, password: string) => Promise<boolean>;
-  
-  // First-time activation with access code
-  activateWithCode: (accessCode: string) => Promise<boolean>;
+
+  // Validate access code
   validateAccessCode: (accessCode: string) => Promise<{
     valid: boolean;
     organization_name?: string;
@@ -43,22 +49,54 @@ export const useAuthStore = create<AuthState>()(
       isValidating: false,
       error: null,
 
-      // Login with email/password
-      login: async (email: string, password: string) => {
+      // Combined login: email + password + access code
+      loginWithAccessCode: async (
+        email: string,
+        password: string,
+        accessCode: string
+      ) => {
         set({ isLoading: true, error: null });
 
         try {
+          // Step 1: Validate and activate the access code
+          const activationResponse = await authApi.activateWithCode(accessCode);
+
+          if (!activationResponse.success) {
+            set({
+              isLoading: false,
+              error: activationResponse.message || "Invalid access code",
+            });
+            return false;
+          }
+
+          // Step 2: Login with email/password
           const tokenResponse = await authApi.login(email, password);
+
+          // Store the token
           set({ token: tokenResponse.access_token });
 
-          // Fetch user details
+          // Step 3: Fetch user details
           const user = await authApi.getMe();
-          
+
+          // Check if user has an active subscription
+          const subscription = user.subscription;
+          if (!subscription || subscription.status !== "active") {
+            set({
+              isLoading: false,
+              error: "Your subscription is not active. Please subscribe first.",
+              token: null,
+            });
+            return false;
+          }
+
           set({
             user,
+            organization: activationResponse.organization || null,
             isAuthenticated: true,
+            isActivated: true,
             isLoading: false,
           });
+
           return true;
         } catch (error) {
           const apiError = parseApiError(error);
@@ -72,39 +110,33 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // First-time activation with access code
-      activateWithCode: async (accessCode: string) => {
+      // Login with email/password only (after first activation)
+      login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
 
         try {
-          const response = await authApi.activateWithCode(accessCode);
-          
-          if (!response.success) {
+          const tokenResponse = await authApi.login(email, password);
+          set({ token: tokenResponse.access_token });
+
+          // Fetch user details
+          const user = await authApi.getMe();
+
+          // Check if user has an active subscription
+          const subscription = user.subscription;
+          if (!subscription || subscription.status !== "active") {
             set({
               isLoading: false,
-              error: response.message || 'Activation failed',
+              error: "Your subscription is not active. Please subscribe first.",
+              token: null,
             });
             return false;
           }
 
           set({
-            token: response.access_token || null,
-            organization: response.organization || null,
-            isActivated: true,
+            user,
             isAuthenticated: true,
             isLoading: false,
           });
-          
-          // Fetch user details after activation
-          if (response.access_token) {
-            try {
-              const user = await authApi.getMe();
-              set({ user });
-            } catch {
-              // If getMe fails, we still activated successfully
-            }
-          }
-          
           return true;
         } catch (error) {
           const apiError = parseApiError(error);
@@ -128,7 +160,7 @@ export const useAuthStore = create<AuthState>()(
           return result;
         } catch {
           set({ isValidating: false });
-          return { valid: false, message: 'Failed to validate code' };
+          return { valid: false, message: "Failed to validate code" };
         }
       },
 
@@ -146,7 +178,7 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           organization: null,
           isAuthenticated: false,
-          // Keep isActivated - they don't need to re-enter access code
+          isActivated: false, // Reset activation on logout
         });
       },
 
@@ -156,15 +188,25 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const status = await authApi.checkSession();
-          if (status.status === 'active') {
+          if (status.status === "active") {
             const user = await authApi.getMe();
             set({ user, isAuthenticated: true });
             return true;
           }
-          set({ token: null, user: null, organization: null, isAuthenticated: false });
+          set({
+            token: null,
+            user: null,
+            organization: null,
+            isAuthenticated: false,
+          });
           return false;
         } catch {
-          set({ token: null, user: null, organization: null, isAuthenticated: false });
+          set({
+            token: null,
+            user: null,
+            organization: null,
+            isAuthenticated: false,
+          });
           return false;
         }
       },
@@ -184,7 +226,7 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'linq-extension-auth',
+      name: "linq-extension-auth",
       partialize: (state) => ({
         token: state.token,
         user: state.user,
