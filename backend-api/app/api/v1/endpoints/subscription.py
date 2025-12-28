@@ -331,7 +331,7 @@ def generate_access_code_endpoint(
         )
 
     # Get organization info
-    org_result = supabase.table("organizations").select("*, subscriptions(plan)").eq("id", org_id).execute()
+    org_result = supabase.table("organizations").select("*, subscriptions!organizations_subscription_id_fkey(plan)").eq("id", org_id).execute()
 
     if not org_result.data:
         raise HTTPException(
@@ -386,7 +386,7 @@ def list_access_codes(
         )
 
     # Get organization info
-    org_result = supabase.table("organizations").select("name, subscriptions(plan)").eq("id", org_id).execute()
+    org_result = supabase.table("organizations").select("name, subscriptions!organizations_subscription_id_fkey(plan)").eq("id", org_id).execute()
     org = org_result.data[0] if org_result.data else {}
 
     result = supabase.table("access_codes").select("*").eq("organization_id", org_id).order("created_at", desc=True).execute()
@@ -417,7 +417,7 @@ def validate_access_code(
             message="Demo access code valid",
         )
 
-    result = supabase.table("access_codes").select("*, organizations(name, subscriptions(plan))").eq("code", data.code).execute()
+    result = supabase.table("access_codes").select("*, organizations(name, subscriptions!organizations_subscription_id_fkey(plan))").eq("code", data.code).execute()
 
     if not result.data:
         return AccessCodeValidationResult(
@@ -484,7 +484,7 @@ def activate_access_code(
         )
 
     # Validate code first
-    result = supabase.table("access_codes").select("*, organizations(id, name, subscriptions(plan))").eq("code", data.code).execute()
+    result = supabase.table("access_codes").select("*, organizations(id, name, subscriptions!organizations_subscription_id_fkey(plan))").eq("code", data.code).execute()
 
     if not result.data:
         return ActivationResult(

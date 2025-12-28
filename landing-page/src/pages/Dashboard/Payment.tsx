@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
+import { AlertModal } from "../../components/Modal";
 
 export const DashboardPayment = () => {
   const { token } = useAuthStore();
@@ -10,6 +11,19 @@ export const DashboardPayment = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    message: string;
+    type: "success" | "error" | "info" | "warning";
+  }>({ title: "", message: "", type: "info" });
+
+  const showModal = (title: string, message: string, type: "success" | "error" | "info" | "warning" = "info") => {
+    setModalConfig({ title, message, type });
+    setModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,11 +63,15 @@ export const DashboardPayment = () => {
       if (response.data.authorization_url) {
         window.location.href = response.data.authorization_url;
       } else {
-        alert("No payment URL returned. Please try again.");
+        showModal("Error", "No payment URL returned. Please try again.", "error");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment initialization failed:", error);
-      alert("Failed to initialize payment. Please try again.");
+      showModal(
+        "Payment Error",
+        error.response?.data?.detail || "Failed to initialize payment. Please try again.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -77,6 +95,15 @@ export const DashboardPayment = () => {
 
   return (
     <div className="space-y-8">
+      {/* Modal */}
+      <AlertModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
+
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-serif text-white mb-2">Billing & Plans</h1>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
+import { AlertModal, ConfirmModal } from "../../components/Modal";
 
 export const DashboardSettings = () => {
   const { token, user } = useAuthStore();
@@ -11,6 +12,23 @@ export const DashboardSettings = () => {
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    message: string;
+    type: "success" | "error" | "info" | "warning";
+  }>({ title: "", message: "", type: "info" });
+  
+  // Confirm modal state for member removal
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<{ id: number; email: string } | null>(null);
+
+  const showModal = (title: string, message: string, type: "success" | "error" | "info" | "warning" = "info") => {
+    setModalConfig({ title, message, type });
+    setModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -49,19 +67,31 @@ export const DashboardSettings = () => {
     }
   };
 
-  const handleRemove = async (userId: number) => {
-    if (!token) return;
-    if (!confirm("Are you sure you want to remove this team member?")) return;
+  const openRemoveConfirm = (userId: number, email: string) => {
+    setMemberToRemove({ id: userId, email });
+    setConfirmModalOpen(true);
+  };
 
-    setRemovingId(userId);
+  const handleRemove = async () => {
+    if (!token || !memberToRemove) return;
+
+    setConfirmModalOpen(false);
+    setRemovingId(memberToRemove.id);
+    
     try {
-      await api.organization.removeTeamMember(token, userId);
+      await api.organization.removeTeamMember(token, memberToRemove.id);
       const response = await api.organization.getTeamMembers(token);
       setTeamMembers(response.data.team_members || []);
+      showModal("Success", "Team member removed successfully.", "success");
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to remove team member");
+      showModal(
+        "Error",
+        err.response?.data?.detail || "Failed to remove team member",
+        "error"
+      );
     } finally {
       setRemovingId(null);
+      setMemberToRemove(null);
     }
   };
 
@@ -75,6 +105,30 @@ export const DashboardSettings = () => {
 
   return (
     <div className="space-y-8">
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
+
+      {/* Confirm Modal for removing member */}
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setMemberToRemove(null);
+        }}
+        onConfirm={handleRemove}
+        title="Remove Team Member"
+        message={`Are you sure you want to remove ${memberToRemove?.email || "this member"} from the team?`}
+        confirmText="Remove"
+        cancelText="Cancel"
+        type="error"
+      />
+
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-serif text-white mb-2">Settings</h1>
@@ -170,7 +224,7 @@ export const DashboardSettings = () => {
                   </span>
                   {member.id !== user?.id && (
                     <button
-                      onClick={() => handleRemove(member.id)}
+                      onClick={() => openRemoveConfirm(member.id, member.email)}
                       disabled={removingId === member.id}
                       className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
                       title="Remove member"

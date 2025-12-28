@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
+import { AlertModal } from "../../components/Modal";
 
 export const DashboardAccessCode = () => {
   const { token } = useAuthStore();
@@ -8,6 +9,19 @@ export const DashboardAccessCode = () => {
   const [accessCodes, setAccessCodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    message: string;
+    type: "success" | "error" | "info" | "warning";
+  }>({ title: "", message: "", type: "info" });
+
+  const showModal = (title: string, message: string, type: "success" | "error" | "info" | "warning" = "info") => {
+    setModalConfig({ title, message, type });
+    setModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchAccessCodes = async () => {
@@ -31,9 +45,14 @@ export const DashboardAccessCode = () => {
       const response = await api.subscription.generateAccessCode(token);
       const newCode = response.data;
       setAccessCodes([newCode, ...accessCodes]);
-    } catch (error) {
+      showModal("Success", "Access code generated successfully!", "success");
+    } catch (error: any) {
       console.error("Failed to generate access code:", error);
-      alert("Failed to generate access code. Please try again.");
+      showModal(
+        "Error",
+        error.response?.data?.detail || "Failed to generate access code. Please try again.",
+        "error"
+      );
     } finally {
       setGenerating(false);
     }
@@ -57,6 +76,15 @@ export const DashboardAccessCode = () => {
 
   return (
     <div className="space-y-8">
+      {/* Modal */}
+      <AlertModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
