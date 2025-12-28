@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
-import { Card } from "../components";
 
 export const PaymentCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { token } = useAuthStore();
+  const { token: storeToken, setToken, setUser } = useAuthStore();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -21,9 +20,28 @@ export const PaymentCallback = () => {
         return;
       }
 
+      // Try to get token from store first, then from localStorage
+      let token = storeToken;
+      if (!token) {
+        token = localStorage.getItem("linq_token");
+        // Restore auth state from localStorage
+        if (token) {
+          const userStr = localStorage.getItem("linq_user");
+          if (userStr) {
+            try {
+              const user = JSON.parse(userStr);
+              setUser(user);
+              setToken(token);
+            } catch {
+              // Invalid user data
+            }
+          }
+        }
+      }
+
       if (!token) {
         setStatus("error");
-        setMessage("Not authenticated");
+        setMessage("Session expired. Please log in and try again.");
         return;
       }
 
@@ -33,45 +51,51 @@ export const PaymentCallback = () => {
 
         if (data.verified) {
           setStatus("success");
-          setMessage("Payment successful! Your subscription has been activated.");
-          // Redirect to dashboard after 3 seconds
+          setMessage("Your subscription has been activated.");
+          // Redirect to dashboard after 2 seconds
           setTimeout(() => {
             navigate("/dashboard/overview");
-          }, 3000);
+          }, 2000);
         } else {
           setStatus("error");
           setMessage(data.message || "Payment verification failed");
         }
       } catch (error: any) {
         setStatus("error");
-        setMessage(error.response?.data?.detail || "Payment verification failed");
+        setMessage(error.response?.data?.detail || "Payment verification failed. Please contact support.");
       }
     };
 
     verifyPayment();
-  }, [searchParams, token, navigate]);
+  }, [searchParams, storeToken, navigate, setToken, setUser]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md p-8 text-center">
+    <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800/20 via-[#0a0f1c] to-[#0a0f1c]"></div>
+      
+      <div className="relative w-full max-w-md bg-white/[0.03] border border-white/10 rounded-2xl p-8 text-center backdrop-blur-sm">
         {status === "loading" && (
           <>
-            <div className="animate-spin text-indigo-600 text-4xl mb-4">⟳</div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            <div className="w-12 h-12 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <h2 className="text-xl font-serif text-white mb-2">
               Verifying Payment
             </h2>
-            <p className="text-slate-600">Please wait...</p>
+            <p className="text-slate-400 text-sm">Please wait while we confirm your payment...</p>
           </>
         )}
 
         {status === "success" && (
           <>
-            <div className="text-green-600 text-4xl mb-4">✓</div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-serif text-white mb-2">
               Payment Successful!
             </h2>
-            <p className="text-slate-600 mb-4">{message}</p>
-            <p className="text-sm text-slate-500">
+            <p className="text-slate-400 text-sm mb-4">{message}</p>
+            <p className="text-xs text-slate-500">
               Redirecting to dashboard...
             </p>
           </>
@@ -79,21 +103,39 @@ export const PaymentCallback = () => {
 
         {status === "error" && (
           <>
-            <div className="text-red-600 text-4xl mb-4">✗</div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
-              Payment Failed
+            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-serif text-white mb-2">
+              Payment Issue
             </h2>
-            <p className="text-slate-600 mb-4">{message}</p>
-            <button
-              onClick={() => navigate("/dashboard/payment")}
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              Go to Payment Page
-            </button>
+            <p className="text-slate-400 text-sm mb-6">{message}</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  const token = localStorage.getItem("linq_token");
+                  if (token) {
+                    navigate("/dashboard/payment");
+                  } else {
+                    navigate("/auth/login");
+                  }
+                }}
+                className="w-full py-2.5 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all"
+              >
+                {localStorage.getItem("linq_token") ? "Go to Payment Page" : "Log In"}
+              </button>
+              <button
+                onClick={() => navigate("/")}
+                className="text-sm text-slate-400 hover:text-white transition-colors"
+              >
+                Back to Home
+              </button>
+            </div>
           </>
         )}
-      </Card>
+      </div>
     </div>
   );
 };
-
