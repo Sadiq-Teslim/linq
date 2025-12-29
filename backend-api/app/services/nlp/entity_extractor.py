@@ -117,11 +117,11 @@ class EntityExtractor:
         """
         Extract contact information from unstructured text
         Combines NER with pattern matching
+        Returns contacts in the format expected by contact discovery service
         """
         entities = self.extract_entities(text)
         contacts = []
         
-        # Combine persons with titles
         import re
         
         # Look for email patterns
@@ -130,28 +130,95 @@ class EntityExtractor:
         # Look for phone patterns
         phones = re.findall(r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', text)
         
-        # Create contact entries
-        for person in entities["persons"][:5]:  # Limit to 5
-            contact = {
-                "name": person,
-                "title": None,
-                "email": None,
-                "phone": None,
-                "organization": entities["organizations"][0] if entities["organizations"] else None,
-            }
-            
-            # Try to find associated email
-            if emails:
-                # Simple heuristic: email might contain person's name
-                person_lower = person.lower().replace(" ", ".")
-                for email in emails:
-                    if person_lower.split()[0].lower() in email.lower():
-                        contact["email"] = email
+        # Look for titles (CEO, Director, Manager, etc.)
+        title_patterns = [
+            r'(CEO|Chief Executive Officer|CTO|Chief Technology Officer|CFO|Chief Financial Officer)',
+            r'(Director|Managing Director|MD)',
+            r'(Manager|Head of|VP|Vice President)',
+            r'(President|Founder|Co-Founder)',
+            r'(Sales Director|Sales Manager|Head of Sales)',
+        ]
+        titles = []
+        for pattern in title_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            titles.extend(matches)
+        
+        # Extract names with potential titles nearby
+        # Look for patterns like "John Doe, CEO" or "CEO: John Doe"
+        name_title_pattern = re.findall(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)[,\s]+(?:is\s+)?(CEO|CTO|CFO|Director|Manager|President|Founder|Head of [A-Za-z]+)', text, re.IGNORECASE)
+        
+        # Create contact entries from name-title pairs
+        processed_names = set()
+        for name, title in name_title_pattern[:10]:  # Limit to 10
+            name_key = name.lower()
+            if name_key not in processed_names:
+                contact = {
+                    "full_name": name.strip(),
+                    "title": title.strip(),
+                    "department": self._determine_department_from_title(title),
+                    "email": None,
+                    "phone": phones[0] if phones else None,
+                    "linkedin_url": None,
+                    "is_decision_maker": self._is_decision_maker_title(title),
+                    "source": "website_scrape",
+                    "confidence_score": 0.7,
+                }
+                
+                # Try to find associated email
+                if emails:
+                    name_parts = name.lower().split()
+                    for email in emails:
+                        # Check if email contains part of the name
+                        if any(part in email.lower() for part in name_parts if len(part) > 2):
+                            contact["email"] = email
+                            break
+                
+                contacts.append(contact)
+                processed_names.add(name_key)
+        
+        # Also create contacts from standalone emails if we have names
+        if emails and entities["persons"]:
+            for email in emails[:5]:  # Limit to 5 emails
+                # Try to match email to a person
+                email_local = email.split("@")[0].lower()
+                for person in entities["persons"]:
+                    person_parts = person.lower().split()
+                    if any(part in email_local for part in person_parts if len(part) > 2):
+                        # Check if we already have this person
+                        if not any(c.get("full_name", "").lower() == person.lower() for c in contacts):
+                            contacts.append({
+                                "full_name": person,
+                                "title": None,
+                                "department": "other",
+                                "email": email,
+                                "phone": phones[0] if phones else None,
+                                "linkedin_url": None,
+                                "is_decision_maker": False,
+                                "source": "website_scrape",
+                                "confidence_score": 0.6,
+                            })
                         break
-            
-            contacts.append(contact)
         
         return contacts
+    
+    def _determine_department_from_title(self, title: str) -> str:
+        """Determine department from job title"""
+        title_lower = title.lower()
+        if "sales" in title_lower or "revenue" in title_lower:
+            return "sales"
+        if "marketing" in title_lower:
+            return "marketing"
+        if "ceo" in title_lower or "founder" in title_lower or "president" in title_lower or "director" in title_lower:
+            return "executive"
+        if "cto" in title_lower or "cio" in title_lower or "engineering" in title_lower:
+            return "engineering"
+        return "other"
+    
+    def _is_decision_maker_title(self, title: str) -> bool:
+        """Determine if title indicates decision maker"""
+        title_lower = title.lower()
+        decision_maker_keywords = ["ceo", "founder", "director", "president", "head of", "vp", "chief"]
+        return any(kw in title_lower for kw in decision_maker_keywords)
 
 
 # Global entity extractor instance
