@@ -1,3 +1,4 @@
+import React from "react";
 import { useCompanyStore } from "@/entities/company/store";
 import {
   Building2,
@@ -13,6 +14,9 @@ import {
   TrendingUp,
   Star,
   StarOff,
+  Phone,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/shared/ui/Button";
 // Simple date formatter
@@ -42,6 +46,18 @@ export const ResultCard = () => {
     isRefreshing,
     setViewMode,
   } = useCompanyStore();
+  
+  const [copiedField, setCopiedField] = React.useState<string | null>(null);
+  
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
 
   // Loading State
   if (isLoading) {
@@ -275,23 +291,66 @@ export const ResultCard = () => {
                       )}
                     </div>
                     <p className="text-xs text-slate-400 truncate">{contact.title}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    {contact.department && contact.department !== "other" && (
+                      <p className="text-xs text-slate-500 truncate">{contact.department}</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
                       {contact.email && (
-                        <a
-                          href={`mailto:${contact.email}`}
-                          className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1"
-                        >
-                          <Mail className="w-3 h-3" />
-                        </a>
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={`mailto:${contact.email}`}
+                            className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1.5 px-2 py-1 rounded bg-gold-500/10 hover:bg-gold-500/20 transition-colors"
+                            title={contact.email}
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span className="truncate max-w-[120px]">{contact.email}</span>
+                          </a>
+                          <button
+                            onClick={() => contact.email && copyToClipboard(contact.email, `email-${contact.id}`)}
+                            className="p-1 text-gold-400 hover:text-gold-300 transition-colors"
+                            title="Copy email"
+                          >
+                            {copiedField === `email-${contact.id}` ? (
+                              <Check className="w-3 h-3" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      {contact.phone && (
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={`tel:${contact.phone}`}
+                            className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1.5 px-2 py-1 rounded bg-gold-500/10 hover:bg-gold-500/20 transition-colors"
+                            title={contact.phone}
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>{contact.phone}</span>
+                          </a>
+                          <button
+                            onClick={() => contact.phone && copyToClipboard(contact.phone, `phone-${contact.id}`)}
+                            className="p-1 text-gold-400 hover:text-gold-300 transition-colors"
+                            title="Copy phone"
+                          >
+                            {copiedField === `phone-${contact.id}` ? (
+                              <Check className="w-3 h-3" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
                       )}
                       {contact.linkedin_url && (
                         <a
                           href={contact.linkedin_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1"
+                          className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1.5 px-2 py-1 rounded bg-gold-500/10 hover:bg-gold-500/20 transition-colors"
+                          title="View LinkedIn profile"
                         >
-                          <Linkedin className="w-3 h-3" />
+                          <Linkedin className="w-3.5 h-3.5" />
+                          <span>LinkedIn</span>
                         </a>
                       )}
                     </div>
