@@ -1,5 +1,5 @@
-"""Web scraping services for data aggregation"""
-from .google import GoogleSearchService
-from .news import NewsAggregatorService
+"""Scraping services"""
+from .scraperapi import ScraperAPIService
+from .playwright_scraper import get_playwright_scraper, PlaywrightScraper
 
-__all__ = ["GoogleSearchService", "NewsAggregatorService"]
+__all__ = ["ScraperAPIService", "get_playwright_scraper", "PlaywrightScraper"]

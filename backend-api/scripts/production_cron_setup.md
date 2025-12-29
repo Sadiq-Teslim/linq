@@ -12,11 +12,13 @@ If you're using Render.com or similar cloud hosting, use their **Cron Jobs** fea
 4. Add two cron jobs:
 
 #### Job 1: Refresh Companies (Every 12 hours)
+
 - **Schedule**: `0 0,12 * * *` (00:00 and 12:00 UTC)
 - **Command**: `cd /opt/render/project/src && python3 scripts/refresh_companies_cron.py`
 - **Environment**: Production
 
 #### Job 2: Refresh Feed (Every 6 hours)
+
 - **Schedule**: `0 */6 * * *` (Every 6 hours)
 - **Command**: `cd /opt/render/project/src && python3 scripts/refresh_feed_cron.py`
 - **Environment**: Production
@@ -44,7 +46,7 @@ def run_scheduler():
     # Schedule jobs
     schedule.every(12).hours.do(lambda: asyncio.run(refresh_companies()))
     schedule.every(6).hours.do(lambda: asyncio.run(refresh_feed()))
-    
+
     while True:
         schedule.run_pending()
         time.sleep(60)  # Check every minute
@@ -61,11 +63,13 @@ Then create a Background Worker service in Render that runs this script.
 
 1. SSH into your server
 2. Edit crontab:
+
    ```bash
    crontab -e
    ```
 
 3. Add these lines (adjust paths):
+
    ```bash
    # LINQ Background Jobs
    # Refresh all tracked companies every 12 hours (00:00 and 12:00 UTC)
@@ -76,11 +80,13 @@ Then create a Background Worker service in Render that runs this script.
    ```
 
 4. Create logs directory:
+
    ```bash
    mkdir -p /path/to/backend-api/logs
    ```
 
 5. Make scripts executable:
+
    ```bash
    chmod +x /path/to/backend-api/scripts/*.py
    ```
@@ -158,6 +164,7 @@ def check_cron_status():
 ### Import errors
 
 Ensure Python path is correct:
+
 ```python
 # In script, add this at the top
 import sys
@@ -178,4 +185,3 @@ Ensure Supabase credentials are set in environment variables, not hardcoded.
 - [ ] Logs are being written
 - [ ] Monitoring set up
 - [ ] Error alerts configured (optional)
-

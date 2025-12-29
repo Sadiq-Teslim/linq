@@ -11,9 +11,9 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: SERP_API_KEY
-        sync: false  # Set in Render dashboard
+        sync: false # Set in Render dashboard
       - key: GEMINI_API_KEY
-        sync: false  # Optional, set in Render dashboard
+        sync: false # Optional, set in Render dashboard
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
@@ -28,7 +28,7 @@ services:
   # Cron Jobs for Render
   - type: cron
     name: refresh-companies
-    schedule: "0 0,12 * * *"  # Every 12 hours at 00:00 and 12:00 UTC
+    schedule: "0 0,12 * * *" # Every 12 hours at 00:00 and 12:00 UTC
     buildCommand: pip install -r requirements.txt
     startCommand: python scripts/refresh_companies_cron.py
     envVars:
@@ -43,7 +43,7 @@ services:
 
   - type: cron
     name: refresh-feed
-    schedule: "0 */6 * * *"  # Every 6 hours
+    schedule: "0 */6 * * *" # Every 6 hours
     buildCommand: pip install -r requirements.txt
     startCommand: python scripts/refresh_feed_cron.py
     envVars:
@@ -53,4 +53,3 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
-

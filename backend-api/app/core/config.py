@@ -52,10 +52,24 @@ class Settings(BaseSettings):
     # SerpAPI for company search and contact discovery
     SERP_API_KEY: str = ""
     
-    # Optional: Additional contact discovery APIs
+    # Additional contact discovery APIs
     CLEARBIT_API_KEY: str = ""  # For company enrichment
-    HUNTER_API_KEY: str = ""  # For email finding
+    HUNTER_API_KEY: str = ""  # For email finding and verification
     APOLLO_API_KEY: str = ""  # For contact discovery
+    CRUNCHBASE_API_KEY: str = ""  # For company leadership and funding data
+    LINKEDIN_API_KEY: str = ""  # LinkedIn API (if available)
+    LINKEDIN_SESSION_COOKIE: str = ""  # Alternative: LinkedIn session cookie for scraping
+    
+    # Proxy and anti-detection
+    SCRAPERAPI_KEY: str = ""  # ScraperAPI for proxy, CAPTCHA, JS rendering
+    
+    # Redis for caching and Celery
+    REDIS_URL: str = "redis://localhost:6379/0"  # Default Redis URL
+    REDIS_CACHE_TTL: int = 3600  # Cache TTL in seconds (1 hour default)
+    
+    # Celery configuration
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"  # Celery broker
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"  # Celery results
 
     # Paystack for payments
     PAYSTACK_SECRET_KEY: str = ""

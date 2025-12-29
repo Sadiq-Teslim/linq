@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from app.api.v1.router import api_router
 from app.core.config import settings, get_port
 from app.core.security import RateLimitMiddleware, SecurityHeadersMiddleware
+from app.services.cache.redis_client import redis_cache
 
 # =============================================================================
 # APP CONFIGURATION
@@ -72,6 +73,43 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
+
+
+# =============================================================================
+# STARTUP/SHUTDOWN EVENTS
+# =============================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    print("🚀 Starting up LINQ AI API...")
+    
+    # Initialize Redis cache
+    try:
+        await redis_cache.connect()
+    except Exception as e:
+        print(f"⚠ Redis initialization failed: {e}. Continuing without cache.")
+    
+    print("✓ Startup complete")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on shutdown"""
+    print("🛑 Shutting down LINQ AI API...")
+    
+    # Close Redis connection
+    await redis_cache.disconnect()
+    
+    # Close Playwright if running
+    try:
+        from app.services.scraper.playwright_scraper import _playwright_scraper
+        if _playwright_scraper:
+            await _playwright_scraper.stop()
+    except:
+        pass
+    
+    print("✓ Shutdown complete")
 
 
 @app.get("/")
