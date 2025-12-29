@@ -57,8 +57,23 @@ export function parseApiError(error: unknown): ApiError {
     const serverMessage =
       responseData?.detail || responseData?.message || responseData?.error;
 
-    // For 401, always use session expired message
+    // For 401, check if it's a login failure or session expiration
     if (status === 401) {
+      // If there's a server message about incorrect credentials, use that
+      if (
+        typeof serverMessage === "string" &&
+        (serverMessage.toLowerCase().includes("incorrect") ||
+          serverMessage.toLowerCase().includes("password") ||
+          serverMessage.toLowerCase().includes("email") ||
+          serverMessage.toLowerCase().includes("invalid"))
+      ) {
+        return {
+          message: serverMessage,
+          code: "UNAUTHORIZED",
+          status: 401,
+        };
+      }
+      // Otherwise, it's likely a session expiration
       return {
         message: ERROR_MESSAGES[401],
         code: "UNAUTHORIZED",
