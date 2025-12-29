@@ -211,8 +211,10 @@ export interface CompanySearchResult {
 
 export interface CompanySearchResponse {
   results: CompanySearchResult[];
-  query: string;
-  total_found: number;
+  total: number;
+  // Optional fields for backward compatibility
+  query?: string;
+  total_found?: number;
 }
 
 // ============== Dashboard Stats ==============

@@ -239,6 +239,8 @@ class GlobalCompanySearchResult(BaseModel):
     logo_url: Optional[str] = None
     linkedin_url: Optional[str] = None
     description: Optional[str] = None
+    website: Optional[str] = None
+    is_already_tracked: bool = False
 
 
 class GlobalCompanySearchResponse(BaseModel):

@@ -3,6 +3,7 @@ import { useAuthStore } from "@/entities/user/authStore";
 import { AddCompanySearch } from "@/features/add-company";
 import { MonitorBoard } from "@/widgets/monitor-board";
 import { MarketPulse } from "@/widgets/market-pulse";
+import { ResultCard } from "@/widgets/intelligence-card/ResultCard";
 import { ToastProvider, useToast } from "@/shared/ui/Toast";
 import { CONFIG } from "@/shared/config";
 import {
@@ -13,12 +14,13 @@ import {
   Crown,
   ExternalLink,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { useCompanyStore } from "@/entities/company/store";
 
 const PopupContent = () => {
   const { logout, user, refreshUser } = useAuthStore();
-  const { unreadCount, fetchTrackedCompanies, fetchUpdates, isRefreshing } =
+  const { unreadCount, fetchTrackedCompanies, fetchUpdates, isRefreshing, selectedCompany, clearSelection } =
     useCompanyStore();
   const { addToast } = useToast();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -174,6 +176,20 @@ const PopupContent = () => {
 
         {/* Monitor Board */}
         <MonitorBoard />
+
+        {/* Company Details - Show when a company is selected */}
+        {selectedCompany && (
+          <div className="relative">
+            <ResultCard />
+            <button
+              onClick={clearSelection}
+              className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+              title="Close details"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Industry News Feed */}
         <MarketPulse limit={4} />

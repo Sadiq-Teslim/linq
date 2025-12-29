@@ -65,23 +65,48 @@ async def search_companies(
     Search for companies globally to track
     Uses Clearbit and SerpAPI for real company search
     """
-    # Use real company search service
-    results = await company_search_service.search_companies(query, limit)
+    org_id = get_user_organization_id(current_user)
+    
+    # Get list of already tracked company domains/names for this organization
+    tracked_result = supabase.table("tracked_companies").select("domain, company_name").eq("organization_id", org_id).eq("is_active", True).execute()
+    tracked_companies = tracked_result.data if tracked_result.data else []
+    tracked_domains = {c.get("domain", "").lower() for c in tracked_companies if c.get("domain")}
+    tracked_names = {c.get("company_name", "").lower() for c in tracked_companies if c.get("company_name")}
 
-    # Convert to response schema
-    search_results = [
-        GlobalCompanySearchResult(
-            name=r.get("name", ""),
-            domain=r.get("domain"),
-            industry=r.get("industry"),
-            employee_count=r.get("employee_count"),
-            headquarters=r.get("headquarters"),
-            logo_url=r.get("logo_url"),
-            linkedin_url=r.get("linkedin_url"),
-            description=r.get("description"),
+    # Use real company search service
+    try:
+        results = await company_search_service.search_companies(query, limit)
+    except ValueError as e:
+        # SERP_API_KEY not configured or other service error
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Search service unavailable: {str(e)}"
         )
-        for r in results
-    ]
+    except Exception as e:
+        # Other errors - return empty results instead of failing
+        results = []
+
+    # Convert to response schema and mark if already tracked
+    search_results = []
+    for r in results:
+        domain = (r.get("domain") or "").lower()
+        name = (r.get("name") or "").lower()
+        is_tracked = domain in tracked_domains or name in tracked_names
+        
+        search_results.append(
+            GlobalCompanySearchResult(
+                name=r.get("name", ""),
+                domain=r.get("domain"),
+                industry=r.get("industry"),
+                employee_count=r.get("employee_count"),
+                headquarters=r.get("headquarters"),
+                logo_url=r.get("logo_url"),
+                linkedin_url=r.get("linkedin_url"),
+                description=r.get("description"),
+                website=r.get("website") or r.get("domain"),
+                is_already_tracked=is_tracked,
+            )
+        )
 
     return GlobalCompanySearchResponse(
         results=search_results,

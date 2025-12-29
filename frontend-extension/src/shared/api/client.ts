@@ -14,19 +14,29 @@ export const api = axios.create({
   timeout: CONFIG.API_TIMEOUT,
 });
 
+// Helper function to get token from storage
+// Zustand persist stores data as: { state: {...}, version: ... }
+const getTokenFromStorage = (): string | null => {
+  try {
+    const storage = localStorage.getItem(CONFIG.STORAGE_KEYS.AUTH);
+    if (!storage) return null;
+    
+    const parsed = JSON.parse(storage);
+    // Check both possible formats
+    const token = parsed?.state?.token || parsed?.token;
+    return token || null;
+  } catch (error) {
+    console.error("Error reading token from storage:", error);
+    return null;
+  }
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const storage = localStorage.getItem(CONFIG.STORAGE_KEYS.AUTH);
-    if (storage) {
-      try {
-        const { state } = JSON.parse(storage);
-        if (state?.token) {
-          config.headers.Authorization = `Bearer ${state.token}`;
-        }
-      } catch {
-        // Invalid storage, ignore
-      }
+    const token = getTokenFromStorage();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
