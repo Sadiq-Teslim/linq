@@ -23,16 +23,22 @@ class PlaywrightScraper:
     async def start(self):
         """Start Playwright browser"""
         if not self.browser:
-            self._playwright = await async_playwright().start()
-            self.browser = await self._playwright.chromium.launch(
-                headless=True,
-                args=[
-                    "--no-sandbox",
-                    "--disable-setuid-sandbox",
-                    "--disable-dev-shm-usage",
-                    "--disable-gpu",
-                ]
-            )
+            try:
+                self._playwright = await async_playwright().start()
+                self.browser = await self._playwright.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                    ]
+                )
+            except Exception as e:
+                print(f"  ⚠ Playwright browser not available: {e}")
+                print(f"  ⚠ Skipping Playwright scraping. To enable, run: playwright install chromium")
+                self.browser = None
+                self._playwright = None
     
     async def stop(self):
         """Stop Playwright browser"""
@@ -63,6 +69,10 @@ class PlaywrightScraper:
         """
         if not self.browser:
             await self.start()
+        
+        # If browser still not available, return None
+        if not self.browser:
+            return None
         
         cache_key = f"playwright:{url}:{wait_for_selector}"
         

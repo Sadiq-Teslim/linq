@@ -150,22 +150,24 @@ class EntityExtractor:
         # Create contact entries from name-title pairs
         processed_names = set()
         for name, title in name_title_pattern[:10]:  # Limit to 10
-            name_key = name.lower()
-            if name_key not in processed_names:
+            if not name or not title:
+                continue
+            name_key = name.lower() if name else ""
+            if name_key and name_key not in processed_names:
                 contact = {
-                    "full_name": name.strip(),
-                    "title": title.strip(),
-                    "department": self._determine_department_from_title(title),
+                    "full_name": name.strip() if name else "",
+                    "title": title.strip() if title else "",
+                    "department": self._determine_department_from_title(title) if title else "other",
                     "email": None,
                     "phone": phones[0] if phones else None,
                     "linkedin_url": None,
-                    "is_decision_maker": self._is_decision_maker_title(title),
+                    "is_decision_maker": self._is_decision_maker_title(title) if title else False,
                     "source": "website_scrape",
                     "confidence_score": 0.7,
                 }
                 
                 # Try to find associated email
-                if emails:
+                if emails and name:
                     name_parts = name.lower().split()
                     for email in emails:
                         # Check if email contains part of the name
@@ -180,12 +182,15 @@ class EntityExtractor:
         if emails and entities["persons"]:
             for email in emails[:5]:  # Limit to 5 emails
                 # Try to match email to a person
-                email_local = email.split("@")[0].lower()
+                email_local = email.split("@")[0].lower() if email else ""
                 for person in entities["persons"]:
-                    person_parts = person.lower().split()
-                    if any(part in email_local for part in person_parts if len(part) > 2):
+                    if not person:
+                        continue
+                    person_parts = person.lower().split() if person else []
+                    if person_parts and any(part in email_local for part in person_parts if len(part) > 2):
                         # Check if we already have this person
-                        if not any(c.get("full_name", "").lower() == person.lower() for c in contacts):
+                        person_lower = person.lower() if person else ""
+                        if person_lower and not any(c.get("full_name", "").lower() == person_lower for c in contacts):
                             contacts.append({
                                 "full_name": person,
                                 "title": None,
@@ -203,6 +208,8 @@ class EntityExtractor:
     
     def _determine_department_from_title(self, title: str) -> str:
         """Determine department from job title"""
+        if not title:
+            return "other"
         title_lower = title.lower()
         if "sales" in title_lower or "revenue" in title_lower:
             return "sales"
@@ -216,6 +223,8 @@ class EntityExtractor:
     
     def _is_decision_maker_title(self, title: str) -> bool:
         """Determine if title indicates decision maker"""
+        if not title:
+            return False
         title_lower = title.lower()
         decision_maker_keywords = ["ceo", "founder", "director", "president", "head of", "vp", "chief"]
         return any(kw in title_lower for kw in decision_maker_keywords)

@@ -345,7 +345,7 @@ class ContactDiscoveryService:
                         # Extract URLs from organic results that match the domain
                         for result in data.get("organic_results", []):
                             link = result.get("link", "")
-                            if domain in link and any(path in link.lower() for path in ["contact", "about", "team", "leadership", "management"]):
+                            if link and domain and domain in link and any(path in link.lower() for path in ["contact", "about", "team", "leadership", "management"]):
                                 urls.append(link)
                         
                         return urls
@@ -573,6 +573,10 @@ class ContactDiscoveryService:
         try:
             playwright = await get_playwright_scraper()
             
+            # If playwright scraper is not available (browsers not installed), skip
+            if not playwright or not playwright.browser:
+                return []
+            
             # Scrape company page
             company_data = await playwright.scrape_company_page(f"https://{company_domain}")
             
@@ -583,6 +587,8 @@ class ContactDiscoveryService:
             
             # Create contacts from extracted emails
             for email in company_data.get("emails", [])[:5]:
+                if not email:
+                    continue
                 # Try to find associated name in page
                 contacts.append({
                     "full_name": None,  # Would need more sophisticated extraction
@@ -598,17 +604,21 @@ class ContactDiscoveryService:
             
             return contacts
         except Exception as e:
-            print(f"  ⚠ Playwright error: {e}")
+            # Silently fail - Playwright is optional
             return []
 
     def _is_decision_maker(self, role: str) -> bool:
         """Determine if role is a decision maker"""
+        if not role:
+            return False
         role_lower = role.lower()
         decision_maker_keywords = ["ceo", "founder", "director", "president", "head of", "vp", "chief"]
         return any(kw in role_lower for kw in decision_maker_keywords)
 
     def _determine_department(self, role: str) -> str:
         """Determine department from role"""
+        if not role:
+            return "other"
         role_lower = role.lower()
         if "sales" in role_lower or "revenue" in role_lower or "business development" in role_lower:
             return "sales"
