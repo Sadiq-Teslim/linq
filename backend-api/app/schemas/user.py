@@ -1,7 +1,7 @@
 """
 User schemas for registration and profile
 """
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
@@ -24,11 +24,11 @@ class SubscriptionInfo(BaseModel):
 
 class UserResponse(BaseModel):
     """User profile response"""
-    id: int
+    id: Union[int, str]
     email: str
     full_name: Optional[str] = None
     role: Optional[str] = "member"
-    organization_id: Optional[str] = None
+    organization_id: Optional[Union[int, str]] = None
     organization_name: Optional[str] = None
     industry: Optional[str] = None
     subscription: Optional[SubscriptionInfo] = None
