@@ -65,6 +65,7 @@ class ContactDiscoveryService:
         """
         Discover contacts from ALL available sources in parallel
         Uses asyncio.gather for maximum speed
+        Focuses on public sources: company websites, LinkedIn, business directories
         """
         print(f"🔍 Starting enhanced contact discovery for {company_name}...")
         
@@ -75,28 +76,40 @@ class ContactDiscoveryService:
         # Run all discovery methods in parallel
         tasks = []
         
-        # 1. Crunchbase (company leadership)
-        if self.crunchbase.enabled:
-            tasks.append(self._discover_from_crunchbase(company_name))
+        # PRIORITY 1: Scrape company website directly (contact, about, team pages)
+        if company_domain:
+            tasks.append(self._discover_from_company_website(company_domain, company_name))
         
-        # 2. Hunter.io (email finding)
-        if self.hunter.enabled and company_domain:
-            tasks.append(self._discover_from_hunter(company_domain))
+        # PRIORITY 2: Find and scrape company pages using SerpAPI
+        if self.serp_key and company_domain:
+            tasks.append(self._discover_company_pages_via_serpapi(company_name, company_domain, country))
         
-        # 3. LinkedIn (people search)
+        # PRIORITY 3: SerpAPI (Google + LinkedIn search for people)
+        if self.serp_key:
+            tasks.append(self._discover_from_serpapi(company_name, company_domain, country))
+        
+        # PRIORITY 4: LinkedIn (people search)
         if self.linkedin.enabled:
             for role in self.EXECUTIVE_ROLES[:3] + self.SALES_ROLES[:3]:  # Limit to 6 roles
                 tasks.append(self._discover_from_linkedin(company_name, role, country))
         
-        # 4. SerpAPI (Google + LinkedIn search)
+        # PRIORITY 5: Business directories and public sources
         if self.serp_key:
-            tasks.append(self._discover_from_serpapi(company_name, company_domain, country))
+            tasks.append(self._discover_from_business_directories(company_name, company_domain, country))
         
-        # 5. ScraperAPI (company website scraping)
+        # PRIORITY 6: Hunter.io (email finding) - if available
+        if self.hunter.enabled and company_domain:
+            tasks.append(self._discover_from_hunter(company_domain))
+        
+        # PRIORITY 7: Crunchbase (company leadership) - if available
+        if self.crunchbase.enabled:
+            tasks.append(self._discover_from_crunchbase(company_name))
+        
+        # PRIORITY 8: ScraperAPI (company website scraping) - if available
         if self.scraperapi.enabled and company_domain:
             tasks.append(self._discover_from_scraperapi(company_domain))
         
-        # 6. Playwright (JS-heavy sites)
+        # PRIORITY 9: Playwright (JS-heavy sites)
         if company_domain:
             tasks.append(self._discover_from_playwright(company_domain))
         
@@ -221,6 +234,205 @@ class ContactDiscoveryService:
             print(f"  ⚠ LinkedIn error: {e}")
             return []
 
+    async def _discover_from_company_website(self, domain: str, company_name: str) -> List[Dict[str, Any]]:
+        """Discover contacts by directly scraping company website pages"""
+        contacts = []
+        
+        # Common contact/about/team page URLs to try
+        page_paths = [
+            "/contact", "/contact-us", "/contactus",
+            "/about", "/about-us", "/aboutus",
+            "/team", "/our-team", "/leadership", "/management",
+            "/executives", "/directors", "/staff",
+            "/people", "/employees",
+        ]
+        
+        # Try scraping these pages in parallel
+        scrape_tasks = []
+        for path in page_paths:
+            url = f"https://{domain}{path}"
+            scrape_tasks.append(self._scrape_page_for_contacts(url, company_name))
+        
+        # Also try root domain
+        scrape_tasks.append(self._scrape_page_for_contacts(f"https://{domain}", company_name))
+        
+        results = await asyncio.gather(*scrape_tasks, return_exceptions=True)
+        
+        for result in results:
+            if isinstance(result, Exception):
+                continue
+            contacts.extend(result)
+        
+        return contacts
+    
+    async def _scrape_page_for_contacts(self, url: str, company_name: str) -> List[Dict[str, Any]]:
+        """Scrape a single page for contact information"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=15), allow_redirects=True) as response:
+                    if response.status == 200:
+                        html = await response.text()
+                        
+                        # Use entity extractor to find contacts
+                        if self.entity_extractor:
+                            extracted = self.entity_extractor.extract_contacts_from_text(html)
+                            # Add source URL to contacts
+                            for contact in extracted:
+                                contact["source"] = f"website_scrape:{url}"
+                            return extracted
+        except Exception as e:
+            # Silently fail - we try many pages
+            pass
+        
+        return []
+    
+    async def _discover_company_pages_via_serpapi(self, company_name: str, domain: str, country: str) -> List[Dict[str, Any]]:
+        """Find company contact/about/team pages using SerpAPI and scrape them"""
+        if not self.serp_key:
+            return []
+        
+        contacts = []
+        
+        # Search for company contact pages
+        search_queries = [
+            f"{company_name} contact page {domain}",
+            f"{company_name} about us {domain}",
+            f"{company_name} team {domain}",
+            f"{company_name} leadership {domain}",
+            f"{company_name} executives {domain}",
+        ]
+        
+        # Search for all queries in parallel
+        search_tasks = []
+        for query in search_queries:
+            search_tasks.append(self._search_serpapi_for_pages(query, domain))
+        
+        results = await asyncio.gather(*search_tasks, return_exceptions=True)
+        
+        # Collect URLs to scrape
+        urls_to_scrape = set()
+        for result in results:
+            if isinstance(result, Exception):
+                continue
+            urls_to_scrape.update(result)
+        
+        # Scrape found URLs in parallel
+        scrape_tasks = [self._scrape_page_for_contacts(url, company_name) for url in urls_to_scrape]
+        scrape_results = await asyncio.gather(*scrape_tasks, return_exceptions=True)
+        
+        for result in scrape_results:
+            if isinstance(result, Exception):
+                continue
+            contacts.extend(result)
+        
+        return contacts
+    
+    async def _search_serpapi_for_pages(self, query: str, domain: str) -> List[str]:
+        """Search SerpAPI for company pages and return URLs"""
+        try:
+            params = {
+                "api_key": self.serp_key,
+                "q": query,
+                "num": 10,
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.SERP_API_URL, params=params, timeout=aiohttp.ClientTimeout(total=20)) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        urls = []
+                        
+                        # Extract URLs from organic results that match the domain
+                        for result in data.get("organic_results", []):
+                            link = result.get("link", "")
+                            if domain in link and any(path in link.lower() for path in ["contact", "about", "team", "leadership", "management"]):
+                                urls.append(link)
+                        
+                        return urls
+        except Exception as e:
+            print(f"  ⚠ SerpAPI page search error: {e}")
+        
+        return []
+    
+    async def _discover_from_business_directories(self, company_name: str, domain: Optional[str], country: str) -> List[Dict[str, Any]]:
+        """Discover contacts from business directories and public sources"""
+        if not self.serp_key:
+            return []
+        
+        contacts = []
+        
+        # Search business directories
+        directory_queries = [
+            f"{company_name} {country} contact information",
+            f"{company_name} {country} email phone",
+            f"{company_name} {country} executives",
+            f"{company_name} {country} management team",
+        ]
+        
+        search_tasks = []
+        for query in directory_queries:
+            search_tasks.append(self._search_directories_for_contacts(query))
+        
+        results = await asyncio.gather(*search_tasks, return_exceptions=True)
+        
+        for result in results:
+            if isinstance(result, Exception):
+                continue
+            contacts.extend(result)
+        
+        return contacts
+    
+    async def _search_directories_for_contacts(self, query: str) -> List[Dict[str, Any]]:
+        """Search business directories for contact information"""
+        try:
+            params = {
+                "api_key": self.serp_key,
+                "q": query,
+                "num": 10,
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.SERP_API_URL, params=params, timeout=aiohttp.ClientTimeout(total=20)) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        contacts = []
+                        
+                        # Parse organic results for contact info
+                        for result in data.get("organic_results", []):
+                            snippet = result.get("snippet", "")
+                            title = result.get("title", "")
+                            link = result.get("link", "")
+                            
+                            # Extract email and phone
+                            email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', snippet)
+                            phone_match = re.search(r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', snippet)
+                            
+                            # Try to extract name from title
+                            name = None
+                            if " - " in title:
+                                name = title.split(" - ")[0].strip()
+                            elif " | " in title:
+                                name = title.split(" | ")[0].strip()
+                            
+                            if email_match or phone_match or name:
+                                contacts.append({
+                                    "full_name": name,
+                                    "title": None,
+                                    "department": "other",
+                                    "email": email_match.group(0) if email_match else None,
+                                    "phone": phone_match.group(0) if phone_match else None,
+                                    "linkedin_url": link if "linkedin.com" in link else None,
+                                    "is_decision_maker": False,
+                                    "source": "business_directory",
+                                    "confidence_score": 0.6,
+                                })
+                        
+                        return contacts
+        except Exception as e:
+            print(f"  ⚠ Directory search error: {e}")
+        
+        return []
+    
     async def _discover_from_serpapi(self, company_name: str, domain: Optional[str], country: str) -> List[Dict[str, Any]]:
         """Discover contacts using SerpAPI (Google + LinkedIn search)"""
         if not self.serp_key:
