@@ -194,7 +194,7 @@ def get_tracked_companies(
 
 
 @router.post("", response_model=TrackedCompanyResponse, status_code=status.HTTP_201_CREATED)
-def track_company(
+async def track_company(
     data: TrackedCompanyCreate,
     current_user: Dict[str, Any] = Depends(get_current_user),
     supabase: SupabaseClient = Depends(get_supabase_client),
@@ -266,8 +266,88 @@ def track_company(
 
     company = result.data[0]
     company["tags"] = company.get("tags") or []
+    company_id = company["id"]
+
+    # Immediately discover contacts in the background (don't block response)
+    try:
+        from app.services.contact_discovery_service import contact_discovery_service
+        import asyncio
+        
+        # Run contact discovery in background
+        asyncio.create_task(
+            _discover_and_save_contacts(
+                company_id=company_id,
+                company_name=data.company_name,
+                company_domain=data.domain,
+                supabase=supabase,
+            )
+        )
+    except Exception as e:
+        # Log error but don't fail the request
+        print(f"Error starting contact discovery: {e}")
 
     return TrackedCompanyResponse.model_validate(company)
+
+
+async def _discover_and_save_contacts(
+    company_id: int,
+    company_name: str,
+    company_domain: Optional[str],
+    supabase: SupabaseClient,
+):
+    """Helper function to discover and save contacts"""
+    try:
+        from app.services.contact_discovery_service import contact_discovery_service
+        
+        # Extract main domain from subdomain (e.g., ibank.zenithbank.com -> zenithbank.com)
+        main_domain = company_domain
+        if company_domain:
+            domain_parts = company_domain.replace("www.", "").split(".")
+            if len(domain_parts) >= 2:
+                main_domain = ".".join(domain_parts[-2:])  # Get last 2 parts
+        
+        print(f"🔍 Discovering contacts for {company_name} (domain: {main_domain})")
+        
+        discovered_contacts = await contact_discovery_service.discover_contacts(
+            company_name=company_name,
+            company_domain=main_domain,  # Use main domain for better results
+            country="Nigeria",
+        )
+        
+        now = datetime.utcnow()
+        contacts_added = 0
+        
+        for contact_data in discovered_contacts:
+            # Check if contact already exists
+            existing_contact = supabase.table("company_contacts")\
+                .select("id")\
+                .eq("company_id", company_id)\
+                .eq("full_name", contact_data.get("full_name", ""))\
+                .execute()
+            
+            if not existing_contact.data:
+                contact_record = {
+                    "company_id": company_id,
+                    "full_name": contact_data.get("full_name", ""),
+                    "title": contact_data.get("title"),
+                    "department": contact_data.get("department", "other"),
+                    "email": contact_data.get("email"),
+                    "phone": contact_data.get("phone"),
+                    "linkedin_url": contact_data.get("linkedin_url"),
+                    "is_decision_maker": contact_data.get("is_decision_maker", False),
+                    "is_verified": False,
+                    "verification_score": contact_data.get("confidence_score", 0.5),
+                    "source": contact_data.get("source", "automated"),
+                    "is_active": True,
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                }
+                supabase.table("company_contacts").insert(contact_record).execute()
+                contacts_added += 1
+        
+        print(f"✓ Discovered and saved {contacts_added} contacts for {company_name}")
+    except Exception as e:
+        print(f"✗ Error discovering contacts for {company_name}: {e}")
 
 
 @router.get("/{company_id}", response_model=TrackedCompanyWithDetails)
@@ -770,9 +850,18 @@ async def refresh_company_data(
     try:
         from app.services.contact_discovery_service import contact_discovery_service
         
+        # Extract main domain from subdomain (e.g., ibank.zenithbank.com -> zenithbank.com)
+        main_domain = company_domain
+        if company_domain:
+            domain_parts = company_domain.replace("www.", "").split(".")
+            if len(domain_parts) >= 2:
+                main_domain = ".".join(domain_parts[-2:])  # Get last 2 parts
+        
+        print(f"🔍 Discovering contacts for {company_name} (domain: {main_domain})")
+        
         discovered_contacts = await contact_discovery_service.discover_contacts(
             company_name=company_name,
-            domain=company_domain,
+            company_domain=main_domain,  # Use main domain for better results
             country="Nigeria",
         )
         

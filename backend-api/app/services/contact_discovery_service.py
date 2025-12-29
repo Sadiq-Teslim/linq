@@ -407,3 +407,7 @@ class ContactDiscoveryService:
         if "cto" in role_lower or "cio" in role_lower or "engineering" in role_lower:
             return "engineering"
         return "other"
+
+
+# Singleton instance
+contact_discovery_service = ContactDiscoveryService()
