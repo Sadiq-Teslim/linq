@@ -35,10 +35,12 @@ export const ResultCard = () => {
     isLoading,
     error,
     selectedCompany,
+    viewMode,
     clearSelection,
     updateCompanySettings,
     refreshCompany,
     isRefreshing,
+    setViewMode,
   } = useCompanyStore();
 
   // Loading State
@@ -160,52 +162,85 @@ export const ResultCard = () => {
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2">
-        <Button
-          size="sm"
-          variant={selectedCompany.is_priority ? "primary" : "ghost"}
-          onClick={handleTogglePriority}
-          className="flex items-center gap-1.5"
-        >
-          {selectedCompany.is_priority ? (
-            <>
-              <Star className="w-3.5 h-3.5 fill-current" />
-              Priority
-            </>
-          ) : (
-            <>
-              <StarOff className="w-3.5 h-3.5" />
-              Mark Priority
-            </>
-          )}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="flex items-center gap-1.5"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-        {selectedCompany.website && (
-          <a
-            href={selectedCompany.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-auto"
+      <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5">
+          <button
+            onClick={() => setViewMode("details")}
+            className={`px-2 py-1 text-xs rounded transition-colors ${
+              viewMode === "details"
+                ? "bg-gold-500/20 text-gold-400"
+                : "text-slate-400 hover:text-slate-300"
+            }`}
           >
-            <Button size="sm" variant="ghost" className="flex items-center gap-1.5">
-              <ExternalLink className="w-3.5 h-3.5" />
-              Website
-            </Button>
-          </a>
-        )}
+            Details
+          </button>
+          <button
+            onClick={() => setViewMode("contacts")}
+            className={`px-2 py-1 text-xs rounded transition-colors ${
+              viewMode === "contacts"
+                ? "bg-gold-500/20 text-gold-400"
+                : "text-slate-400 hover:text-slate-300"
+            }`}
+          >
+            Contacts
+          </button>
+          <button
+            onClick={() => setViewMode("updates")}
+            className={`px-2 py-1 text-xs rounded transition-colors ${
+              viewMode === "updates"
+                ? "bg-gold-500/20 text-gold-400"
+                : "text-slate-400 hover:text-slate-300"
+            }`}
+          >
+            Updates
+          </button>
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <Button
+            size="sm"
+            variant={selectedCompany.is_priority ? "primary" : "ghost"}
+            onClick={handleTogglePriority}
+            className="flex items-center gap-1.5"
+          >
+            {selectedCompany.is_priority ? (
+              <>
+                <Star className="w-3.5 h-3.5 fill-current" />
+                Priority
+              </>
+            ) : (
+              <>
+                <StarOff className="w-3.5 h-3.5" />
+                Mark Priority
+              </>
+            )}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+          {selectedCompany.website && (
+            <a
+              href={selectedCompany.website}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="sm" variant="ghost" className="flex items-center gap-1.5">
+                <ExternalLink className="w-3.5 h-3.5" />
+                Website
+              </Button>
+            </a>
+          )}
+        </div>
       </div>
 
-      {/* Description */}
-      {selectedCompany.description && (
+      {/* Description - Show only in details or contacts view */}
+      {(viewMode === "details" || viewMode === "contacts") && selectedCompany.description && (
         <div className="px-4 py-3 border-b border-white/5">
           <p className="text-sm text-slate-300 leading-relaxed">
             {selectedCompany.description}
@@ -213,15 +248,16 @@ export const ResultCard = () => {
         </div>
       )}
 
-      {/* Contacts */}
-      {selectedCompany.contacts && selectedCompany.contacts.length > 0 && (
+      {/* Contacts - Show only in details or contacts view */}
+      {(viewMode === "details" || viewMode === "contacts") && (
         <div className="px-4 py-3 border-b border-white/5">
           <h4 className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5" />
-            Key Contacts ({selectedCompany.contacts.length})
+            Key Contacts ({selectedCompany.contacts?.length || 0})
           </h4>
-          <div className="space-y-2">
-            {selectedCompany.contacts.slice(0, 3).map((contact) => (
+          {selectedCompany.contacts && selectedCompany.contacts.length > 0 ? (
+            <div className="space-y-2">
+              {selectedCompany.contacts.map((contact) => (
               <div
                 key={contact.id}
                 className="p-2 bg-white/5 rounded-lg border border-white/5"
@@ -262,25 +298,30 @@ export const ResultCard = () => {
                   </div>
                 </div>
               </div>
-            ))}
-            {selectedCompany.contacts.length > 3 && (
-              <p className="text-xs text-slate-500 text-center pt-1">
-                +{selectedCompany.contacts.length - 3} more contacts
+              ))}
+            </div>
+          ) : (
+            <div className="py-6 text-center">
+              <Users className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No contacts found</p>
+              <p className="text-xs text-slate-600 mt-1">
+                Contacts will appear here once discovered
               </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Recent Updates */}
-      {selectedCompany.recent_updates && selectedCompany.recent_updates.length > 0 && (
+      {/* Recent Updates - Show only in details or updates view */}
+      {(viewMode === "details" || viewMode === "updates") && (
         <div className="px-4 py-3 border-b border-white/5">
           <h4 className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5" />
-            Recent Updates ({selectedCompany.recent_updates.length})
+            Recent Updates ({selectedCompany.recent_updates?.length || 0})
           </h4>
-          <div className="space-y-2">
-            {selectedCompany.recent_updates.slice(0, 3).map((update) => (
+          {selectedCompany.recent_updates && selectedCompany.recent_updates.length > 0 ? (
+            <div className="space-y-2">
+              {selectedCompany.recent_updates.map((update) => (
               <div
                 key={update.id}
                 className="p-2 bg-white/5 rounded-lg border border-white/5"
@@ -314,8 +355,17 @@ export const ResultCard = () => {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-6 text-center">
+              <TrendingUp className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No updates yet</p>
+              <p className="text-xs text-slate-600 mt-1">
+                Updates will appear here as they are detected
+              </p>
+            </div>
+          )}
         </div>
       )}
 

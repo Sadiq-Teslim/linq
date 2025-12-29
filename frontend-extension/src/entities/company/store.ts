@@ -17,6 +17,7 @@ interface CompanyState {
   // Tracked companies list
   trackedCompanies: TrackedCompany[];
   selectedCompany: TrackedCompanyDetails | null;
+  viewMode: "details" | "contacts" | "updates"; // View mode for selected company
 
   // Search
   searchResults: CompanySearchResult[];
@@ -38,8 +39,9 @@ interface CompanyState {
   searchCompanies: (query: string) => Promise<void>;
   trackCompany: (company: CompanySearchResult) => Promise<void>;
   untrackCompany: (companyId: string) => Promise<void>;
-  selectCompany: (companyId: string) => Promise<void>;
+  selectCompany: (companyId: string, viewMode?: "details" | "contacts" | "updates") => Promise<void>;
   clearSelection: () => void;
+  setViewMode: (mode: "details" | "contacts" | "updates") => void;
   updateCompanySettings: (
     companyId: string,
     settings: {
@@ -61,6 +63,7 @@ export const useCompanyStore = create<CompanyState>()(
     (set) => ({
       trackedCompanies: [],
       selectedCompany: null,
+      viewMode: "details",
       searchResults: [],
       searchQuery: "",
       updates: [],
@@ -154,11 +157,11 @@ export const useCompanyStore = create<CompanyState>()(
         }
       },
 
-      selectCompany: async (companyId: string) => {
+      selectCompany: async (companyId: string, viewMode: "details" | "contacts" | "updates" = "details") => {
         set({ isLoading: true, error: null });
         try {
           const details = await companiesApi.getDetails(companyId);
-          set({ selectedCompany: details, isLoading: false });
+          set({ selectedCompany: details, viewMode, isLoading: false });
         } catch (error) {
           const apiError = parseApiError(error);
           set({
@@ -168,7 +171,9 @@ export const useCompanyStore = create<CompanyState>()(
         }
       },
 
-      clearSelection: () => set({ selectedCompany: null }),
+      clearSelection: () => set({ selectedCompany: null, viewMode: "details" }),
+      
+      setViewMode: (mode: "details" | "contacts" | "updates") => set({ viewMode: mode }),
 
       updateCompanySettings: async (companyId, settings) => {
         try {

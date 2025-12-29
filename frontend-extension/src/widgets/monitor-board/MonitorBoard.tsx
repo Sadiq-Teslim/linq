@@ -242,7 +242,7 @@ export const MonitorBoard = () => {
                         />
                         <div className="absolute right-0 top-8 z-50 bg-navy-800 rounded-lg shadow-xl border border-white/10 py-1 w-36">
                           <button
-                            onClick={() => selectCompany(company.id)}
+                            onClick={() => selectCompany(company.id, "contacts")}
                             className="w-full px-3 py-2 text-left text-xs text-slate-300 hover:bg-white/5 flex items-center gap-2"
                           >
                             <Users className="w-3.5 h-3.5" />
