@@ -80,7 +80,7 @@ def invite_team_member(
         )
 
     # Check subscription limits
-    org_result = supabase.table("organizations").select("*, subscriptions(max_team_members)").eq("id", org_id).execute()
+    org_result = supabase.table("organizations").select("id, name, subscriptions(max_team_members)").eq("id", org_id).execute()
     if not org_result.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

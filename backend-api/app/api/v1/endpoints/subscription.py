@@ -331,7 +331,7 @@ def generate_access_code_endpoint(
         )
 
     # Get organization info
-    org_result = supabase.table("organizations").select("*, subscriptions!organizations_subscription_id_fkey(plan)").eq("id", org_id).execute()
+    org_result = supabase.table("organizations").select("id, name, subscriptions!organizations_subscription_id_fkey(plan)").eq("id", org_id).execute()
 
     if not org_result.data:
         raise HTTPException(
