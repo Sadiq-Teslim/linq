@@ -271,7 +271,7 @@ def track_company(
 
 
 @router.get("/{company_id}", response_model=TrackedCompanyWithDetails)
-def get_company_details(
+async def get_company_details(
     company_id: int,
     current_user: Dict[str, Any] = Depends(get_current_user),
     supabase: SupabaseClient = Depends(get_supabase_client),
