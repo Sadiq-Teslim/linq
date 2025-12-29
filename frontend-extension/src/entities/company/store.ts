@@ -229,14 +229,22 @@ export const useCompanyStore = create<CompanyState>()(
       refreshCompany: async (companyId) => {
         set({ isRefreshing: true });
         try {
-          const updated = await companiesApi.refresh(companyId);
+          // Trigger refresh on backend (this discovers contacts in background)
+          await companiesApi.refresh(companyId);
+          
+          // Wait a moment for contact discovery to complete
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          
+          // Re-fetch full company details to get newly discovered contacts
+          const details = await companiesApi.getDetails(companyId);
+          
           set((state) => ({
             trackedCompanies: state.trackedCompanies.map((c) =>
-              c.id === companyId ? updated : c,
+              c.id === companyId ? { ...c, ...details } : c,
             ),
             selectedCompany:
               state.selectedCompany?.id === companyId
-                ? { ...state.selectedCompany, ...updated }
+                ? details
                 : state.selectedCompany,
             isRefreshing: false,
           }));
