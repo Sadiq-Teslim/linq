@@ -41,7 +41,7 @@ redis==5.2.1  # For Celery broker and caching
 hiredis==2.3.2  # Fast Redis protocol parser (optional but recommended)
 
 # NLP and entity extraction
-spacy==3.8.1  # Natural Language Processing with NER
+spacy>=3.8.2  # Natural Language Processing with NER (3.8.1 doesn't support Python 3.13)
 # Note: After installing, run: python -m spacy download en_core_web_sm
 
 # Proxy and anti-detection
