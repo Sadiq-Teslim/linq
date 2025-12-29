@@ -18,12 +18,11 @@ class GeminiClient:
     def __init__(self):
         if settings.GEMINI_API_KEY:
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            # Use gemini-1.5-flash (fast, cheap) or gemini-1.5-pro (better quality)
-            # Updated to use latest model
+            # Use gemini-2.5-pro (best quality) with fallback to gemini-2.5-flash (faster)
             try:
                 self.model = genai.GenerativeModel("gemini-2.5-pro")
             except:
-                # Fallback to older model if new one not available
+                # Fallback to flash if pro not available
                 self.model = genai.GenerativeModel("gemini-2.5-flash")
         else:
             self.model = None
