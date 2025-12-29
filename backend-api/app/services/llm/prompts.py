@@ -142,4 +142,144 @@ Provide:
 2. Any business signals detected (hiring, growth, challenges, partnerships)
 3. Sentiment (positive, negative, neutral)
 
-Be concise and focus on actionable business intelligence."""
+        Be concise and focus on actionable business intelligence."""
+
+    @staticmethod
+    def company_insights(
+        company_name: str,
+        company_data: Dict[str, Any],
+        recent_updates: List[Dict[str, Any]],
+        contacts: List[Dict[str, Any]],
+        context: str,
+    ) -> str:
+        """
+        Generate comprehensive insights for a tracked company
+        """
+        updates_text = "\n".join([
+            f"- {u.get('title', '')}: {u.get('summary', '')}"
+            for u in recent_updates[:5]
+        ]) if recent_updates else "No recent updates"
+
+        contacts_text = "\n".join([
+            f"- {c.get('full_name', '')} ({c.get('title', '')}) - {'Decision Maker' if c.get('is_decision_maker') else 'Contact'}"
+            for c in contacts[:5]
+        ]) if contacts else "No contacts found"
+
+        return f"""You are LINQ AI, an expert B2B sales intelligence analyst. Analyze this tracked company and provide strategic insights.
+
+COMPANY: {company_name}
+INDUSTRY: {company_data.get('industry', 'Unknown')}
+HEADQUARTERS: {company_data.get('headquarters', 'Unknown')}
+EMPLOYEE COUNT: {company_data.get('employee_count', 'Unknown')}
+
+RECENT UPDATES:
+{updates_text}
+
+KEY CONTACTS:
+{contacts_text}
+
+ADDITIONAL CONTEXT:
+{context}
+
+Provide comprehensive analysis in this format:
+
+STRATEGIC_INSIGHTS:
+- [Key insight about company's position, growth trajectory, or market opportunity]
+- [Strategic recommendation for engagement]
+- [Competitive positioning or differentiation]
+
+RELATIONSHIP_OPPORTUNITIES:
+- [Specific opportunity to engage based on recent activity]
+- [Best contact to approach and why]
+- [Timing recommendation]
+
+ACTION_RECOMMENDATIONS:
+- [Immediate action item 1]
+- [Action item 2]
+- [Long-term strategy]
+
+RISK_FACTORS:
+- [Any risks or concerns about this prospect]
+- [Market or industry challenges]
+
+GROWTH_SIGNALS:
+- [Positive growth indicators]
+- [Expansion or investment signals]
+
+Be specific, actionable, and focus on helping sales teams make informed decisions."""
+
+    @staticmethod
+    def update_analysis(
+        company_name: str,
+        update: Dict[str, Any],
+    ) -> str:
+        """
+        Analyze a company update and provide context
+        """
+        return f"""Analyze this company update and provide actionable insights for a B2B salesperson.
+
+COMPANY: {company_name}
+UPDATE TYPE: {update.get('update_type', 'news')}
+HEADLINE: {update.get('title', update.get('headline', ''))}
+SUMMARY: {update.get('summary', '')}
+SOURCE: {update.get('source_name', 'Unknown')}
+
+Provide analysis in this format:
+
+IMPORTANCE: [critical/high/medium/low]
+- Critical: Funding, major expansion, leadership change, regulatory compliance
+- High: Significant partnerships, product launches, market entry
+- Medium: Hiring, minor partnerships, general news
+- Low: Routine updates, minor announcements
+
+IMPLICATIONS:
+- [What this means for sales opportunities]
+- [How this affects the company's needs]
+- [Market or industry impact]
+
+ACTION_ITEMS:
+- [Specific action for sales team]
+- [Who to contact and when]
+- [Follow-up strategy]
+
+TIMING_URGENCY: [urgent/normal/low]
+- Urgent: Act within 24-48 hours
+- Normal: Engage within 1-2 weeks
+- Low: Monitor and nurture
+
+Be concise and actionable."""
+
+    @staticmethod
+    def outreach_suggestions(
+        company_name: str,
+        contact: Dict[str, Any],
+        company_context: Dict[str, Any],
+    ) -> str:
+        """
+        Generate personalized outreach suggestions
+        """
+        return f"""Generate personalized cold outreach suggestions for this contact.
+
+COMPANY: {company_name}
+CONTACT: {contact.get('full_name', '')}
+TITLE: {contact.get('title', '')}
+DEPARTMENT: {contact.get('department', '')}
+IS_DECISION_MAKER: {contact.get('is_decision_maker', False)}
+
+COMPANY CONTEXT:
+- Industry: {company_context.get('industry', 'Unknown')}
+- Recent Activity: {company_context.get('recent_activity', 'No recent updates')}
+- Growth Stage: {company_context.get('growth_stage', 'Unknown')}
+
+Provide outreach suggestions in this format:
+
+SUBJECT_LINE: [Compelling, personalized subject line (max 50 chars)]
+
+OPENING_LINE: [Personalized opening that shows you researched them]
+
+VALUE_PROPOSITION: [2-3 sentences about how you can help their company specifically]
+
+CALL_TO_ACTION: [Clear, low-pressure CTA]
+
+TONE: Professional but warm, West African business context
+FOCUS: Their specific needs based on company context, not generic pitch"""

@@ -1,59 +1,56 @@
-# =============================================================================
-# Render Blueprint - LINQ AI Backend
-# https://render.com/docs/blueprint-spec
-# =============================================================================
+# Render.com Configuration
+# This file helps configure Render services for LINQ backend
 
 services:
   - type: web
-    name: linq-api
+    name: linq-backend-api
     env: python
-    region: oregon # or frankfurt for EU
-    plan: free # or starter, standard for production
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
-    healthCheckPath: /health
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
-      # Environment
       - key: ENVIRONMENT
         value: production
-      - key: PYTHON_VERSION
-        value: 3.11.0
-
-      # Supabase (set these in Render dashboard as secrets)
+      - key: SERP_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false  # Optional, set in Render dashboard
       - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_ANON_KEY
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
-      - key: SUPABASE_JWT_SECRET
-        sync: false
-
-      # Auth
       - key: SECRET_KEY
         generateValue: true
-      - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "30"
-
-      # External APIs (set in dashboard)
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: SERP_API_KEY
-        sync: false
       - key: PAYSTACK_SECRET_KEY
         sync: false
       - key: PAYSTACK_PUBLIC_KEY
         sync: false
 
-      # CORS - set your production domains
-      - key: PROD_CORS_ORIGINS
-        value: "https://linq.ai,https://www.linq.ai"
+  # Cron Jobs for Render
+  - type: cron
+    name: refresh-companies
+    schedule: "0 0,12 * * *"  # Every 12 hours at 00:00 and 12:00 UTC
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/refresh_companies_cron.py
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: SERP_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
 
-      # URLs (update after deployment)
-      - key: API_BASE_URL
-        fromService:
-          name: linq-api
-          type: web
-          property: host
-      - key: FRONTEND_URL
-        value: "https://linq.ai"
+  - type: cron
+    name: refresh-feed
+    schedule: "0 */6 * * *"  # Every 6 hours
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/refresh_feed_cron.py
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+

@@ -49,8 +49,13 @@ class Settings(BaseSettings):
     # Google Gemini AI
     GEMINI_API_KEY: str = ""
 
-    # SerpAPI for company search
+    # SerpAPI for company search and contact discovery
     SERP_API_KEY: str = ""
+    
+    # Optional: Additional contact discovery APIs
+    CLEARBIT_API_KEY: str = ""  # For company enrichment
+    HUNTER_API_KEY: str = ""  # For email finding
+    APOLLO_API_KEY: str = ""  # For contact discovery
 
     # Paystack for payments
     PAYSTACK_SECRET_KEY: str = ""

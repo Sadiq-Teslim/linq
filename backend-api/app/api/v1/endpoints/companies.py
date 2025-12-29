@@ -334,12 +334,46 @@ def get_company_details(
     unread_result = supabase.table("company_updates").select("id").eq("company_id", company_id).eq("is_read", False).execute()
     unread_count = len(unread_result.data) if unread_result.data else 0
 
-    return TrackedCompanyWithDetails(
+    # Generate AI insights if Gemini is available
+    ai_insights_text = None
+    try:
+        from app.services.llm.client import GeminiClient
+        import json
+        llm_client = GeminiClient()
+        if llm_client.model:
+            ai_insights = await llm_client.generate_company_insights(
+                company_name=company.get("company_name", ""),
+                company_data=company,
+                recent_updates=mapped_updates,
+                contacts=mapped_contacts,
+            )
+            # Format insights as readable text
+            if ai_insights:
+                insights_parts = []
+                if ai_insights.get("strategic_insights"):
+                    insights_parts.append("Strategic Insights:\n" + "\n".join(f"• {i}" for i in ai_insights["strategic_insights"][:3]))
+                if ai_insights.get("action_recommendations"):
+                    insights_parts.append("\nRecommended Actions:\n" + "\n".join(f"• {i}" for i in ai_insights["action_recommendations"][:3]))
+                if ai_insights.get("growth_signals"):
+                    insights_parts.append("\nGrowth Signals:\n" + "\n".join(f"• {i}" for i in ai_insights["growth_signals"][:3]))
+                ai_insights_text = "\n\n".join(insights_parts) if insights_parts else None
+    except Exception as e:
+        print(f"Error generating AI insights: {e}")
+        ai_insights_text = None
+
+    # Build response
+    response_data = {
         **company,
-        contacts=[TrackedCompanyContactResponse.model_validate(c) for c in mapped_contacts],
-        recent_updates=[TrackedCompanyUpdateResponse.model_validate(u) for u in mapped_updates],
-        unread_update_count=unread_count,
-    )
+        "contacts": [TrackedCompanyContactResponse.model_validate(c) for c in mapped_contacts],
+        "recent_updates": [TrackedCompanyUpdateResponse.model_validate(u) for u in mapped_updates],
+        "unread_update_count": unread_count,
+    }
+    
+    # Add AI insights if available
+    if ai_insights_text:
+        response_data["ai_insights"] = ai_insights_text
+
+    return TrackedCompanyWithDetails(**response_data)
 
 
 @router.patch("/{company_id}", response_model=TrackedCompanyResponse)
@@ -656,7 +690,7 @@ def mark_updates_read(
 
 
 @router.post("/{company_id}/refresh", response_model=TrackedCompanyResponse)
-def refresh_company_data(
+async def refresh_company_data(
     company_id: int,
     current_user: Dict[str, Any] = Depends(get_current_user),
     supabase: SupabaseClient = Depends(get_supabase_client),
@@ -684,13 +718,12 @@ def refresh_company_data(
     # Fetch company news/updates from external sources
     try:
         from app.services.scraper.google import GoogleSearchService
-        from app.services.scraper.news import NewsAggregatorService
         
         google_service = GoogleSearchService()
-        news_service = NewsAggregatorService()
+        company_name = company.get("company_name", "")
+        company_domain = company.get("domain", "")
         
         # Search for recent news about this company
-        company_name = company.get("company_name", "")
         company_news = await google_service.search_company_news(company_name, "Nigeria")
         
         # Store relevant news as company updates
@@ -699,7 +732,7 @@ def refresh_company_data(
             existing_update = supabase.table("company_updates")\
                 .select("id")\
                 .eq("company_id", company_id)\
-                .eq("headline", news_item.get("title", ""))\
+                .eq("title", news_item.get("title", ""))\
                 .execute()
             
             if not existing_update.data:
@@ -732,6 +765,47 @@ def refresh_company_data(
     except Exception as e:
         # Log error but don't fail the refresh
         print(f"Error fetching company updates: {e}")
+
+    # Discover and store contacts (head officers and sales department heads)
+    try:
+        from app.services.contact_discovery_service import contact_discovery_service
+        
+        discovered_contacts = await contact_discovery_service.discover_contacts(
+            company_name=company_name,
+            domain=company_domain,
+            country="Nigeria",
+        )
+        
+        # Store discovered contacts
+        for contact_data in discovered_contacts:
+            # Check if contact already exists
+            existing_contact = supabase.table("company_contacts")\
+                .select("id")\
+                .eq("company_id", company_id)\
+                .eq("full_name", contact_data.get("full_name", ""))\
+                .execute()
+            
+            if not existing_contact.data:
+                contact_record = {
+                    "company_id": company_id,
+                    "full_name": contact_data.get("full_name", ""),
+                    "title": contact_data.get("title"),
+                    "department": contact_data.get("department", "other"),
+                    "email": contact_data.get("email"),
+                    "phone": contact_data.get("phone"),
+                    "linkedin_url": contact_data.get("linkedin_url"),
+                    "is_decision_maker": contact_data.get("is_decision_maker", False),
+                    "is_verified": False,
+                    "verification_score": contact_data.get("confidence_score", 0.5),
+                    "source": contact_data.get("source", "automated"),
+                    "is_active": True,
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                }
+                supabase.table("company_contacts").insert(contact_record).execute()
+    except Exception as e:
+        # Log error but don't fail the refresh
+        print(f"Error discovering contacts: {e}")
 
     # Update company timestamp
     update_result = supabase.table("tracked_companies").update({

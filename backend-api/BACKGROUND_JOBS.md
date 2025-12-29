@@ -5,6 +5,7 @@ This document describes how the LINQ platform automatically fetches industry new
 ## Overview
 
 The LINQ platform uses automated background jobs to:
+
 1. **Fetch Industry News** - Continuously aggregates news from RSS feeds and web sources
 2. **Update Tracked Companies** - Fetches latest information, contacts, and news about tracked companies
 3. **Populate Industry Feed** - Ensures the `industry_news` table is always up-to-date
@@ -16,6 +17,7 @@ The LINQ platform uses automated background jobs to:
 **Endpoint:** `GET /api/v1/feed/refresh`
 
 **What it does:**
+
 - Fetches news from configured RSS feeds (TechCabal, Disrupt Africa, TechPoint Africa, etc.)
 - Stores news in both `activity_feed` and `industry_news` tables
 - Classifies news by event type (funding, partnership, hiring, expansion)
@@ -23,6 +25,7 @@ The LINQ platform uses automated background jobs to:
 - Prioritizes news about tracked companies
 
 **How to trigger:**
+
 - **Manual:** Call the endpoint via API
 - **Automatic:** Extension automatically triggers on page load
 - **Scheduled:** Set up a cron job or background task (see below)
@@ -32,24 +35,57 @@ The LINQ platform uses automated background jobs to:
 **Endpoint:** `POST /api/v1/companies/{company_id}/refresh`
 
 **What it does:**
+
 - Searches Google News for recent updates about the company
 - Creates `company_updates` records for relevant news
 - Updates company's `last_updated` timestamp
 - Can be triggered manually or automatically based on `update_frequency`
 
 **How to trigger:**
+
 - **Manual:** User clicks "Refresh" button in extension
 - **Automatic:** Based on company's `update_frequency` setting (daily/weekly/monthly)
 
 ## Setting Up Automated Background Jobs
 
-### Option 1: Cron Job (Recommended for Production)
+### Option 1: Automated Setup Script (Easiest)
 
-Create a cron job to run the feed refresh every hour:
+Use the provided setup script:
+
+```bash
+cd backend-api
+chmod +x scripts/setup_cron.sh
+./scripts/setup_cron.sh
+```
+
+This will automatically:
+
+- Set up cron job to refresh all companies every 12 hours (00:00 and 12:00)
+- Set up cron job to refresh industry feed every 6 hours
+- Create logs directory for tracking
+
+### Option 2: Manual Cron Job Setup
+
+#### Refresh Companies Every 12 Hours
 
 ```bash
 # Add to crontab (crontab -e)
-0 * * * * curl -X GET "https://your-api-url.com/api/v1/feed/refresh" -H "Authorization: Bearer YOUR_SERVICE_TOKEN"
+0 0,12 * * * cd /path/to/backend-api && python3 scripts/refresh_companies_cron.py >> logs/refresh_companies.log 2>&1
+```
+
+#### Refresh Industry Feed Every 6 Hours
+
+```bash
+0 */6 * * * cd /path/to/backend-api && python3 scripts/refresh_feed_cron.py >> logs/refresh_feed.log 2>&1
+```
+
+### Option 3: API Endpoint (For Cloud Services)
+
+If you can't use cron, set up a scheduled HTTP request:
+
+```bash
+# Every 12 hours
+0 0,12 * * * curl -X POST "https://your-api-url.com/api/v1/companies/refresh-all" -H "Authorization: Bearer YOUR_SERVICE_TOKEN"
 ```
 
 ### Option 2: Python Background Task (Using APScheduler)
@@ -68,16 +104,16 @@ async def refresh_industry_feed():
     """Refresh industry news feed every hour"""
     news_service = NewsAggregatorService()
     supabase = get_supabase_client()
-    
+
     new_items = await news_service.fetch_all_feeds()
     # ... (same logic as in feed.py endpoint)
-    
+
     print(f"Refreshed feed: {len(new_items)} new items")
 
 async def refresh_tracked_companies():
     """Refresh all tracked companies based on their update frequency"""
     supabase = get_supabase_client()
-    
+
     # Get companies that need updating
     now = datetime.utcnow()
     companies = supabase.table("tracked_companies")\
@@ -85,7 +121,7 @@ async def refresh_tracked_companies():
         .eq("is_active", True)\
         .lte("next_update_at", now.isoformat())\
         .execute()
-    
+
     for company in companies.data:
         # Call refresh endpoint logic
         await refresh_company_data(company["id"])
@@ -141,10 +177,10 @@ The Chrome extension automatically triggers feed refresh on page load:
 // frontend-extension/src/pages/popup/PopupPage.tsx
 useEffect(() => {
   // ... fetch data ...
-  
+
   // Trigger feed refresh in background
-  fetch('/api/v1/feed/refresh', {
-    headers: { 'Authorization': `Bearer ${token}` }
+  fetch("/api/v1/feed/refresh", {
+    headers: { Authorization: `Bearer ${token}` },
   });
 }, []);
 ```
@@ -205,7 +241,7 @@ useEffect(() => {
 ## Environment Variables
 
 Ensure these are set:
+
 - `SERP_API_KEY` - For Google Search/News API
 - `CLEARBIT_API_KEY` - (Optional) For company enrichment
 - `HUNTER_API_KEY` - (Optional) For contact discovery
-

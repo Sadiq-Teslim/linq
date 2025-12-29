@@ -19,7 +19,12 @@ class GeminiClient:
         if settings.GEMINI_API_KEY:
             genai.configure(api_key=settings.GEMINI_API_KEY)
             # Use gemini-1.5-flash (fast, cheap) or gemini-1.5-pro (better quality)
-            self.model = genai.GenerativeModel("gemini-2.5-flash")
+            # Updated to use latest model
+            try:
+                self.model = genai.GenerativeModel("gemini-2.5-pro")
+            except:
+                # Fallback to older model if new one not available
+                self.model = genai.GenerativeModel("gemini-2.5-flash")
         else:
             self.model = None
 
@@ -232,6 +237,259 @@ class GeminiClient:
             decision_makers.append(current_dm)
 
         return [dm for dm in decision_makers if dm.get("name") and dm.get("title")]
+
+    async def generate_company_insights(
+        self,
+        company_name: str,
+        company_data: Dict[str, Any],
+        recent_updates: List[Dict[str, Any]],
+        contacts: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Generate comprehensive AI insights for a tracked company
+        Includes: strategic insights, relationship opportunities, action recommendations
+        """
+        if not self.model:
+            return self._fallback_insights(company_name)
+
+        context = self._build_company_context(company_data, recent_updates, contacts)
+        prompt = PromptTemplates.company_insights(
+            company_name=company_name,
+            company_data=company_data,
+            recent_updates=recent_updates,
+            contacts=contacts,
+            context=context,
+        )
+
+        try:
+            response = self.model.generate_content(prompt)
+            return self._parse_insights_response(response.text, company_name)
+        except Exception as e:
+            print(f"Gemini insights error: {e}")
+            return self._fallback_insights(company_name)
+
+    async def analyze_company_update(
+        self,
+        update: Dict[str, Any],
+        company_name: str,
+    ) -> Dict[str, Any]:
+        """
+        Analyze a company update and provide context, implications, and action items
+        """
+        if not self.model:
+            return {
+                "importance": "medium",
+                "implications": [],
+                "action_items": [],
+                "timing_urgency": "normal",
+            }
+
+        prompt = PromptTemplates.update_analysis(
+            company_name=company_name,
+            update=update,
+        )
+
+        try:
+            response = self.model.generate_content(prompt)
+            return self._parse_update_analysis(response.text)
+        except Exception as e:
+            print(f"Gemini update analysis error: {e}")
+            return {
+                "importance": "medium",
+                "implications": [],
+                "action_items": [],
+                "timing_urgency": "normal",
+            }
+
+    async def generate_outreach_suggestions(
+        self,
+        company_name: str,
+        contact: Dict[str, Any],
+        company_context: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Generate personalized outreach suggestions for a contact
+        """
+        if not self.model:
+            return {
+                "subject_line": f"Partnership opportunity with {company_name}",
+                "opening_line": f"Hi {contact.get('full_name', 'there')},",
+                "value_proposition": "",
+                "call_to_action": "",
+            }
+
+        prompt = PromptTemplates.outreach_suggestions(
+            company_name=company_name,
+            contact=contact,
+            company_context=company_context,
+        )
+
+        try:
+            response = self.model.generate_content(prompt)
+            return self._parse_outreach_suggestions(response.text)
+        except Exception as e:
+            print(f"Gemini outreach error: {e}")
+            return {
+                "subject_line": f"Partnership opportunity with {company_name}",
+                "opening_line": f"Hi {contact.get('full_name', 'there')},",
+                "value_proposition": "",
+                "call_to_action": "",
+            }
+
+    def _build_company_context(
+        self,
+        company_data: Dict[str, Any],
+        recent_updates: List[Dict[str, Any]],
+        contacts: List[Dict[str, Any]],
+    ) -> str:
+        """Build comprehensive context for company insights"""
+        parts = []
+
+        # Company basics
+        if company_data.get("industry"):
+            parts.append(f"Industry: {company_data['industry']}")
+        if company_data.get("headquarters"):
+            parts.append(f"Headquarters: {company_data['headquarters']}")
+        if company_data.get("employee_count"):
+            parts.append(f"Size: {company_data['employee_count']} employees")
+        if company_data.get("description"):
+            parts.append(f"Description: {company_data['description']}")
+
+        # Recent updates
+        if recent_updates:
+            parts.append("\nRecent Updates:")
+            for update in recent_updates[:5]:
+                parts.append(f"- {update.get('title', '')}: {update.get('summary', '')}")
+
+        # Key contacts
+        if contacts:
+            parts.append("\nKey Contacts:")
+            for contact in contacts[:5]:
+                parts.append(f"- {contact.get('full_name', '')} ({contact.get('title', '')})")
+
+        return "\n".join(parts) if parts else "Limited company information available."
+
+    def _parse_insights_response(self, response_text: str, company_name: str) -> Dict[str, Any]:
+        """Parse insights response"""
+        import json
+        import re
+
+        # Try to extract JSON if present
+        json_match = re.search(r'\{[^{}]*"insights"[^{}]*\}', response_text, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group(0))
+            except:
+                pass
+
+        # Fallback parsing
+        insights = {
+            "strategic_insights": [],
+            "relationship_opportunities": [],
+            "action_recommendations": [],
+            "risk_factors": [],
+            "growth_signals": [],
+        }
+
+        current_section = None
+        for line in response_text.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+
+            lower_line = line.lower()
+            if "strategic" in lower_line or "insights" in lower_line:
+                current_section = "strategic"
+            elif "relationship" in lower_line or "opportunity" in lower_line:
+                current_section = "relationship"
+            elif "action" in lower_line or "recommendation" in lower_line:
+                current_section = "action"
+            elif "risk" in lower_line:
+                current_section = "risk"
+            elif "growth" in lower_line or "signal" in lower_line:
+                current_section = "growth"
+            elif line.startswith("-") or line.startswith("*"):
+                item = line.lstrip("-* ").strip()
+                if current_section == "strategic":
+                    insights["strategic_insights"].append(item)
+                elif current_section == "relationship":
+                    insights["relationship_opportunities"].append(item)
+                elif current_section == "action":
+                    insights["action_recommendations"].append(item)
+                elif current_section == "risk":
+                    insights["risk_factors"].append(item)
+                elif current_section == "growth":
+                    insights["growth_signals"].append(item)
+
+        return insights
+
+    def _parse_update_analysis(self, response_text: str) -> Dict[str, Any]:
+        """Parse update analysis response"""
+        analysis = {
+            "importance": "medium",
+            "implications": [],
+            "action_items": [],
+            "timing_urgency": "normal",
+        }
+
+        for line in response_text.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+
+            lower_line = line.lower()
+            if "importance:" in lower_line or "critical" in lower_line:
+                if "critical" in lower_line or "high" in lower_line:
+                    analysis["importance"] = "high"
+                elif "low" in lower_line:
+                    analysis["importance"] = "low"
+            elif "urgency:" in lower_line or "urgent" in lower_line:
+                if "urgent" in lower_line or "immediate" in lower_line:
+                    analysis["timing_urgency"] = "urgent"
+            elif line.startswith("-") or line.startswith("*"):
+                item = line.lstrip("-* ").strip()
+                if "implication" in lower_line or "impact" in lower_line:
+                    analysis["implications"].append(item)
+                elif "action" in lower_line or "recommend" in lower_line:
+                    analysis["action_items"].append(item)
+
+        return analysis
+
+    def _parse_outreach_suggestions(self, response_text: str) -> Dict[str, Any]:
+        """Parse outreach suggestions response"""
+        suggestions = {
+            "subject_line": "",
+            "opening_line": "",
+            "value_proposition": "",
+            "call_to_action": "",
+        }
+
+        for line in response_text.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+
+            lower_line = line.lower()
+            if "subject" in lower_line:
+                suggestions["subject_line"] = line.split(":", 1)[-1].strip()
+            elif "opening" in lower_line:
+                suggestions["opening_line"] = line.split(":", 1)[-1].strip()
+            elif "value" in lower_line or "proposition" in lower_line:
+                suggestions["value_proposition"] = line.split(":", 1)[-1].strip()
+            elif "call" in lower_line or "cta" in lower_line:
+                suggestions["call_to_action"] = line.split(":", 1)[-1].strip()
+
+        return suggestions
+
+    def _fallback_insights(self, company_name: str) -> Dict[str, Any]:
+        """Fallback insights when Gemini is unavailable"""
+        return {
+            "strategic_insights": [f"{company_name} shows growth potential in the West African market."],
+            "relationship_opportunities": ["Monitor for expansion or funding announcements"],
+            "action_recommendations": ["Set up tracking alerts", "Research decision makers"],
+            "risk_factors": [],
+            "growth_signals": [],
+        }
 
     def _fallback_response(self, company_name: str) -> Dict[str, Any]:
         """Fallback when Gemini is unavailable"""

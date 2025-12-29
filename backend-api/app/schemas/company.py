@@ -304,6 +304,7 @@ class TrackedCompanyWithDetails(TrackedCompanyResponse):
     contacts: List["TrackedCompanyContactResponse"] = []
     recent_updates: List["TrackedCompanyUpdateResponse"] = []
     unread_update_count: int = 0
+    ai_insights: Optional[str] = None  # AI-generated strategic insights
 
 
 # ===== Company Contact Schemas =====
