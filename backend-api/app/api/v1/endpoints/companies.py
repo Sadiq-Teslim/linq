@@ -403,10 +403,23 @@ async def get_company_details(
     contacts = contacts_result.data if contacts_result.data else []
 
     # Map contact fields if needed (database uses 'name', schema expects 'full_name')
+    # Also map verification_score -> confidence_score and last_verified -> last_verified_at
     mapped_contacts = []
     for c in contacts:
         if "name" in c and "full_name" not in c:
             c["full_name"] = c["name"]
+        # Map verification_score to confidence_score
+        if "verification_score" in c and "confidence_score" not in c:
+            c["confidence_score"] = c["verification_score"]
+        # Map last_verified to last_verified_at
+        if "last_verified" in c and "last_verified_at" not in c:
+            c["last_verified_at"] = c["last_verified"]
+        # Ensure confidence_score exists (default to None if missing)
+        if "confidence_score" not in c:
+            c["confidence_score"] = None
+        # Ensure last_verified_at exists (default to None if missing)
+        if "last_verified_at" not in c:
+            c["last_verified_at"] = None
         mapped_contacts.append(c)
 
     # Get recent updates
