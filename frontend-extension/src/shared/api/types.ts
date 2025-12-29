@@ -162,6 +162,8 @@ export interface TrackedCompanyDetails extends TrackedCompany {
   recent_updates: CompanyUpdate[];
   ai_insights?: string;
   next_update_at: string;
+  unread_update_count?: number;
+  created_at?: string; // Backend uses created_at, frontend uses added_at
 }
 
 // ============== Industry Feed ==============

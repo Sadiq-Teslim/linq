@@ -6,13 +6,10 @@ import {
   X,
   MapPin,
   Users,
-  Globe,
   Briefcase,
   Mail,
-  Phone,
   Linkedin,
   ExternalLink,
-  Calendar,
   TrendingUp,
   Star,
   StarOff,
@@ -326,11 +323,11 @@ export const ResultCard = () => {
       <div className="px-4 py-2 bg-white/[0.01] flex items-center justify-between text-xs text-slate-500">
         <span>
           Tracking since{" "}
-          {selectedCompany.created_at
-            ? formatTimeAgo(selectedCompany.created_at)
+          {(selectedCompany.created_at || selectedCompany.added_at)
+            ? formatTimeAgo(selectedCompany.created_at || selectedCompany.added_at)
             : "recently"}
         </span>
-        {selectedCompany.unread_update_count > 0 && (
+        {(selectedCompany.unread_update_count ?? 0) > 0 && (
           <span className="text-gold-400 font-medium">
             {selectedCompany.unread_update_count} new updates
           </span>
