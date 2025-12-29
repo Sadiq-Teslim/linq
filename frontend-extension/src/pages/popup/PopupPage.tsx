@@ -27,9 +27,28 @@ const PopupContent = () => {
 
   // Fetch data on mount
   useEffect(() => {
-    fetchTrackedCompanies();
-    fetchUpdates();
-    refreshUser();
+    const loadData = async () => {
+      await Promise.all([
+        fetchTrackedCompanies(),
+        fetchUpdates(),
+        refreshUser(),
+      ]);
+      
+      // Refresh industry feed on load
+      try {
+        // Trigger feed refresh in background (don't wait)
+        fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://linq-api.onrender.com/api/v1'}/feed/refresh`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('linq-extension-auth') ? JSON.parse(localStorage.getItem('linq-extension-auth')!).state?.token : ''}`,
+          },
+        }).catch(() => {}); // Ignore errors, it's a background refresh
+      } catch (e) {
+        // Ignore
+      }
+    };
+    
+    loadData();
   }, []);
 
   // Get plan label from user subscription

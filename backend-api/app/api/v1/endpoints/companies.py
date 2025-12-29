@@ -677,12 +677,63 @@ def refresh_company_data(
 
     company = result.data[0]
 
-    # TODO: Trigger background job to fetch latest data
-    # For now, just update last_updated timestamp
-
+    # Fetch latest company data and updates
     now = datetime.utcnow()
     frequency = UpdateFrequency(company.get("update_frequency", "weekly"))
 
+    # Fetch company news/updates from external sources
+    try:
+        from app.services.scraper.google import GoogleSearchService
+        from app.services.scraper.news import NewsAggregatorService
+        
+        google_service = GoogleSearchService()
+        news_service = NewsAggregatorService()
+        
+        # Search for recent news about this company
+        company_name = company.get("company_name", "")
+        company_news = await google_service.search_company_news(company_name, "Nigeria")
+        
+        # Store relevant news as company updates
+        for news_item in company_news[:5]:  # Limit to 5 most recent
+            # Check if update already exists
+            existing_update = supabase.table("company_updates")\
+                .select("id")\
+                .eq("company_id", company_id)\
+                .eq("headline", news_item.get("title", ""))\
+                .execute()
+            
+            if not existing_update.data:
+                # Classify update type
+                update_type = "news"
+                title_lower = news_item.get("title", "").lower()
+                if any(kw in title_lower for kw in ["funding", "raised", "investment"]):
+                    update_type = "funding"
+                elif any(kw in title_lower for kw in ["hiring", "recruit", "jobs"]):
+                    update_type = "hiring"
+                elif any(kw in title_lower for kw in ["partnership", "partner", "collaboration"]):
+                    update_type = "partnership"
+                elif any(kw in title_lower for kw in ["expansion", "launch", "opens"]):
+                    update_type = "expansion"
+                
+                update_data = {
+                    "company_id": company_id,
+                    "update_type": update_type,
+                    "title": news_item.get("title", ""),
+                    "summary": news_item.get("snippet", ""),
+                    "source_url": news_item.get("link"),
+                    "source_name": news_item.get("source", "Google News"),
+                    "importance": "medium",
+                    "is_read": False,
+                    "detected_at": now.isoformat(),
+                    "published_at": news_item.get("date"),
+                    "created_at": now.isoformat(),
+                }
+                supabase.table("company_updates").insert(update_data).execute()
+    except Exception as e:
+        # Log error but don't fail the refresh
+        print(f"Error fetching company updates: {e}")
+
+    # Update company timestamp
     update_result = supabase.table("tracked_companies").update({
         "last_updated": now.isoformat(),
         "next_update_at": calculate_next_update(frequency).isoformat(),
