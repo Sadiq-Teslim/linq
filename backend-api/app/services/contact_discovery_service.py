@@ -127,18 +127,23 @@ class ContactDiscoveryService:
                 continue
             
             for contact in result:
-                # Deduplicate by email or name+title
-                email = contact.get("email", "").lower()
-                name_key = f"{contact.get('full_name', '')}:{contact.get('title', '')}".lower()
-                
-                if email and email in processed_emails:
+                if not contact:
                     continue
-                if name_key in processed_names:
+                # Deduplicate by email or name+title
+                email = contact.get("email", "") or ""
+                email_lower = email.lower() if email else ""
+                full_name = contact.get("full_name", "") or ""
+                title = contact.get("title", "") or ""
+                name_key = f"{full_name}:{title}".lower()
+                
+                if email_lower and email_lower in processed_emails:
+                    continue
+                if name_key and name_key in processed_names:
                     continue
                 
                 all_contacts.append(contact)
-                if email:
-                    processed_emails.add(email)
+                if email_lower:
+                    processed_emails.add(email_lower)
                 if name_key:
                     processed_names.add(name_key)
         
