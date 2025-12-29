@@ -65,3 +65,6 @@ export type {
   ScoreFactor,
   RecentActivity,
 } from "./search";
+
+// Transformers
+export { transformContact, transformContacts } from "./transformers";
