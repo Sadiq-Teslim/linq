@@ -4,6 +4,8 @@ Authentication token schemas
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
+from app.schemas.user import UserResponse, SubscriptionInfo
+
 
 class LoginRequest(BaseModel):
     """Login request payload"""
@@ -17,6 +19,14 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int  # seconds until expiration
+
+
+class LoginResponse(BaseModel):
+    """Login response with user data and token"""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    user: UserResponse
 
 
 class TokenPayload(BaseModel):

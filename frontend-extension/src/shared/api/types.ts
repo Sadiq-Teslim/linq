@@ -40,13 +40,14 @@ export type SubscriptionStatus =
 export interface SubscriptionInfo {
   plan: SubscriptionPlan;
   status: SubscriptionStatus;
-  current_period_start: string;
-  current_period_end: string;
-  cancel_at_period_end: boolean;
-  trial_ends_at?: string;
   max_tracked_companies: number;
   max_team_members: number;
-  features: string[];
+  // Optional fields that may or may not be returned
+  current_period_start?: string;
+  current_period_end?: string;
+  cancel_at_period_end?: boolean;
+  trial_ends_at?: string;
+  features?: string[];
 }
 
 export interface PlanDetails {

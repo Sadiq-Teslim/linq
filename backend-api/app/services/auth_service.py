@@ -219,21 +219,72 @@ class AuthService:
         return len(result.data) > 0
 
     def check_subscription(self, user: Dict[str, Any]) -> bool:
-        """Check if user has an active subscription"""
-        tier = user.get("subscription_tier", "free")
+        """Check if user has an active subscription via their organization.
 
-        if tier == "free":
-            return True  # Free tier always allowed
+        This method first checks if subscription data is already embedded in the user object
+        (from get_user_with_organization), otherwise queries the database.
+        """
+        # First check if subscription data is already embedded (from get_user_with_organization)
+        embedded_subscription = user.get("subscription")
+        if embedded_subscription:
+            status = embedded_subscription.get("status")
+            # Active or trialing subscriptions are valid
+            if status in ["active", "trialing"]:
+                return True
+            # For other statuses, we need to query full data for grace period check
+            if status == "past_due":
+                # Need to query for current_period_end
+                pass
+            elif status in ["cancelled", "expired"]:
+                return False
 
-        expires_at = user.get("subscription_expires_at")
-        if expires_at is None:
-            return False
+        organization_id = user.get("organization_id")
 
-        # Parse ISO datetime string
-        if isinstance(expires_at, str):
-            expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        if not organization_id:
+            # No organization = use legacy check on user fields
+            tier = user.get("subscription_tier", "free")
+            if tier == "free":
+                return True
+            expires_at = user.get("subscription_expires_at")
+            if expires_at is None:
+                return False
+            if isinstance(expires_at, str):
+                expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+            return expires_at > datetime.utcnow()
 
-        return expires_at > datetime.utcnow()
+        # Get organization's subscription (full data for grace period calculation)
+        org_result = self.supabase.table("organizations").select(
+            "subscriptions!organizations_subscription_id_fkey(status, plan, current_period_end, trial_ends_at)"
+        ).eq("id", organization_id).execute()
+
+        if not org_result.data:
+            return True  # No org data found, allow access
+
+        org = org_result.data[0]
+        subscription = org.get("subscriptions")
+
+        if not subscription:
+            # No subscription linked, allow free access
+            return True
+
+        status = subscription.get("status")
+
+        # Active or trialing subscriptions are valid
+        if status in ["active", "trialing"]:
+            return True
+
+        # Check if within grace period for past_due
+        if status == "past_due":
+            period_end = subscription.get("current_period_end")
+            if period_end:
+                if isinstance(period_end, str):
+                    period_end = datetime.fromisoformat(period_end.replace("Z", "+00:00"))
+                # Allow 3-day grace period
+                grace_period = period_end + timedelta(days=3)
+                if datetime.utcnow() < grace_period:
+                    return True
+
+        return False
 
     def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
         """Get user by ID"""
@@ -280,7 +331,7 @@ class AuthService:
     def get_user_with_organization(self, user_id: int) -> Optional[Dict[str, Any]]:
         """Get user with organization and subscription info"""
         result = self.supabase.table("users").select(
-            "*, organizations(id, name, industry, logo_url, subscriptions(plan, status, max_tracked_companies, max_team_members))"
+            "*, organizations(id, name, industry, logo_url, subscriptions!organizations_subscription_id_fkey(plan, status, max_tracked_companies, max_team_members))"
         ).eq("id", user_id).execute()
 
         if not result.data:

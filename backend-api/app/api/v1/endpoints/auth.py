@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse, JSONResponse
 
 from app.db.supabase_client import get_supabase_client, SupabaseClient
-from app.schemas.token import Token
+from app.schemas.token import Token, LoginResponse
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth_service import AuthService
 from app.services.google_oauth_service import google_oauth_service
@@ -34,13 +34,14 @@ def get_current_user(
     return user
 
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=LoginResponse)
 def register(
     user_data: UserCreate,
+    request: Request,
     supabase: SupabaseClient = Depends(get_supabase_client),
 ):
     """
-    Register a new user account
+    Register a new user account and return token for immediate login
     """
     auth_service = AuthService(supabase)
     user = auth_service.register_user(
@@ -49,10 +50,32 @@ def register(
         full_name=user_data.full_name,
         company_name=user_data.company_name,
     )
-    return UserResponse.model_validate(user)
+
+    # Get full user data with organization and subscription
+    user_with_org = auth_service.get_user_with_organization(user["id"])
+    if not user_with_org:
+        user_with_org = user
+
+    # Get device info from request
+    device_info = request.headers.get("User-Agent", "Unknown")
+    ip_address = request.client.host if request.client else None
+
+    # Create session for immediate login after registration
+    access_token, _ = auth_service.create_session(
+        user=user,
+        device_info=device_info,
+        ip_address=ip_address,
+    )
+
+    return LoginResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse.model_validate(user_with_org),
+    )
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=LoginResponse)
 def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -66,7 +89,7 @@ def login(
     """
     auth_service = AuthService(supabase)
 
-    # Authenticate user
+    # Authenticate user (basic credentials check)
     user = auth_service.authenticate_user(
         email=form_data.username,
         password=form_data.password,
@@ -75,11 +98,16 @@ def login(
     if not user:
         raise AuthenticationError("Incorrect email or password")
 
-    # Check subscription status
-    if not auth_service.check_subscription(user):
+    # Get full user data with organization and subscription
+    user_with_org = auth_service.get_user_with_organization(user["id"])
+    if not user_with_org:
+        user_with_org = user
+
+    # Check subscription status using the full user data
+    if not auth_service.check_subscription(user_with_org):
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Subscription expired or invalid",
+            detail="Your subscription is not active. Please subscribe first.",
         )
 
     # Get device info from request
@@ -93,10 +121,11 @@ def login(
         ip_address=ip_address,
     )
 
-    return Token(
+    return LoginResponse(
         access_token=access_token,
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse.model_validate(user_with_org),
     )
 
 
@@ -123,11 +152,21 @@ def logout(
 @router.get("/me", response_model=UserResponse)
 def get_current_user_info(
     current_user: Dict[str, Any] = Depends(get_current_user),
+    supabase: SupabaseClient = Depends(get_supabase_client),
 ):
     """
-    Get current user profile
+    Get current user profile with organization and subscription info
     """
-    return UserResponse.model_validate(current_user)
+    auth_service = AuthService(supabase)
+
+    # Get user with full organization and subscription data
+    user_with_org = auth_service.get_user_with_organization(current_user["id"])
+
+    if not user_with_org:
+        # Fall back to basic user data
+        return UserResponse.model_validate(current_user)
+
+    return UserResponse.model_validate(user_with_org)
 
 
 @router.get("/session/status")

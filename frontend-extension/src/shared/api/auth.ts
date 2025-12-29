@@ -26,16 +26,16 @@ export interface TokenResponse {
 }
 
 export interface UserResponse {
-  id: string;
+  id: string | number;
   email: string;
   full_name?: string;
-  role: "owner" | "admin" | "member";
-  organization_id: string;
-  organization_name: string;
-  industry: string;
-  subscription: SubscriptionInfo;
+  role?: "owner" | "admin" | "member";
+  organization_id?: string | number | null;
+  organization_name?: string | null;
+  industry?: string | null;
+  subscription?: SubscriptionInfo | null;
   is_active: boolean;
-  created_at: string;
+  created_at?: string | null;
 }
 
 export interface SessionStatus {
