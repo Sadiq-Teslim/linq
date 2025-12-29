@@ -45,7 +45,7 @@ spacy==3.8.1  # Natural Language Processing with NER
 # Note: After installing, run: python -m spacy download en_core_web_sm
 
 # Proxy and anti-detection
-curl-cffi==0.6.5  # curl-impersonate Python wrapper (makes requests look like browsers)
+curl-cffi>=0.6.4  # curl-impersonate Python wrapper (makes requests look like browsers)
 # Note: Crunchbase, Hunter.io, ScraperAPI use direct HTTP (no specific clients needed)
 
 # Utilities
