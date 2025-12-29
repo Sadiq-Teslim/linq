@@ -1,7 +1,7 @@
 /**
  * Analyze Company Feature - Business Logic
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 interface AnalysisResult {
   companyName: string;
@@ -23,7 +23,7 @@ export function useAnalyzeCompany() {
       // setResult(response);
       setResult(null); // Placeholder
     } catch {
-      setError('Failed to analyze company');
+      setError("Failed to analyze company");
     } finally {
       setIsLoading(false);
     }

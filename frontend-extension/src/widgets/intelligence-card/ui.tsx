@@ -13,7 +13,7 @@ export function IntelligenceCard({
   companyName,
   score,
   summary,
-  isLoading
+  isLoading,
 }: IntelligenceCardProps) {
   if (isLoading) {
     return (
@@ -28,13 +28,13 @@ export function IntelligenceCard({
 
   return (
     <div className="p-4 border rounded-lg">
-      <h3 className="font-semibold text-lg">{companyName || 'No company selected'}</h3>
+      <h3 className="font-semibold text-lg">
+        {companyName || "No company selected"}
+      </h3>
       {score !== undefined && (
         <div className="text-3xl font-bold text-primary my-2">{score}/100</div>
       )}
-      {summary && (
-        <p className="text-sm text-muted-foreground">{summary}</p>
-      )}
+      {summary && <p className="text-sm text-muted-foreground">{summary}</p>}
     </div>
   );
 }

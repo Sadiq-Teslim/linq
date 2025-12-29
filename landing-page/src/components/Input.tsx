@@ -24,7 +24,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             "disabled:bg-slate-50 disabled:cursor-not-allowed",
             error && "border-red-500 focus:border-red-500 focus:ring-red-200",
             !error && "border-slate-300",
-            className
+            className,
           )}
           {...props}
         />
@@ -34,7 +34,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";

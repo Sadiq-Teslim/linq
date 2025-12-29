@@ -33,6 +33,7 @@ CREATE TABLE transactions (
 ### 1. Payment Initialization
 
 When a user initiates a payment:
+
 - Frontend calls `/subscription/paystack/initialize`
 - Backend creates a Paystack transaction with metadata:
   ```python
@@ -46,11 +47,13 @@ When a user initiates a payment:
 ### 2. Webhook Processing
 
 When Paystack processes the payment, it sends a webhook to:
+
 ```
 POST /api/v1/subscription/paystack/webhook
 ```
 
 The webhook handler:
+
 1. Verifies the webhook signature
 2. Extracts transaction data from the event
 3. Stores the transaction in the `transactions` table
@@ -80,11 +83,13 @@ transaction_data = {
 ### 4. Payment History Retrieval
 
 The frontend calls:
+
 ```
 GET /api/v1/subscription/payment-history
 ```
 
 This endpoint:
+
 - Queries the `transactions` table for the organization
 - Returns formatted payment history
 - Includes all transaction details
@@ -100,6 +105,7 @@ Execute the SQL migration file in your Supabase SQL Editor:
 ```
 
 Or run it directly in Supabase:
+
 1. Go to SQL Editor
 2. Copy the contents of `migrations/add_transactions_table.sql`
 3. Execute it
@@ -107,6 +113,7 @@ Or run it directly in Supabase:
 ### 2. Configure Webhook URL
 
 In your Paystack Dashboard:
+
 1. Go to Settings > Webhooks
 2. Add webhook URL: `https://your-api-domain.com/api/v1/subscription/paystack/webhook`
 3. Select events: `charge.success`, `subscription.disable`, `invoice.payment_failed`
@@ -119,25 +126,28 @@ You can test the webhook using Paystack's webhook testing tool or by making a te
 ## Querying Transactions
 
 ### Get all transactions for an organization:
+
 ```sql
-SELECT * FROM transactions 
-WHERE organization_id = 1 
+SELECT * FROM transactions
+WHERE organization_id = 1
 ORDER BY transaction_date DESC;
 ```
 
 ### Get successful transactions:
+
 ```sql
-SELECT * FROM transactions 
-WHERE organization_id = 1 
+SELECT * FROM transactions
+WHERE organization_id = 1
 AND status = 'success'
 ORDER BY transaction_date DESC;
 ```
 
 ### Get total revenue:
+
 ```sql
-SELECT SUM(amount) as total_revenue 
-FROM transactions 
-WHERE organization_id = 1 
+SELECT SUM(amount) as total_revenue
+FROM transactions
+WHERE organization_id = 1
 AND status = 'success';
 ```
 
@@ -147,4 +157,3 @@ AND status = 'success';
 - Failed transactions are not automatically stored (only successful ones via webhook)
 - You can manually store failed transactions if needed by listening to `charge.failed` events
 - The `metadata` JSONB field can store additional custom data
-

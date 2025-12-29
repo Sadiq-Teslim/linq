@@ -89,7 +89,7 @@ export const authApi = {
       "/subscription/access-codes/activate",
       {
         code: accessCode,
-      }
+      },
     );
     return response.data;
   },
@@ -97,7 +97,7 @@ export const authApi = {
   // Validate access code without activating
   // Backend: POST /subscription/access-codes/validate
   validateCode: async (
-    accessCode: string
+    accessCode: string,
   ): Promise<{
     valid: boolean;
     organization_name?: string;

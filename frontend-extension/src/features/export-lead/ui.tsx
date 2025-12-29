@@ -13,7 +13,7 @@ export function ExportLead({
   companyName,
   onExportCSV,
   onSyncCRM,
-  disabled
+  disabled,
 }: ExportLeadProps) {
   return (
     <div className="flex gap-2">

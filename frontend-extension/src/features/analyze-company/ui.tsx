@@ -2,7 +2,7 @@
  * Analyze Company Feature
  * Button + Logic to trigger company analysis
  */
-import { useState } from 'react';
+import { useState } from "react";
 
 interface AnalyzeCompanyProps {
   onAnalyze?: (companyName: string) => void;
@@ -10,7 +10,7 @@ interface AnalyzeCompanyProps {
 }
 
 export function AnalyzeCompany({ onAnalyze, isLoading }: AnalyzeCompanyProps) {
-  const [companyName, setCompanyName] = useState('');
+  const [companyName, setCompanyName] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +34,7 @@ export function AnalyzeCompany({ onAnalyze, isLoading }: AnalyzeCompanyProps) {
         disabled={isLoading || !companyName.trim()}
         className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium disabled:opacity-50"
       >
-        {isLoading ? 'Analyzing...' : 'Analyze'}
+        {isLoading ? "Analyzing..." : "Analyze"}
       </button>
     </form>
   );

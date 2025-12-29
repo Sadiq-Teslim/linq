@@ -19,13 +19,20 @@
 }
 
 * {
-  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+  font-family:
+    "DM Sans",
+    system-ui,
+    -apple-system,
+    sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-h1, h2, h3, .font-serif {
+h1,
+h2,
+h3,
+.font-serif {
   font-family: "DM Serif Display", serif;
 }
 
@@ -54,8 +61,12 @@ html {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
@@ -81,7 +92,8 @@ html {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(212, 168, 83, 0.3);
   }
   50% {
@@ -131,6 +143,7 @@ html {
 }
 
 /* Input focus ring */
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   outline: none;
 }

@@ -26,8 +26,16 @@ export interface PaginatedResponse<T> {
 
 // ============== Subscription & Billing ==============
 
-export type SubscriptionPlan = 'free_trial' | 'starter' | 'professional' | 'enterprise';
-export type SubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'trialing';
+export type SubscriptionPlan =
+  | "free_trial"
+  | "starter"
+  | "professional"
+  | "enterprise";
+export type SubscriptionStatus =
+  | "active"
+  | "cancelled"
+  | "past_due"
+  | "trialing";
 
 export interface SubscriptionInfo {
   plan: SubscriptionPlan;
@@ -68,7 +76,7 @@ export interface TeamMember {
   id: string;
   email: string;
   name: string;
-  role: 'owner' | 'admin' | 'member';
+  role: "owner" | "admin" | "member";
   avatar_url?: string;
   is_active: boolean;
   last_login?: string;
@@ -92,7 +100,7 @@ export interface TrackedCompany {
   added_at: string;
   added_by: string;
   last_updated: string;
-  update_frequency: 'daily' | 'weekly' | 'monthly';
+  update_frequency: "daily" | "weekly" | "monthly";
   is_priority: boolean;
   tags: string[];
   notes?: string;
@@ -103,7 +111,15 @@ export interface CompanyContact {
   company_id: string;
   name: string;
   title: string;
-  department: 'sales' | 'marketing' | 'executive' | 'operations' | 'finance' | 'hr' | 'engineering' | 'other';
+  department:
+    | "sales"
+    | "marketing"
+    | "executive"
+    | "operations"
+    | "finance"
+    | "hr"
+    | "engineering"
+    | "other";
   email?: string;
   phone?: string;
   linkedin_url?: string;
@@ -121,12 +137,20 @@ export interface CompanyContact {
 export interface CompanyUpdate {
   id: string;
   company_id: string;
-  update_type: 'funding' | 'hiring' | 'expansion' | 'partnership' | 'product_launch' | 'leadership_change' | 'news' | 'contact_change';
+  update_type:
+    | "funding"
+    | "hiring"
+    | "expansion"
+    | "partnership"
+    | "product_launch"
+    | "leadership_change"
+    | "news"
+    | "contact_change";
   headline: string;
   summary: string;
   source_url?: string;
   source_name?: string;
-  importance: 'low' | 'medium' | 'high' | 'critical';
+  importance: "low" | "medium" | "high" | "critical";
   detected_at: string;
   is_read: boolean;
   affected_contacts?: string[];
@@ -147,7 +171,14 @@ export interface IndustryNews {
   summary: string;
   industry: string;
   companies_mentioned: string[];
-  news_type: 'funding' | 'merger' | 'expansion' | 'product' | 'partnership' | 'market_trend' | 'regulation';
+  news_type:
+    | "funding"
+    | "merger"
+    | "expansion"
+    | "product"
+    | "partnership"
+    | "market_trend"
+    | "regulation";
   source_url: string;
   source_name: string;
   published_at: string;

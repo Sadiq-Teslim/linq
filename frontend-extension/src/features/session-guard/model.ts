@@ -2,7 +2,7 @@
  * Session Guard Feature - Business Logic
  * Monitors session validity for Netflix-model enforcement
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 export function useSessionGuard() {
   const [isSessionValid, setIsSessionValid] = useState(true);

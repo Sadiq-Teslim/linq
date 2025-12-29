@@ -68,6 +68,7 @@ FRONTEND_URL=http://localhost:5173
 ```
 
 For production:
+
 ```env
 FRONTEND_URL=https://your-frontend-domain.com
 ```
@@ -83,14 +84,17 @@ FRONTEND_URL=https://your-frontend-domain.com
 ## Troubleshooting
 
 ### Error: "redirect_uri_mismatch"
+
 - Make sure the redirect URI in Google Console exactly matches `GOOGLE_REDIRECT_URI` in your `.env`
 - Check for trailing slashes and protocol (http vs https)
 
 ### Error: "invalid_client"
+
 - Verify your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are correct
 - Make sure there are no extra spaces in your `.env` file
 
 ### Error: "access_denied"
+
 - Check that you've added test users in the OAuth consent screen (if in testing mode)
 - Make sure the OAuth consent screen is published (for production)
 
@@ -101,4 +105,3 @@ FRONTEND_URL=https://your-frontend-domain.com
 - [ ] Environment variables are set correctly in production
 - [ ] HTTPS is enabled (required for production OAuth)
 - [ ] Frontend callback URL is configured correctly
-

@@ -55,7 +55,7 @@ export const feedApi = {
   getIndustryFeed: async (
     page = 1,
     limit = 20,
-    newsType?: string
+    newsType?: string,
   ): Promise<IndustryFeedResponse> => {
     const params: Record<string, string | number> = {
       page,
@@ -76,7 +76,7 @@ export const feedApi = {
       "/feed/industry/bookmark",
       {
         news_id: parseInt(newsId, 10),
-      }
+      },
     );
     return response.data;
   },
@@ -94,9 +94,12 @@ export const feedApi = {
     page = 1,
     pageSize = 20,
     eventType?: string,
-    industry?: string
+    industry?: string,
   ): Promise<FeedResponse> => {
-    const params: Record<string, string | number> = { page, page_size: pageSize };
+    const params: Record<string, string | number> = {
+      page,
+      page_size: pageSize,
+    };
     if (eventType) params.event_type = eventType;
     if (industry) params.industry = industry;
 

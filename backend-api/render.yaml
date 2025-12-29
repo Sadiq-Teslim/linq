@@ -7,8 +7,8 @@ services:
   - type: web
     name: linq-api
     env: python
-    region: oregon  # or frankfurt for EU
-    plan: free  # or starter, standard for production
+    region: oregon # or frankfurt for EU
+    plan: free # or starter, standard for production
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
     healthCheckPath: /health

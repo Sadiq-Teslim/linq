@@ -1,9 +1,9 @@
 /**
  * User store using Zustand
  */
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { User } from './types';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { User } from "./types";
 
 interface UserState {
   user: User | null;
@@ -25,7 +25,7 @@ export const useUserStore = create<UserState>()(
       logout: () => set({ user: null, token: null, isAuthenticated: false }),
     }),
     {
-      name: 'linq-user-storage',
-    }
-  )
+      name: "linq-user-storage",
+    },
+  ),
 );

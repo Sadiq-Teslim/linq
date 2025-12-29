@@ -75,7 +75,9 @@ export const DashboardAnalytics = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-white mb-2">Analytics</h1>
+          <h1 className="text-2xl md:text-3xl font-serif text-white mb-2">
+            Analytics
+          </h1>
           <p className="text-slate-400">Full breakdown of your LINQ usage</p>
         </div>
         <div className="flex items-center gap-2 bg-white/[0.02] border border-white/10 rounded-lg p-1">
@@ -89,7 +91,11 @@ export const DashboardAnalytics = () => {
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              {range === "7d" ? "7 Days" : range === "30d" ? "30 Days" : "90 Days"}
+              {range === "7d"
+                ? "7 Days"
+                : range === "30d"
+                  ? "30 Days"
+                  : "90 Days"}
             </button>
           ))}
         </div>
@@ -102,8 +108,18 @@ export const DashboardAnalytics = () => {
             label: "Total Searches",
             value: data?.total_searches || 0,
             icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             ),
             color: "amber",
@@ -112,8 +128,18 @@ export const DashboardAnalytics = () => {
             label: "Companies Tracked",
             value: data?.companies_tracked || 0,
             icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
               </svg>
             ),
             color: "green",
@@ -122,8 +148,18 @@ export const DashboardAnalytics = () => {
             label: "API Calls Today",
             value: data?.api_calls_today || 0,
             icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
             ),
             color: "blue",
@@ -132,8 +168,18 @@ export const DashboardAnalytics = () => {
             label: "Monthly Calls",
             value: data?.api_calls_this_month || 0,
             icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
               </svg>
             ),
             color: "purple",
@@ -144,10 +190,14 @@ export const DashboardAnalytics = () => {
             className="p-6 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className={`w-10 h-10 rounded-lg bg-${metric.color}-500/10 text-${metric.color}-400 flex items-center justify-center mb-4`}>
+            <div
+              className={`w-10 h-10 rounded-lg bg-${metric.color}-500/10 text-${metric.color}-400 flex items-center justify-center mb-4`}
+            >
               {metric.icon}
             </div>
-            <p className="text-3xl font-serif text-white mb-1">{metric.value.toLocaleString()}</p>
+            <p className="text-3xl font-serif text-white mb-1">
+              {metric.value.toLocaleString()}
+            </p>
             <p className="text-sm text-slate-400">{metric.label}</p>
           </div>
         ))}
@@ -156,8 +206,18 @@ export const DashboardAnalytics = () => {
       {/* Usage Over Time Chart */}
       <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
         <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          <svg
+            className="w-5 h-5 text-amber-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+            />
           </svg>
           Usage Over Time
         </h2>
@@ -175,7 +235,12 @@ export const DashboardAnalytics = () => {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickMargin={10} />
+              <XAxis
+                dataKey="date"
+                stroke="#64748b"
+                fontSize={12}
+                tickMargin={10}
+              />
               <YAxis stroke="#64748b" fontSize={12} />
               <Tooltip
                 contentStyle={{
@@ -209,11 +274,23 @@ export const DashboardAnalytics = () => {
         ) : (
           <div className="h-[300px] flex items-center justify-center text-slate-500">
             <div className="text-center">
-              <svg className="w-12 h-12 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <svg
+                className="w-12 h-12 mx-auto mb-4 text-slate-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
               </svg>
               <p>No usage data available yet</p>
-              <p className="text-sm text-slate-600 mt-1">Start using LINQ to see analytics</p>
+              <p className="text-sm text-slate-600 mt-1">
+                Start using LINQ to see analytics
+              </p>
             </div>
           </div>
         )}
@@ -224,9 +301,24 @@ export const DashboardAnalytics = () => {
         {/* Search Breakdown */}
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
           <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+            <svg
+              className="w-5 h-5 text-amber-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+              />
             </svg>
             Search Type Breakdown
           </h2>
@@ -245,7 +337,10 @@ export const DashboardAnalytics = () => {
                     strokeWidth={0}
                   >
                     {data.search_breakdown.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
@@ -259,15 +354,24 @@ export const DashboardAnalytics = () => {
               </ResponsiveContainer>
               <div className="flex-1 space-y-3">
                 {data.search_breakdown.map((item, index) => (
-                  <div key={item.type} className="flex items-center justify-between">
+                  <div
+                    key={item.type}
+                    className="flex items-center justify-between"
+                  >
                     <div className="flex items-center gap-2">
                       <span
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
                       ></span>
-                      <span className="text-sm text-slate-300">{item.type}</span>
+                      <span className="text-sm text-slate-300">
+                        {item.type}
+                      </span>
                     </div>
-                    <span className="text-sm font-medium text-white">{item.count}</span>
+                    <span className="text-sm font-medium text-white">
+                      {item.count}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -282,8 +386,18 @@ export const DashboardAnalytics = () => {
         {/* Response Times */}
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
           <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5 text-amber-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             Average Response Times
           </h2>
@@ -291,7 +405,12 @@ export const DashboardAnalytics = () => {
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={data.response_times}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="date" stroke="#64748b" fontSize={11} tickMargin={8} />
+                <XAxis
+                  dataKey="date"
+                  stroke="#64748b"
+                  fontSize={11}
+                  tickMargin={8}
+                />
                 <YAxis stroke="#64748b" fontSize={11} unit="ms" />
                 <Tooltip
                   contentStyle={{
@@ -322,15 +441,27 @@ export const DashboardAnalytics = () => {
       {/* Top Companies */}
       <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
         <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          <svg
+            className="w-5 h-5 text-amber-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+            />
           </svg>
           Most Tracked Companies
         </h2>
         {data?.top_companies && data.top_companies.length > 0 ? (
           <div className="space-y-4">
             {data.top_companies.map((company, index) => {
-              const maxSearches = Math.max(...data.top_companies.map((c) => c.searches));
+              const maxSearches = Math.max(
+                ...data.top_companies.map((c) => c.searches),
+              );
               const width = (company.searches / maxSearches) * 100;
               return (
                 <div key={company.name} className="space-y-2">
@@ -339,7 +470,9 @@ export const DashboardAnalytics = () => {
                       <span className="text-slate-500 w-5">{index + 1}.</span>
                       {company.name}
                     </span>
-                    <span className="text-white font-medium">{company.searches} searches</span>
+                    <span className="text-white font-medium">
+                      {company.searches} searches
+                    </span>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                     <div
@@ -354,11 +487,23 @@ export const DashboardAnalytics = () => {
         ) : (
           <div className="h-40 flex items-center justify-center text-slate-500">
             <div className="text-center">
-              <svg className="w-12 h-12 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+              <svg
+                className="w-12 h-12 mx-auto mb-4 text-slate-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"
+                />
               </svg>
               <p>No companies tracked yet</p>
-              <p className="text-sm text-slate-600 mt-1">Start tracking companies via the extension</p>
+              <p className="text-sm text-slate-600 mt-1">
+                Start tracking companies via the extension
+              </p>
             </div>
           </div>
         )}
@@ -367,15 +512,35 @@ export const DashboardAnalytics = () => {
       {/* Activity Log */}
       <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
         <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          <svg
+            className="w-5 h-5 text-amber-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+            />
           </svg>
           Recent Activity
         </h2>
         <div className="text-center py-12">
           <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-6 h-6 text-slate-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <p className="text-slate-400 mb-1">No recent activity</p>
@@ -387,4 +552,3 @@ export const DashboardAnalytics = () => {
     </div>
   );
 };
-

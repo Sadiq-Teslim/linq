@@ -12,7 +12,9 @@ export function Header({ userName, onLogout }: HeaderProps) {
     <header className="flex items-center justify-between p-4 border-b">
       <div className="flex items-center gap-2">
         <span className="font-bold text-lg">LINQ</span>
-        <span className="text-xs bg-primary text-white px-1.5 py-0.5 rounded">AI</span>
+        <span className="text-xs bg-primary text-white px-1.5 py-0.5 rounded">
+          AI
+        </span>
       </div>
       {userName && (
         <div className="flex items-center gap-2">

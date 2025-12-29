@@ -1,14 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useCompanyStore } from '@/entities/company/store';
-import { useToast } from '@/shared/ui/Toast';
-import { Button } from '@/shared/ui/Button';
+import { useState, useEffect, useCallback } from "react";
+import { useCompanyStore } from "@/entities/company/store";
+import { useToast } from "@/shared/ui/Toast";
+import { Button } from "@/shared/ui/Button";
 import {
-  Search, Plus, X, Building2, MapPin, Users, Loader2, CheckCircle, Globe
-} from 'lucide-react';
-import { useDebounce } from '@/shared/lib/useDebounce';
+  Search,
+  Plus,
+  X,
+  Building2,
+  MapPin,
+  Users,
+  Loader2,
+  CheckCircle,
+  Globe,
+} from "lucide-react";
+import { useDebounce } from "@/shared/lib/useDebounce";
 
 export const AddCompanySearch = () => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
   const [showResults, setShowResults] = useState(false);
 
@@ -34,28 +42,31 @@ export const AddCompanySearch = () => {
     }
   }, [debouncedQuery, searchCompanies, clearSearch]);
 
-  const handleTrack = useCallback(async (company: typeof searchResults[0]) => {
-    if (company.is_already_tracked) {
-      addToast({
-        type: 'info',
-        title: 'Already Tracking',
-        message: `${company.name} is already on your monitor board.`,
-      });
-      return;
-    }
+  const handleTrack = useCallback(
+    async (company: (typeof searchResults)[0]) => {
+      if (company.is_already_tracked) {
+        addToast({
+          type: "info",
+          title: "Already Tracking",
+          message: `${company.name} is already on your monitor board.`,
+        });
+        return;
+      }
 
-    await trackCompany(company);
-    addToast({
-      type: 'success',
-      title: 'Company Added',
-      message: `${company.name} is now being tracked.`,
-    });
-    setQuery('');
-    setShowResults(false);
-  }, [trackCompany, addToast]);
+      await trackCompany(company);
+      addToast({
+        type: "success",
+        title: "Company Added",
+        message: `${company.name} is now being tracked.`,
+      });
+      setQuery("");
+      setShowResults(false);
+    },
+    [trackCompany, addToast],
+  );
 
   const handleClear = () => {
-    setQuery('');
+    setQuery("");
     clearSearch();
     setShowResults(false);
   };
@@ -100,7 +111,7 @@ export const AddCompanySearch = () => {
               <div
                 key={`${company.name}-${index}`}
                 className={`p-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors ${
-                  company.is_already_tracked ? 'opacity-60' : ''
+                  company.is_already_tracked ? "opacity-60" : ""
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -113,7 +124,8 @@ export const AddCompanySearch = () => {
                           alt={company.name}
                           className="w-8 h-8 rounded object-contain"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
                           }}
                         />
                       ) : (
@@ -160,7 +172,7 @@ export const AddCompanySearch = () => {
                   {/* Add Button */}
                   <Button
                     size="sm"
-                    variant={company.is_already_tracked ? 'ghost' : 'primary'}
+                    variant={company.is_already_tracked ? "ghost" : "primary"}
                     disabled={company.is_already_tracked || isLoading}
                     onClick={() => handleTrack(company)}
                     className="flex-shrink-0"

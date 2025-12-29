@@ -2,9 +2,14 @@
  * Auth Flow Process
  * Handles Login -> Session Check -> Redirect logic
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
-type AuthFlowState = 'idle' | 'checking' | 'logging_in' | 'authenticated' | 'error';
+type AuthFlowState =
+  | "idle"
+  | "checking"
+  | "logging_in"
+  | "authenticated"
+  | "error";
 
 interface AuthFlowResult {
   state: AuthFlowState;
@@ -14,31 +19,31 @@ interface AuthFlowResult {
 }
 
 export function useAuthFlow(): AuthFlowResult {
-  const [state, setState] = useState<AuthFlowState>('idle');
+  const [state, setState] = useState<AuthFlowState>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const checkSession = useCallback(async (): Promise<boolean> => {
-    setState('checking');
+    setState("checking");
     try {
       // Session check logic will be implemented here
       return false;
     } catch {
-      setState('error');
-      setError('Session check failed');
+      setState("error");
+      setError("Session check failed");
       return false;
     }
   }, []);
 
   const startLogin = useCallback(async (_email: string, _password: string) => {
-    setState('logging_in');
+    setState("logging_in");
     setError(null);
     try {
       // Login logic will be implemented here using _email and _password
-      console.log('Login attempt:', _email);
-      setState('authenticated');
+      console.log("Login attempt:", _email);
+      setState("authenticated");
     } catch {
-      setState('error');
-      setError('Login failed');
+      setState("error");
+      setError("Login failed");
     }
   }, []);
 

@@ -1,1 +1,1 @@
-export { useOrganizationStore } from './store';
+export { useOrganizationStore } from "./store";

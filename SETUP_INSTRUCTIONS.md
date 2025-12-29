@@ -88,6 +88,7 @@ Use any CVV and future expiry date.
 See `backend-api/GOOGLE_OAUTH_SETUP.md` for detailed instructions.
 
 **Quick steps:**
+
 1. Create Google Cloud Project
 2. Enable Google+ API
 3. Create OAuth 2.0 credentials
@@ -99,6 +100,7 @@ See `backend-api/GOOGLE_OAUTH_SETUP.md` for detailed instructions.
 See `backend-api/TRANSACTION_STORAGE.md` for details.
 
 **Key points:**
+
 - Transactions are automatically stored via webhook
 - Webhook URL: `https://your-api-domain.com/api/v1/subscription/paystack/webhook`
 - Configure in Paystack Dashboard > Settings > Webhooks
@@ -106,22 +108,25 @@ See `backend-api/TRANSACTION_STORAGE.md` for details.
 ## Troubleshooting
 
 ### Backend won't start
+
 - Check that all environment variables are set
 - Verify Supabase credentials are correct
 - Check port 8000 is not in use
 
 ### Google OAuth not working
+
 - Verify redirect URI matches exactly in Google Console
 - Check `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are correct
 - Ensure OAuth consent screen is configured
 
 ### Payment not completing
+
 - Check Paystack keys are correct
 - Verify webhook URL is configured in Paystack
 - Check backend logs for errors
 
 ### Transactions not showing
+
 - Verify transactions table exists (run migration)
 - Check webhook is receiving events
 - Verify organization_id is in transaction metadata
-

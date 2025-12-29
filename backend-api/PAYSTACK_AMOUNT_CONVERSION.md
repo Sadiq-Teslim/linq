@@ -9,18 +9,19 @@ Paystack requires all amounts to be specified in the **smallest currency unit** 
 **1 Naira = 100 Kobo**
 
 To convert from Naira to Kobo:
+
 ```
 Amount in Kobo = Amount in Naira × 100
 ```
 
 ## Examples
 
-| Naira Amount | Kobo Amount | Description |
-|-------------|-------------|-------------|
-| ₦14,500 | 1,450,000 kobo | Starter Plan |
-| ₦39,500 | 3,950,000 kobo | Professional Plan |
-| ₦99,500 | 9,950,000 kobo | Enterprise Plan |
-| ₦1,000 | 100,000 kobo | Example |
+| Naira Amount | Kobo Amount    | Description       |
+| ------------ | -------------- | ----------------- |
+| ₦14,500      | 1,450,000 kobo | Starter Plan      |
+| ₦39,500      | 3,950,000 kobo | Professional Plan |
+| ₦99,500      | 9,950,000 kobo | Enterprise Plan   |
+| ₦1,000       | 100,000 kobo   | Example           |
 
 ## Implementation in Code
 
@@ -64,6 +65,7 @@ formatPrice(14500);
 ## Paystack API Documentation
 
 According to Paystack's API documentation:
+
 - Amounts must be in the smallest currency unit
 - For NGN (Nigerian Naira), the smallest unit is kobo
 - Amounts are sent as integers (no decimals)
@@ -73,12 +75,13 @@ Reference: https://paystack.com/docs/api/transaction/#initialize
 ## Verification
 
 When you receive webhook events from Paystack:
+
 - The `amount` field will be in kobo
 - To display to users, divide by 100: `amount / 100` = Naira amount
 
 Example:
+
 ```python
 # Webhook receives: amount = 1450000 (kobo)
 naira_amount = 1450000 / 100  # = 14500 (₦14,500)
 ```
-

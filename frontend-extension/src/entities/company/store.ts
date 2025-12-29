@@ -47,7 +47,7 @@ interface CompanyState {
       update_frequency?: "daily" | "weekly" | "monthly";
       tags?: string[];
       notes?: string;
-    }
+    },
   ) => Promise<void>;
   fetchUpdates: (filter?: { unread_only?: boolean }) => Promise<void>;
   markUpdatesRead: (updateIds: string[]) => Promise<void>;
@@ -117,7 +117,7 @@ export const useCompanyStore = create<CompanyState>()(
           set((state) => ({
             trackedCompanies: [tracked, ...state.trackedCompanies],
             searchResults: state.searchResults.map((r) =>
-              r.name === company.name ? { ...r, is_already_tracked: true } : r
+              r.name === company.name ? { ...r, is_already_tracked: true } : r,
             ),
             isLoading: false,
           }));
@@ -137,7 +137,7 @@ export const useCompanyStore = create<CompanyState>()(
           await companiesApi.untrack(companyId);
           set((state) => ({
             trackedCompanies: state.trackedCompanies.filter(
-              (c) => c.id !== companyId
+              (c) => c.id !== companyId,
             ),
             selectedCompany:
               state.selectedCompany?.id === companyId
@@ -172,10 +172,13 @@ export const useCompanyStore = create<CompanyState>()(
 
       updateCompanySettings: async (companyId, settings) => {
         try {
-          const updated = await companiesApi.updateSettings(companyId, settings);
+          const updated = await companiesApi.updateSettings(
+            companyId,
+            settings,
+          );
           set((state) => ({
             trackedCompanies: state.trackedCompanies.map((c) =>
-              c.id === companyId ? { ...c, ...updated } : c
+              c.id === companyId ? { ...c, ...updated } : c,
             ),
           }));
         } catch (error) {
@@ -208,7 +211,7 @@ export const useCompanyStore = create<CompanyState>()(
           await companiesApi.markUpdatesRead(updateIds);
           set((state) => ({
             updates: state.updates.map((u) =>
-              updateIds.includes(u.id) ? { ...u, is_read: true } : u
+              updateIds.includes(u.id) ? { ...u, is_read: true } : u,
             ),
             unreadCount: Math.max(0, state.unreadCount - updateIds.length),
           }));
@@ -224,7 +227,7 @@ export const useCompanyStore = create<CompanyState>()(
           const updated = await companiesApi.refresh(companyId);
           set((state) => ({
             trackedCompanies: state.trackedCompanies.map((c) =>
-              c.id === companyId ? updated : c
+              c.id === companyId ? updated : c,
             ),
             selectedCompany:
               state.selectedCompany?.id === companyId
@@ -262,6 +265,6 @@ export const useCompanyStore = create<CompanyState>()(
         updates: state.updates,
         unreadCount: state.unreadCount,
       }),
-    }
-  )
+    },
+  ),
 );

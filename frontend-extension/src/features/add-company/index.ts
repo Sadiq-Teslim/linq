@@ -1,1 +1,1 @@
-export { AddCompanySearch } from './AddCompanySearch';
+export { AddCompanySearch } from "./AddCompanySearch";

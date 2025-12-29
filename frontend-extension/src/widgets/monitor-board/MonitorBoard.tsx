@@ -1,10 +1,18 @@
-import { useEffect } from 'react';
-import { useCompanyStore } from '@/entities/company/store';
+import { useEffect } from "react";
+import { useCompanyStore } from "@/entities/company/store";
 import {
-  Building2, Star, StarOff, ExternalLink, Bell, Clock,
-  ChevronRight, Users, Trash2, MoreVertical
-} from 'lucide-react';
-import { useState } from 'react';
+  Building2,
+  Star,
+  StarOff,
+  ExternalLink,
+  Bell,
+  Clock,
+  ChevronRight,
+  Users,
+  Trash2,
+  MoreVertical,
+} from "lucide-react";
+import { useState } from "react";
 
 const formatTimeAgo = (dateString: string) => {
   const date = new Date(dateString);
@@ -40,7 +48,10 @@ export const MonitorBoard = () => {
     fetchUpdates();
   }, [fetchTrackedCompanies, fetchUpdates]);
 
-  const togglePriority = async (companyId: string, currentPriority: boolean) => {
+  const togglePriority = async (
+    companyId: string,
+    currentPriority: boolean,
+  ) => {
     await updateCompanySettings(companyId, { is_priority: !currentPriority });
   };
 
@@ -52,7 +63,9 @@ export const MonitorBoard = () => {
   // Sort: priority first, then by last updated
   const sortedCompanies = [...trackedCompanies].sort((a, b) => {
     if (a.is_priority !== b.is_priority) return a.is_priority ? -1 : 1;
-    return new Date(b.last_updated).getTime() - new Date(a.last_updated).getTime();
+    return (
+      new Date(b.last_updated).getTime() - new Date(a.last_updated).getTime()
+    );
   });
 
   if (isLoading && trackedCompanies.length === 0) {
@@ -63,7 +76,10 @@ export const MonitorBoard = () => {
         </div>
         <div className="p-3 space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-3 rounded-xl bg-white/[0.02] animate-pulse">
+            <div
+              key={i}
+              className="p-3 rounded-xl bg-white/[0.02] animate-pulse"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-white/10" />
                 <div className="flex-1">
@@ -116,7 +132,9 @@ export const MonitorBoard = () => {
       {/* Company List */}
       <div className="divide-y divide-white/5 max-h-64 overflow-y-auto">
         {sortedCompanies.map((company) => {
-          const companyUpdates = updates.filter((u) => u.company_id === company.id && !u.is_read);
+          const companyUpdates = updates.filter(
+            (u) => u.company_id === company.id && !u.is_read,
+          );
 
           return (
             <div
@@ -133,8 +151,10 @@ export const MonitorBoard = () => {
                         alt={company.company_name}
                         className="w-8 h-8 object-contain"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                          (e.target as HTMLImageElement).parentElement!.innerHTML =
+                          (e.target as HTMLImageElement).style.display = "none";
+                          (
+                            e.target as HTMLImageElement
+                          ).parentElement!.innerHTML =
                             '<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>';
                         }}
                       />
@@ -167,7 +187,9 @@ export const MonitorBoard = () => {
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     {company.industry && (
-                      <span className="text-[10px] text-slate-500">{company.industry}</span>
+                      <span className="text-[10px] text-slate-500">
+                        {company.industry}
+                      </span>
                     )}
                     <span className="text-[10px] text-slate-600 flex items-center gap-0.5">
                       <Clock className="w-2.5 h-2.5" />
@@ -179,13 +201,19 @@ export const MonitorBoard = () => {
                 {/* Actions */}
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => togglePriority(company.id, company.is_priority)}
+                    onClick={() =>
+                      togglePriority(company.id, company.is_priority)
+                    }
                     className={`p-1.5 rounded-lg transition-colors ${
                       company.is_priority
-                        ? 'text-gold-400 hover:bg-gold-500/10'
-                        : 'text-slate-500 hover:bg-white/5 hover:text-gold-400'
+                        ? "text-gold-400 hover:bg-gold-500/10"
+                        : "text-slate-500 hover:bg-white/5 hover:text-gold-400"
                     }`}
-                    title={company.is_priority ? 'Remove priority' : 'Mark as priority'}
+                    title={
+                      company.is_priority
+                        ? "Remove priority"
+                        : "Mark as priority"
+                    }
                   >
                     {company.is_priority ? (
                       <Star className="w-4 h-4 fill-current" />
@@ -196,7 +224,11 @@ export const MonitorBoard = () => {
 
                   <div className="relative">
                     <button
-                      onClick={() => setExpandedMenu(expandedMenu === company.id ? null : company.id)}
+                      onClick={() =>
+                        setExpandedMenu(
+                          expandedMenu === company.id ? null : company.id,
+                        )
+                      }
                       className="p-1.5 rounded-lg text-slate-500 hover:bg-white/5 hover:text-slate-300 transition-colors"
                     >
                       <MoreVertical className="w-4 h-4" />

@@ -1,2 +1,2 @@
-export { AnalyzeCompany } from './ui';
-export { useAnalyzeCompany } from './model';
+export { AnalyzeCompany } from "./ui";
+export { useAnalyzeCompany } from "./model";

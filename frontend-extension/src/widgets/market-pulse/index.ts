@@ -1,1 +1,1 @@
-export { MarketPulse } from './MarketPulse';
+export { MarketPulse } from "./MarketPulse";

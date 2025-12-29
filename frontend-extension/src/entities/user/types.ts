@@ -6,7 +6,7 @@ export interface User {
   email: string;
   fullName?: string;
   companyName?: string;
-  subscriptionTier: 'free' | 'pro' | 'enterprise';
+  subscriptionTier: "free" | "pro" | "enterprise";
   subscriptionExpiresAt?: string;
   isActive: boolean;
 }

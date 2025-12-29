@@ -40,13 +40,18 @@ export function ActivityFeed({ items = [], isLoading }: ActivityFeedProps) {
   return (
     <div className="space-y-3 max-h-64 overflow-y-auto">
       {items.map((item) => (
-        <div key={item.id} className="p-3 border rounded hover:bg-muted/50 cursor-pointer">
+        <div
+          key={item.id}
+          className="p-3 border rounded hover:bg-muted/50 cursor-pointer"
+        >
           <span className="text-xs uppercase font-medium text-primary">
             {item.eventType}
           </span>
           <p className="text-sm font-medium">{item.headline}</p>
           {item.companyName && (
-            <span className="text-xs text-muted-foreground">{item.companyName}</span>
+            <span className="text-xs text-muted-foreground">
+              {item.companyName}
+            </span>
           )}
         </div>
       ))}

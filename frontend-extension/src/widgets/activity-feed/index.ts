@@ -1,1 +1,1 @@
-export { ActivityFeed } from './ui';
+export { ActivityFeed } from "./ui";

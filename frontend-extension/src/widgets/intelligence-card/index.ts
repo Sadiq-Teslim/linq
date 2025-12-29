@@ -1,1 +1,1 @@
-export { IntelligenceCard } from './ui';
+export { IntelligenceCard } from "./ui";

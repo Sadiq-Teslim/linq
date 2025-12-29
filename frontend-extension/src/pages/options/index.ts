@@ -1,1 +1,1 @@
-export { OptionsPage } from './ui';
+export { OptionsPage } from "./ui";

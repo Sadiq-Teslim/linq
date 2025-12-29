@@ -578,35 +578,6 @@ def revoke_access_code(
     }).eq("id", code_id).execute()
 
 
-@router.delete("/access-codes/{code_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
-def delete_access_code(
-    code_id: int,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-    supabase: SupabaseClient = Depends(get_supabase_client),
-):
-    """
-    Permanently delete an access code
-    """
-    org_id = current_user.get("organization_id")
-    if not org_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User must be part of an organization"
-        )
-
-    # Verify code belongs to organization
-    existing = supabase.table("access_codes").select("id").eq("id", code_id).eq("organization_id", org_id).execute()
-
-    if not existing.data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Access code not found"
-        )
-
-    # Delete the access code permanently
-    supabase.table("access_codes").delete().eq("id", code_id).execute()
-
-
 # =============================================================================
 # PAYSTACK INTEGRATION - Real Payment Processing
 # =============================================================================

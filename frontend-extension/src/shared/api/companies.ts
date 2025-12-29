@@ -27,7 +27,7 @@ export const companiesApi = {
   getTracked: async (
     page = 1,
     limit = 20,
-    filter?: { priority?: boolean; tag?: string }
+    filter?: { priority?: boolean; tag?: string },
   ): Promise<PaginatedResponse<TrackedCompany>> => {
     const response = await api.get<PaginatedResponse<TrackedCompany>>(
       "/companies",
@@ -37,7 +37,7 @@ export const companiesApi = {
           page_size: limit,
           is_priority: filter?.priority,
         },
-      }
+      },
     );
     return response.data;
   },
@@ -71,7 +71,7 @@ export const companiesApi = {
   // Backend: GET /companies/{company_id}
   getDetails: async (companyId: string): Promise<TrackedCompanyDetails> => {
     const response = await api.get<TrackedCompanyDetails>(
-      `/companies/${companyId}`
+      `/companies/${companyId}`,
     );
     return response.data;
   },
@@ -85,11 +85,11 @@ export const companiesApi = {
       update_frequency?: "daily" | "weekly" | "monthly";
       tags?: string[];
       notes?: string;
-    }
+    },
   ): Promise<TrackedCompany> => {
     const response = await api.patch<TrackedCompany>(
       `/companies/${companyId}`,
-      settings
+      settings,
     );
     return response.data;
   },
@@ -103,7 +103,7 @@ export const companiesApi = {
       company_id?: string;
       importance?: "low" | "medium" | "high" | "critical";
       unread_only?: boolean;
-    }
+    },
   ): Promise<PaginatedResponse<CompanyUpdate>> => {
     const response = await api.get<PaginatedResponse<CompanyUpdate>>(
       "/companies/updates",
@@ -114,7 +114,7 @@ export const companiesApi = {
           company_id: filter?.company_id,
           is_read: filter?.unread_only ? false : undefined,
         },
-      }
+      },
     );
     return response.data;
   },
@@ -129,7 +129,7 @@ export const companiesApi = {
   // Backend: POST /companies/{company_id}/refresh
   refresh: async (companyId: string): Promise<TrackedCompany> => {
     const response = await api.post<TrackedCompany>(
-      `/companies/${companyId}/refresh`
+      `/companies/${companyId}/refresh`,
     );
     return response.data;
   },
@@ -142,11 +142,11 @@ export const companiesApi = {
       update_frequency?: "daily" | "weekly" | "monthly";
       tags?: string[];
       notes?: string;
-    }
+    },
   ): Promise<TrackedCompany> => {
     const response = await api.patch<TrackedCompany>(
       `/companies/${companyId}`,
-      settings
+      settings,
     );
     return response.data;
   },

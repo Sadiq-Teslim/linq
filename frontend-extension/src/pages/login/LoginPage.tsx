@@ -59,7 +59,11 @@ export const LoginPage = () => {
       if (!accessCode.trim()) {
         return;
       }
-      await loginWithAccessCode(email.trim(), password.trim(), accessCode.trim());
+      await loginWithAccessCode(
+        email.trim(),
+        password.trim(),
+        accessCode.trim(),
+      );
     } else {
       // Already activated, just login
       await login(email.trim(), password.trim());
@@ -102,7 +106,10 @@ export const LoginPage = () => {
           <p className="text-[10px] text-slate-400">B2B Sales Intelligence</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full space-y-3 animate-fade-in-up">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full space-y-3 animate-fade-in-up"
+        >
           <div className="text-center mb-3">
             <h2 className="text-base font-semibold text-white">
               {isActivated ? "Welcome Back" : "Activate Extension"}

@@ -25,11 +25,11 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      
+
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      
+
       setToken: (token) => set({ token }),
-      
+
       login: (user, token) => {
         // Also save to localStorage for backup
         localStorage.setItem("linq_token", token);
@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         });
       },
-      
+
       restoreSession: (user, token) => {
         set({
           user,
@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         });
       },
-      
+
       logout: () => {
         localStorage.removeItem("linq_token");
         localStorage.removeItem("linq_user");
@@ -66,6 +66,6 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

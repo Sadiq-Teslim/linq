@@ -35,12 +35,12 @@ const PopupContent = () => {
     user?.subscription?.plan === "enterprise"
       ? "Enterprise"
       : user?.subscription?.plan === "professional"
-      ? "Professional"
-      : user?.subscription?.plan === "starter"
-      ? "Starter"
-      : user?.subscription?.plan === "free_trial"
-      ? "Trial"
-      : "Trial";
+        ? "Professional"
+        : user?.subscription?.plan === "starter"
+          ? "Starter"
+          : user?.subscription?.plan === "free_trial"
+            ? "Trial"
+            : "Trial";
 
   const handleOpenDashboard = () => {
     window.open(`${CONFIG.DASHBOARD_URL}/dashboard/overview`, "_blank");

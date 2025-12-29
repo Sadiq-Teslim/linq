@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/shared/ui/Button';
-import { useCompanyStore } from '@/entities/company/store';
-import { useToast } from '@/shared/ui/Toast';
-import { Search, Sparkles, MapPin, X } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/shared/ui/Button";
+import { useCompanyStore } from "@/entities/company/store";
+import { useToast } from "@/shared/ui/Toast";
+import { Search, Sparkles, MapPin, X } from "lucide-react";
 
 export const AnalyzeButton = () => {
   const { isLoading, error, errorCode } = useCompanyStore();
   const { addToast } = useToast();
-  const [companyName, setCompanyName] = useState('');
-  const [country, setCountry] = useState<'Nigeria' | 'Ghana'>('Nigeria');
+  const [companyName, setCompanyName] = useState("");
+  const [country, setCountry] = useState<"Nigeria" | "Ghana">("Nigeria");
   const lastErrorRef = useRef<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
@@ -18,24 +18,24 @@ export const AnalyzeButton = () => {
       lastErrorRef.current = error;
 
       // Customize toast based on error code
-      if (errorCode === 'UNAUTHORIZED' || errorCode === 'HTTP_401') {
+      if (errorCode === "UNAUTHORIZED" || errorCode === "HTTP_401") {
         addToast({
-          type: 'warning',
-          title: 'Session Expired',
-          message: 'Please log in again to continue.',
+          type: "warning",
+          title: "Session Expired",
+          message: "Please log in again to continue.",
           duration: 5000,
         });
-      } else if (errorCode === 'NETWORK_ERROR' || errorCode === 'ERR_NETWORK') {
+      } else if (errorCode === "NETWORK_ERROR" || errorCode === "ERR_NETWORK") {
         addToast({
-          type: 'error',
-          title: 'Connection Error',
+          type: "error",
+          title: "Connection Error",
           message: error,
           duration: 5000,
         });
       } else {
         addToast({
-          type: 'error',
-          title: 'Analysis Failed',
+          type: "error",
+          title: "Analysis Failed",
           message: error,
         });
       }
@@ -45,29 +45,29 @@ export const AnalyzeButton = () => {
   const handleAnalyze = async () => {
     if (!companyName.trim()) {
       addToast({
-        type: 'warning',
-        title: 'Company name required',
-        message: 'Please enter a company name to analyze',
+        type: "warning",
+        title: "Company name required",
+        message: "Please enter a company name to analyze",
       });
       return;
     }
 
     lastErrorRef.current = null;
     setAnalyzing(true);
-    
+
     // Simulate analysis (replace with actual API call when ready)
     setTimeout(() => {
       setAnalyzing(false);
       addToast({
-        type: 'success',
-        title: 'Analysis Complete',
+        type: "success",
+        title: "Analysis Complete",
         message: `Found insights for ${companyName}`,
       });
     }, 2000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isLoading && !analyzing) {
+    if (e.key === "Enter" && !isLoading && !analyzing) {
       handleAnalyze();
     }
   };
@@ -94,7 +94,7 @@ export const AnalyzeButton = () => {
         />
         {companyName && !isLoading && !analyzing && (
           <button
-            onClick={() => setCompanyName('')}
+            onClick={() => setCompanyName("")}
             className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -106,19 +106,19 @@ export const AnalyzeButton = () => {
       <div className="flex items-center gap-2">
         <MapPin className="w-3.5 h-3.5 text-slate-500" />
         <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/5">
-          {(['Nigeria', 'Ghana'] as const).map((c) => (
+          {(["Nigeria", "Ghana"] as const).map((c) => (
             <button
               key={c}
               onClick={() => setCountry(c)}
               disabled={isLoading || analyzing}
               className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
                 country === c
-                  ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20'
-                  : 'text-slate-500 hover:text-slate-300'
+                  ? "bg-gold-500/10 text-gold-400 border border-gold-500/20"
+                  : "text-slate-500 hover:text-slate-300"
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {c === 'Nigeria' && '🇳🇬 '}
-              {c === 'Ghana' && '🇬🇭 '}
+              {c === "Nigeria" && "🇳🇬 "}
+              {c === "Ghana" && "🇬🇭 "}
               {c}
             </button>
           ))}
@@ -133,7 +133,7 @@ export const AnalyzeButton = () => {
         className="w-full"
       >
         <Sparkles className="w-4 h-4" />
-        {analyzing ? 'Analyzing...' : 'Get AI Insights'}
+        {analyzing ? "Analyzing..." : "Get AI Insights"}
       </Button>
     </div>
   );

@@ -30,7 +30,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor to handle auth errors
@@ -46,9 +46,9 @@ api.interceptors.response.use(
       window.dispatchEvent(
         new CustomEvent("linq:auth-error", {
           detail: { message: "Session expired" },
-        })
+        }),
       );
     }
     return Promise.reject(error);
-  }
+  },
 );

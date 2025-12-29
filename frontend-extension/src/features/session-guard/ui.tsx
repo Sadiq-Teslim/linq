@@ -2,15 +2,18 @@
  * Session Guard Feature
  * Wrapper that listens for session revocation (Netflix model)
  */
-import { type ReactNode, useEffect } from 'react';
-import { useSessionGuard } from './model';
+import { type ReactNode, useEffect } from "react";
+import { useSessionGuard } from "./model";
 
 interface SessionGuardProps {
   children: ReactNode;
   onSessionRevoked?: () => void;
 }
 
-export function SessionGuard({ children, onSessionRevoked }: SessionGuardProps) {
+export function SessionGuard({
+  children,
+  onSessionRevoked,
+}: SessionGuardProps) {
   const { isSessionValid, checkSession } = useSessionGuard();
 
   useEffect(() => {

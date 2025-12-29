@@ -12,22 +12,26 @@ function detectCompanyInfo(): { name?: string; domain?: string } | null {
 
   return {
     domain,
-    name: title.split('|')[0]?.trim() || title.split('-')[0]?.trim(),
+    name: title.split("|")[0]?.trim() || title.split("-")[0]?.trim(),
   };
 }
 
 // Listen for messages from the extension popup
 chrome.runtime.onMessage.addListener(
-  (message: { type: string }, _sender: chrome.runtime.MessageSender, sendResponse: (response: unknown) => void) => {
-    if (message.type === 'GET_PAGE_INFO') {
+  (
+    message: { type: string },
+    _sender: chrome.runtime.MessageSender,
+    sendResponse: (response: unknown) => void,
+  ) => {
+    if (message.type === "GET_PAGE_INFO") {
       const companyInfo = detectCompanyInfo();
       sendResponse(companyInfo);
     }
     return true;
-  }
+  },
 );
 
 // Notify that content script is ready
-console.log('LINQ AI Content Script loaded');
+console.log("LINQ AI Content Script loaded");
 
 export {};

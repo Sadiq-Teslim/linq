@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -19,9 +27,11 @@ export const DashboardOverview = () => {
         const [subResponse, usageResponse, statusResponse] = await Promise.all([
           api.subscription.getCurrent(token).catch(() => ({ data: null })),
           api.analytics.getUsage(token).catch(() => ({ data: null })),
-          api.analytics.getSubscriptionStatus(token).catch(() => ({ data: null })),
+          api.analytics
+            .getSubscriptionStatus(token)
+            .catch(() => ({ data: null })),
         ]);
-        
+
         setSubscription(subResponse.data);
         setUsage(usageResponse.data);
         setSubscriptionStatus(statusResponse.data);
@@ -44,9 +54,15 @@ export const DashboardOverview = () => {
 
   const isActive = subscriptionStatus?.is_active !== false;
   const plan = subscription?.plan || subscriptionStatus?.plan || "Free Trial";
-  const maxCompanies = subscription?.max_tracked_companies || subscriptionStatus?.max_tracked_companies || 5;
+  const maxCompanies =
+    subscription?.max_tracked_companies ||
+    subscriptionStatus?.max_tracked_companies ||
+    5;
   const currentCompanies = usage?.total_companies || 0;
-  const usagePercent = maxCompanies > 0 ? Math.min((currentCompanies / maxCompanies) * 100, 100) : 0;
+  const usagePercent =
+    maxCompanies > 0
+      ? Math.min((currentCompanies / maxCompanies) * 100, 100)
+      : 0;
 
   const stats = [
     {
@@ -55,8 +71,18 @@ export const DashboardOverview = () => {
       subtext: isActive ? "Active" : "Inactive",
       subtextColor: isActive ? "text-green-400" : "text-red-400",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+          />
         </svg>
       ),
     },
@@ -66,8 +92,18 @@ export const DashboardOverview = () => {
       subtext: maxCompanies === -1 ? "of ∞" : `of ${maxCompanies}`,
       progress: usagePercent,
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+          />
         </svg>
       ),
     },
@@ -76,8 +112,18 @@ export const DashboardOverview = () => {
       value: usage?.total_contacts || 0,
       subtext: "Across all companies",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
         </svg>
       ),
     },
@@ -86,8 +132,18 @@ export const DashboardOverview = () => {
       value: usage?.updates_last_30_days || 0,
       subtext: "Company updates",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+          />
         </svg>
       ),
     },
@@ -126,13 +182,19 @@ export const DashboardOverview = () => {
               <div className="mt-2 w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    stat.progress >= 90 ? "bg-red-500" : stat.progress >= 70 ? "bg-yellow-500" : "bg-amber-500"
+                    stat.progress >= 90
+                      ? "bg-red-500"
+                      : stat.progress >= 70
+                        ? "bg-yellow-500"
+                        : "bg-amber-500"
                   }`}
                   style={{ width: `${stat.progress}%` }}
                 />
               </div>
             )}
-            <p className={`text-xs mt-1 ${stat.subtextColor || "text-slate-500"}`}>
+            <p
+              className={`text-xs mt-1 ${stat.subtextColor || "text-slate-500"}`}
+            >
               {stat.subtext}
             </p>
           </div>
@@ -147,7 +209,10 @@ export const DashboardOverview = () => {
           </h2>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={usage.usage_by_day}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(255,255,255,0.05)"
+              />
               <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} />
               <Tooltip
@@ -179,13 +244,24 @@ export const DashboardOverview = () => {
           </h2>
           <div className="space-y-4">
             {[
-              { label: "Feed Items (30 days)", value: usage?.feed_items_last_30_days || 0 },
-              { label: "Company Updates", value: usage?.updates_last_30_days || 0 },
+              {
+                label: "Feed Items (30 days)",
+                value: usage?.feed_items_last_30_days || 0,
+              },
+              {
+                label: "Company Updates",
+                value: usage?.updates_last_30_days || 0,
+              },
               { label: "Total Contacts", value: usage?.total_contacts || 0 },
             ].map((item) => (
-              <div key={item.label} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+              <div
+                key={item.label}
+                className="flex justify-between items-center py-2 border-b border-white/5 last:border-0"
+              >
                 <span className="text-slate-400 text-sm">{item.label}</span>
-                <span className="text-xl font-serif text-white">{item.value}</span>
+                <span className="text-xl font-serif text-white">
+                  {item.value}
+                </span>
               </div>
             ))}
           </div>
@@ -207,8 +283,18 @@ export const DashboardOverview = () => {
                 className="w-full text-left px-4 py-3 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all duration-200 flex items-center justify-between group"
               >
                 {action.label}
-                <svg className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-all"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             ))}
@@ -222,8 +308,8 @@ export const DashboardOverview = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-semibold text-white mb-1">
-                {subscriptionStatus?.status === "expired" 
-                  ? "Your subscription has expired" 
+                {subscriptionStatus?.status === "expired"
+                  ? "Your subscription has expired"
                   : "Upgrade Your Plan"}
               </h3>
               <p className="text-sm text-slate-400">
@@ -236,7 +322,9 @@ export const DashboardOverview = () => {
               onClick={() => navigate("/dashboard/payment")}
               className="flex-shrink-0 px-6 py-2.5 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all"
             >
-              {subscriptionStatus?.status === "expired" ? "Renew Now" : "Upgrade Now"}
+              {subscriptionStatus?.status === "expired"
+                ? "Renew Now"
+                : "Upgrade Now"}
             </button>
           </div>
         </div>

@@ -134,8 +134,10 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
   const toggleBookmark = async (newsId: string) => {
     setItems((prev) =>
       prev.map((item) =>
-        item.id === newsId ? { ...item, is_bookmarked: !item.is_bookmarked } : item
-      )
+        item.id === newsId
+          ? { ...item, is_bookmarked: !item.is_bookmarked }
+          : item,
+      ),
     );
     try {
       await feedApi.toggleBookmark(newsId);
@@ -143,8 +145,10 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
       // Revert on error
       setItems((prev) =>
         prev.map((item) =>
-          item.id === newsId ? { ...item, is_bookmarked: !item.is_bookmarked } : item
-        )
+          item.id === newsId
+            ? { ...item, is_bookmarked: !item.is_bookmarked }
+            : item,
+        ),
       );
     }
   };
@@ -167,7 +171,10 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
         </div>
         <div className="p-3 space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-3 rounded-xl bg-white/[0.02] animate-pulse">
+            <div
+              key={i}
+              className="p-3 rounded-xl bg-white/[0.02] animate-pulse"
+            >
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-white/10" />
                 <div className="flex-1">
@@ -192,7 +199,9 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
               <Radio className="w-4 h-4 text-gold-400" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">Industry Pulse</h3>
+              <h3 className="text-sm font-semibold text-white">
+                Industry Pulse
+              </h3>
               <span className="text-[10px] text-slate-500">{industry}</span>
             </div>
           </div>
@@ -203,7 +212,9 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
                      text-slate-400 hover:bg-white/10 hover:text-white transition-all"
             title="Refresh feed"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+            />
           </button>
         </div>
       </div>
@@ -217,7 +228,9 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
                 <AlertCircle className="w-4 h-4 text-red-400" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-red-400">Failed to load</p>
+                <p className="text-sm font-medium text-red-400">
+                  Failed to load
+                </p>
                 <p className="text-xs text-red-400/70 mt-0.5">{error}</p>
               </div>
               <button
@@ -234,7 +247,9 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
               <Newspaper className="w-6 h-6 text-slate-500" />
             </div>
             <p className="text-sm text-slate-400">No news available</p>
-            <p className="text-xs text-slate-500 mt-1">Check back later for updates</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Check back later for updates
+            </p>
           </div>
         ) : (
           <div className="space-y-2 max-h-52 overflow-y-auto">
@@ -273,14 +288,16 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
                       </p>
                       {item.companies_mentioned.length > 0 && (
                         <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                          {item.companies_mentioned.slice(0, 3).map((company, i) => (
-                            <span
-                              key={i}
-                              className="text-[9px] bg-white/5 text-slate-400 px-1.5 py-0.5 rounded border border-white/5"
-                            >
-                              {company}
-                            </span>
-                          ))}
+                          {item.companies_mentioned
+                            .slice(0, 3)
+                            .map((company, i) => (
+                              <span
+                                key={i}
+                                className="text-[9px] bg-white/5 text-slate-400 px-1.5 py-0.5 rounded border border-white/5"
+                              >
+                                {company}
+                              </span>
+                            ))}
                         </div>
                       )}
                     </div>

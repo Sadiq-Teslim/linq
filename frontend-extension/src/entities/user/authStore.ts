@@ -17,7 +17,7 @@ interface AuthState {
   loginWithAccessCode: (
     email: string,
     password: string,
-    accessCode: string
+    accessCode: string,
   ) => Promise<boolean>;
 
   // Login with email/password only (after first activation)
@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthState>()(
       loginWithAccessCode: async (
         email: string,
         password: string,
-        accessCode: string
+        accessCode: string,
       ) => {
         set({ isLoading: true, error: null });
 
@@ -234,6 +234,6 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         isActivated: state.isActivated,
       }),
-    }
-  )
+    },
+  ),
 );

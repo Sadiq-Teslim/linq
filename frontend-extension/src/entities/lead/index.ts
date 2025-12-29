@@ -1,1 +1,1 @@
-export type { Lead } from './types';
+export type { Lead } from "./types";

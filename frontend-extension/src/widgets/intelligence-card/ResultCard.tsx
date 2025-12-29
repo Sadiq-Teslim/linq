@@ -1,7 +1,5 @@
-import { useCompanyStore } from '@/entities/company/store';
-import {
-  Building2, AlertCircle, RefreshCw
-} from 'lucide-react';
+import { useCompanyStore } from "@/entities/company/store";
+import { Building2, AlertCircle, RefreshCw } from "lucide-react";
 
 export const ResultCard = () => {
   const { isLoading, error, selectedCompany } = useCompanyStore();
@@ -19,7 +17,9 @@ export const ResultCard = () => {
               </div>
             </div>
             <p className="text-slate-400 mt-4 text-sm">Analyzing company...</p>
-            <p className="text-slate-500 text-xs mt-1">Gathering intelligence</p>
+            <p className="text-slate-500 text-xs mt-1">
+              Gathering intelligence
+            </p>
           </div>
         </div>
       </div>
@@ -57,7 +57,9 @@ export const ResultCard = () => {
           <div className="w-14 h-14 bg-gold-500/10 rounded-2xl flex items-center justify-center mb-4 border border-gold-500/20">
             <Building2 className="w-7 h-7 text-gold-400" />
           </div>
-          <h3 className="font-semibold text-white text-sm">No Company Selected</h3>
+          <h3 className="font-semibold text-white text-sm">
+            No Company Selected
+          </h3>
           <p className="text-slate-500 text-xs mt-1 max-w-[200px]">
             Select a company from your monitor board to view details
           </p>
@@ -83,9 +85,13 @@ export const ResultCard = () => {
             )}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-white">{selectedCompany.company_name}</h3>
+            <h3 className="font-semibold text-lg text-white">
+              {selectedCompany.company_name}
+            </h3>
             {selectedCompany.industry && (
-              <p className="text-sm text-slate-400 mt-0.5">{selectedCompany.industry}</p>
+              <p className="text-sm text-slate-400 mt-0.5">
+                {selectedCompany.industry}
+              </p>
             )}
             {selectedCompany.website && (
               <a

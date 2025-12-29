@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api } from "./client";
 
 export interface RecentActivity {
   event_type: string;
@@ -47,7 +47,7 @@ export interface DecisionMaker {
 
 export interface ScoreFactor {
   factor: string;
-  impact: 'positive' | 'negative' | 'neutral';
+  impact: "positive" | "negative" | "neutral";
   weight: number;
 }
 
@@ -64,7 +64,7 @@ export interface CompanyIntelligence {
   data_age_days: number;
   sources_used: string[];
   processing_time_ms?: number;
-  confidence_level: 'low' | 'medium' | 'high';
+  confidence_level: "low" | "medium" | "high";
 }
 
 export interface CompanySearchRequest {
@@ -76,9 +76,9 @@ export interface CompanySearchRequest {
 export const searchApi = {
   analyzeCompany: async (
     companyName: string,
-    country: string = 'Nigeria'
+    country: string = "Nigeria",
   ): Promise<CompanyIntelligence> => {
-    const response = await api.post<CompanyIntelligence>('/search/company', {
+    const response = await api.post<CompanyIntelligence>("/search/company", {
       company_name: companyName,
       country,
     });
@@ -87,11 +87,11 @@ export const searchApi = {
 
   quickSearch: async (
     companyName: string,
-    country: string = 'Nigeria'
+    country: string = "Nigeria",
   ): Promise<CompanyIntelligence> => {
     const response = await api.get<CompanyIntelligence>(
       `/search/company/${encodeURIComponent(companyName)}`,
-      { params: { country } }
+      { params: { country } },
     );
     return response.data;
   },

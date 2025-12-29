@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import { AxiosError } from "axios";
 
 export interface ApiError {
   message: string;
@@ -7,24 +7,24 @@ export interface ApiError {
 }
 
 const ERROR_MESSAGES: Record<number, string> = {
-  400: 'Invalid request. Please check your input.',
-  401: 'Your session has expired. Please log in again.',
-  403: 'You don\'t have permission to perform this action.',
-  404: 'The requested resource was not found.',
-  408: 'Request timed out. Please try again.',
-  422: 'Invalid data provided. Please check your input.',
-  429: 'Too many requests. Please wait a moment and try again.',
-  500: 'Something went wrong on our end. Please try again later.',
-  502: 'Service temporarily unavailable. Please try again.',
-  503: 'Service is currently unavailable. Please try again later.',
-  504: 'Request timed out. Please check your connection.',
+  400: "Invalid request. Please check your input.",
+  401: "Your session has expired. Please log in again.",
+  403: "You don't have permission to perform this action.",
+  404: "The requested resource was not found.",
+  408: "Request timed out. Please try again.",
+  422: "Invalid data provided. Please check your input.",
+  429: "Too many requests. Please wait a moment and try again.",
+  500: "Something went wrong on our end. Please try again later.",
+  502: "Service temporarily unavailable. Please try again.",
+  503: "Service is currently unavailable. Please try again later.",
+  504: "Request timed out. Please check your connection.",
 };
 
 const ERROR_CODES: Record<string, string> = {
-  NETWORK_ERROR: 'Unable to connect. Please check your internet connection.',
-  ECONNABORTED: 'Request timed out. Please try again.',
-  ERR_NETWORK: 'Network error. Please check your connection.',
-  ERR_CANCELED: 'Request was cancelled.',
+  NETWORK_ERROR: "Unable to connect. Please check your internet connection.",
+  ECONNABORTED: "Request timed out. Please try again.",
+  ERR_NETWORK: "Network error. Please check your connection.",
+  ERR_CANCELED: "Request was cancelled.",
 };
 
 export function parseApiError(error: unknown): ApiError {
@@ -44,27 +44,30 @@ export function parseApiError(error: unknown): ApiError {
     // Check for network errors
     if (!error.response) {
       return {
-        message: 'Unable to connect. Please check your internet connection.',
-        code: 'NETWORK_ERROR',
+        message: "Unable to connect. Please check your internet connection.",
+        code: "NETWORK_ERROR",
         status: 0,
       };
     }
 
     // Try to get error message from response
-    const responseData = error.response.data as Record<string, unknown> | undefined;
-    const serverMessage = responseData?.detail || responseData?.message || responseData?.error;
+    const responseData = error.response.data as
+      | Record<string, unknown>
+      | undefined;
+    const serverMessage =
+      responseData?.detail || responseData?.message || responseData?.error;
 
     // For 401, always use session expired message
     if (status === 401) {
       return {
         message: ERROR_MESSAGES[401],
-        code: 'UNAUTHORIZED',
+        code: "UNAUTHORIZED",
         status: 401,
       };
     }
 
     // For other errors, use server message if it's user-friendly, otherwise use generic
-    if (typeof serverMessage === 'string' && serverMessage.length < 100) {
+    if (typeof serverMessage === "string" && serverMessage.length < 100) {
       // Clean up technical error messages
       const cleanMessage = cleanErrorMessage(serverMessage);
       return {
@@ -76,7 +79,9 @@ export function parseApiError(error: unknown): ApiError {
 
     // Fall back to generic error messages
     return {
-      message: ERROR_MESSAGES[status] || 'An unexpected error occurred. Please try again.',
+      message:
+        ERROR_MESSAGES[status] ||
+        "An unexpected error occurred. Please try again.",
       code: `HTTP_${status}`,
       status,
     };
@@ -86,15 +91,15 @@ export function parseApiError(error: unknown): ApiError {
   if (error instanceof Error) {
     return {
       message: cleanErrorMessage(error.message),
-      code: 'ERROR',
+      code: "ERROR",
       status: 0,
     };
   }
 
   // Handle unknown errors
   return {
-    message: 'An unexpected error occurred. Please try again.',
-    code: 'UNKNOWN',
+    message: "An unexpected error occurred. Please try again.",
+    code: "UNKNOWN",
     status: 0,
   };
 }
@@ -102,10 +107,10 @@ export function parseApiError(error: unknown): ApiError {
 function cleanErrorMessage(message: string): string {
   // Remove technical prefixes
   const technicalPrefixes = [
-    'Request failed with status code',
-    'Network Error:',
-    'Error:',
-    'AxiosError:',
+    "Request failed with status code",
+    "Network Error:",
+    "Error:",
+    "AxiosError:",
   ];
 
   let cleaned = message;
@@ -118,7 +123,7 @@ function cleanErrorMessage(message: string): string {
   // If it's just a number (status code), convert to message
   if (/^\d{3}$/.test(cleaned)) {
     const status = parseInt(cleaned, 10);
-    return ERROR_MESSAGES[status] || 'An error occurred. Please try again.';
+    return ERROR_MESSAGES[status] || "An error occurred. Please try again.";
   }
 
   // Capitalize first letter
@@ -128,10 +133,10 @@ function cleanErrorMessage(message: string): string {
 
   // Add period if missing
   if (cleaned.length > 0 && !/[.!?]$/.test(cleaned)) {
-    cleaned += '.';
+    cleaned += ".";
   }
 
-  return cleaned || 'An error occurred. Please try again.';
+  return cleaned || "An error occurred. Please try again.";
 }
 
 export function isAuthError(error: unknown): boolean {
@@ -143,7 +148,11 @@ export function isAuthError(error: unknown): boolean {
 
 export function isNetworkError(error: unknown): boolean {
   if (error instanceof AxiosError) {
-    return !error.response || error.code === 'ERR_NETWORK' || error.code === 'NETWORK_ERROR';
+    return (
+      !error.response ||
+      error.code === "ERR_NETWORK" ||
+      error.code === "NETWORK_ERROR"
+    );
   }
   return false;
 }

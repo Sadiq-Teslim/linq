@@ -1,5 +1,5 @@
 // Client
-export { api } from './client';
+export { api } from "./client";
 
 // Types
 export type {
@@ -27,30 +27,35 @@ export type {
   CompanySearchResponse,
   // Dashboard
   DashboardStats,
-} from './types';
+} from "./types";
 
 // Auth API
-export { authApi } from './auth';
+export { authApi } from "./auth";
 export type {
   LoginRequest,
   RegisterRequest,
   TokenResponse,
   UserResponse,
   SessionStatus,
-} from './auth';
+} from "./auth";
 
 // Companies API (new)
-export { companiesApi } from './companies';
+export { companiesApi } from "./companies";
 
 // Subscription API (new)
-export { subscriptionApi, organizationApi, DEMO_PLANS } from './subscription';
+export { subscriptionApi, organizationApi, DEMO_PLANS } from "./subscription";
 
 // Feed API
-export { feedApi } from './feed';
-export type { ActivityFeedItem, FeedResponse, FeedStats, EventType } from './feed';
+export { feedApi } from "./feed";
+export type {
+  ActivityFeedItem,
+  FeedResponse,
+  FeedStats,
+  EventType,
+} from "./feed";
 
 // Legacy search API (for backward compatibility)
-export { searchApi } from './search';
+export { searchApi } from "./search";
 export type {
   CompanyProfile,
   DecisionMaker,
@@ -59,4 +64,4 @@ export type {
   CompanySearchRequest,
   ScoreFactor,
   RecentActivity,
-} from './search';
+} from "./search";
