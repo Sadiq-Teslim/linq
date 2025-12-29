@@ -12,12 +12,14 @@ pip install -r requirements.txt
 ### 2. Install Additional Tools
 
 ```bash
-# Install Playwright browsers
-playwright install chromium
+# Install Playwright browsers (after pip install completes)
+python -m playwright install chromium
 
 # Install SpaCy English model
 python -m spacy download en_core_web_sm
 ```
+
+**Note**: On Windows, use `python -m playwright` instead of just `playwright` command.
 
 ### 3. Set Up Redis
 
