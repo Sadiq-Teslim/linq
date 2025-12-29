@@ -24,6 +24,22 @@ services:
         sync: false
       - key: PAYSTACK_PUBLIC_KEY
         sync: false
+      # Redis configuration (set in Render dashboard after creating Redis service)
+      - key: REDIS_URL
+        sync: false # Set to your Redis internal URL: redis://red-xxxxx:6379/0
+      - key: CELERY_BROKER_URL
+        sync: false # Same as REDIS_URL
+      - key: CELERY_RESULT_BACKEND
+        sync: false # Same as REDIS_URL
+      # Optional: Enhanced data source APIs
+      - key: CRUNCHBASE_API_KEY
+        sync: false # Optional
+      - key: HUNTER_API_KEY
+        sync: false # Optional
+      - key: SCRAPERAPI_KEY
+        sync: false # Optional
+      - key: REDIS_CACHE_TTL
+        value: "3600" # 1 hour default
 
   # Cron Jobs for Render
   - type: cron

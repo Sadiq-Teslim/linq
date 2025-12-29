@@ -11,6 +11,7 @@ import type {
   CompanyUpdate,
   PaginatedResponse,
 } from "./types";
+import { transformContact, transformContacts } from "./transformers";
 
 export const companiesApi = {
   // Search for companies globally
@@ -73,6 +74,10 @@ export const companiesApi = {
     const response = await api.get<TrackedCompanyDetails>(
       `/companies/${companyId}`,
     );
+    // Transform contacts to ensure full_name is mapped to name
+    if (response.data.contacts) {
+      response.data.contacts = transformContacts(response.data.contacts);
+    }
     return response.data;
   },
 

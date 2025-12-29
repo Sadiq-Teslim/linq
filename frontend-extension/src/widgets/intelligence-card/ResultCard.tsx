@@ -230,7 +230,7 @@ export const ResultCard = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-white truncate">
-                        {contact.name}
+                        {contact.full_name || contact.name || "Unknown"}
                       </p>
                       {contact.is_decision_maker && (
                         <span className="text-[10px] bg-gold-500/10 text-gold-400 px-1.5 py-0.5 rounded border border-gold-500/20">

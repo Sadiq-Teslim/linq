@@ -110,7 +110,8 @@ export interface TrackedCompany {
 export interface CompanyContact {
   id: string;
   company_id: string;
-  name: string;
+  full_name: string; // Backend uses 'full_name', not 'name'
+  name?: string; // Keep for backward compatibility, map from full_name
   title: string;
   department:
     | "sales"
@@ -125,9 +126,12 @@ export interface CompanyContact {
   phone?: string;
   linkedin_url?: string;
   is_decision_maker: boolean;
-  is_verified: boolean;
-  verification_score: number;
-  last_verified: string;
+  is_verified?: boolean; // Optional, backend may not always provide
+  verification_score?: number; // Backend uses 'confidence_score', mapped below
+  confidence_score?: number; // Backend field name
+  last_verified?: string;
+  source?: string; // Backend provides source (e.g., "crunchbase", "hunter.io")
+  is_active?: boolean; // Backend field
   previous_positions?: {
     title: string;
     company: string;
