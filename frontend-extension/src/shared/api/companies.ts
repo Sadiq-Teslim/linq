@@ -11,7 +11,7 @@ import type {
   CompanyUpdate,
   PaginatedResponse,
 } from "./types";
-import { transformContact, transformContacts } from "./transformers";
+import { transformContacts } from "./transformers";
 
 export const companiesApi = {
   // Search for companies globally
