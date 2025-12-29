@@ -113,16 +113,30 @@ async def refresh_all_companies():
                 
                 contacts_added = 0
                 for contact_data in discovered_contacts:
+                    # Skip contacts without a valid full_name (required by database)
+                    full_name = contact_data.get("full_name") or contact_data.get("name")
+                    if not full_name or not full_name.strip():
+                        # Try to generate a name from email if available
+                        email = contact_data.get("email")
+                        if email:
+                            # Extract name from email (e.g., "john.doe@company.com" -> "John Doe")
+                            email_local = email.split("@")[0]
+                            # Replace dots/underscores with spaces and capitalize
+                            full_name = email_local.replace(".", " ").replace("_", " ").title()
+                        else:
+                            # Skip contacts without name or email
+                            continue
+                    
                     existing_contact = supabase.table("company_contacts")\
                         .select("id")\
                         .eq("company_id", company_id)\
-                        .eq("full_name", contact_data.get("full_name", ""))\
+                        .eq("full_name", full_name)\
                         .execute()
                     
                     if not existing_contact.data:
                         contact_record = {
                             "company_id": company_id,
-                            "full_name": contact_data.get("full_name", ""),
+                            "full_name": full_name.strip(),  # Ensure it's a valid string
                             "title": contact_data.get("title"),
                             "department": contact_data.get("department", "other"),
                             "email": contact_data.get("email"),
@@ -138,7 +152,7 @@ async def refresh_all_companies():
                         }
                         supabase.table("company_contacts").insert(contact_record).execute()
                         contacts_added += 1
-                        print(f"  ✓ Added contact: {contact_data.get('full_name')} - {contact_data.get('title')}")
+                        print(f"  ✓ Added contact: {full_name} - {contact_data.get('title')}")
                 
                 if contacts_added > 0:
                     print(f"  ✓ Added {contacts_added} new contacts")

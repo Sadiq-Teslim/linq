@@ -318,17 +318,31 @@ async def _discover_and_save_contacts(
         contacts_added = 0
         
         for contact_data in discovered_contacts:
+            # Skip contacts without a valid full_name (required by database)
+            full_name = contact_data.get("full_name") or contact_data.get("name")
+            if not full_name or not full_name.strip():
+                # Try to generate a name from email if available
+                email = contact_data.get("email")
+                if email:
+                    # Extract name from email (e.g., "john.doe@company.com" -> "John Doe")
+                    email_local = email.split("@")[0]
+                    # Replace dots/underscores with spaces and capitalize
+                    full_name = email_local.replace(".", " ").replace("_", " ").title()
+                else:
+                    # Skip contacts without name or email
+                    continue
+            
             # Check if contact already exists
             existing_contact = supabase.table("company_contacts")\
                 .select("id")\
                 .eq("company_id", company_id)\
-                .eq("full_name", contact_data.get("full_name", ""))\
+                .eq("full_name", full_name)\
                 .execute()
             
             if not existing_contact.data:
                 contact_record = {
                     "company_id": company_id,
-                    "full_name": contact_data.get("full_name", ""),
+                    "full_name": full_name.strip(),  # Ensure it's a valid string
                     "title": contact_data.get("title"),
                     "department": contact_data.get("department", "other"),
                     "email": contact_data.get("email"),
@@ -828,6 +842,31 @@ async def refresh_company_data(
                 elif any(kw in title_lower for kw in ["expansion", "launch", "opens"]):
                     update_type = "expansion"
                 
+                # Parse published_at date - handle relative time strings like "1 month ago"
+                published_at = None
+                date_str = news_item.get("date")
+                if date_str:
+                    try:
+                        # Try to parse as ISO format first
+                        from dateutil import parser
+                        published_at = parser.parse(date_str).isoformat()
+                    except:
+                        # If parsing fails (e.g., "1 month ago"), use detected_at as fallback
+                        try:
+                            # Try to parse relative time strings
+                            if "ago" in str(date_str).lower():
+                                # Use detected_at as fallback for relative times
+                                published_at = now.isoformat()
+                            else:
+                                # Try other date formats
+                                published_at = parser.parse(date_str).isoformat()
+                        except:
+                            # Final fallback: use current time
+                            published_at = now.isoformat()
+                else:
+                    # No date provided, use current time
+                    published_at = now.isoformat()
+                
                 update_data = {
                     "company_id": company_id,
                     "update_type": update_type,
@@ -838,7 +877,7 @@ async def refresh_company_data(
                     "importance": "medium",
                     "is_read": False,
                     "detected_at": now.isoformat(),
-                    "published_at": news_item.get("date"),
+                    "published_at": published_at,  # Always a valid ISO timestamp
                     "created_at": now.isoformat(),
                 }
                 supabase.table("company_updates").insert(update_data).execute()
@@ -867,17 +906,31 @@ async def refresh_company_data(
         
         # Store discovered contacts
         for contact_data in discovered_contacts:
+            # Skip contacts without a valid full_name (required by database)
+            full_name = contact_data.get("full_name") or contact_data.get("name")
+            if not full_name or not full_name.strip():
+                # Try to generate a name from email if available
+                email = contact_data.get("email")
+                if email:
+                    # Extract name from email (e.g., "john.doe@company.com" -> "John Doe")
+                    email_local = email.split("@")[0]
+                    # Replace dots/underscores with spaces and capitalize
+                    full_name = email_local.replace(".", " ").replace("_", " ").title()
+                else:
+                    # Skip contacts without name or email
+                    continue
+            
             # Check if contact already exists
             existing_contact = supabase.table("company_contacts")\
                 .select("id")\
                 .eq("company_id", company_id)\
-                .eq("full_name", contact_data.get("full_name", ""))\
+                .eq("full_name", full_name)\
                 .execute()
             
             if not existing_contact.data:
                 contact_record = {
                     "company_id": company_id,
-                    "full_name": contact_data.get("full_name", ""),
+                    "full_name": full_name.strip(),  # Ensure it's a valid string
                     "title": contact_data.get("title"),
                     "department": contact_data.get("department", "other"),
                     "email": contact_data.get("email"),
