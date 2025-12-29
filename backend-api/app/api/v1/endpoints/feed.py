@@ -225,6 +225,19 @@ def get_industry_feed(
     # Default to Technology if no industry found
     industry = industry or "Technology"
 
+    # Get tracked companies for this organization to prioritize news about them
+    org_id = current_user.get("organization_id")
+    tracked_companies = []
+    tracked_company_names = set()
+    if org_id:
+        try:
+            tracked_result = supabase.table("tracked_companies").select("company_name, domain").eq("organization_id", org_id).eq("is_active", True).execute()
+            if tracked_result.data:
+                tracked_companies = tracked_result.data
+                tracked_company_names = {c.get("company_name", "").lower() for c in tracked_companies if c.get("company_name")}
+        except Exception:
+            pass
+
     # Build query
     query = supabase.table("industry_news").select("*")
     query = query.ilike("industry", f"%{industry}%")
@@ -232,27 +245,69 @@ def get_industry_feed(
     if news_type:
         query = query.eq("news_type", news_type)
 
-    # Get total count
-    count_result = query.execute()
-    total = len(count_result.data) if count_result.data else 0
+    # Get all items first to prioritize
+    all_items_result = query.execute()
+    all_items = all_items_result.data if all_items_result.data else []
 
-    # Apply pagination and ordering
-    offset = (page - 1) * page_size
-    query = query.order("published_at", desc=True).range(offset, offset + page_size - 1)
-
-    result = query.execute()
-    items = result.data if result.data else []
-
-    # Add bookmark status (in production, track per-user bookmarks)
-    # For now, just return items with is_bookmarked = False
+    # Process and prioritize items
     news_items = []
-    for item in items:
-        item["companies_mentioned"] = item.get("companies_mentioned") or []
-        item["is_bookmarked"] = False  # TODO: Check user's bookmarks
-        news_items.append(IndustryNewsResponse.model_validate(item))
+    for item in all_items:
+        # Handle companies_mentioned - could be JSONB array or string
+        companies_mentioned = item.get("companies_mentioned") or []
+        if isinstance(companies_mentioned, str):
+            try:
+                import json
+                companies_mentioned = json.loads(companies_mentioned)
+            except:
+                companies_mentioned = []
+        if not isinstance(companies_mentioned, list):
+            companies_mentioned = []
+
+        # Check if any tracked companies are mentioned
+        is_tracked_company_news = False
+        if tracked_company_names:
+            for mentioned in companies_mentioned:
+                if isinstance(mentioned, str) and mentioned.lower() in tracked_company_names:
+                    is_tracked_company_news = True
+                    break
+
+        # Add priority flag
+        item["_priority"] = 1 if is_tracked_company_news else 0
+        item["companies_mentioned"] = companies_mentioned
+        item["is_bookmarked"] = False
+
+    # Sort: tracked company news first, then by published_at (handle None values)
+    def get_sort_date(item):
+        pub_date = item.get("published_at")
+        idx_date = item.get("indexed_at")
+        if pub_date:
+            return pub_date
+        if idx_date:
+            return idx_date
+        return "1970-01-01"  # Default to very old date if no date available
+
+    all_items.sort(key=lambda x: (
+        -x.get("_priority", 0),  # Tracked companies first (negative for descending)
+        get_sort_date(x),  # Then by date
+    ), reverse=True)
+
+    # Apply pagination
+    total = len(all_items)
+    offset = (page - 1) * page_size
+    paginated_items = all_items[offset:offset + page_size]
+
+    # Remove temporary _priority field and validate
+    validated_items = []
+    for item in paginated_items:
+        item.pop("_priority", None)
+        try:
+            validated_items.append(IndustryNewsResponse.model_validate(item))
+        except Exception as e:
+            # Skip invalid items
+            continue
 
     return IndustryNewsFeedResponse(
-        items=news_items,
+        items=validated_items,
         total=total,
         page=page,
         page_size=page_size,

@@ -170,9 +170,19 @@ def get_tracked_companies(
     result = query.execute()
     items = result.data if result.data else []
 
-    # Parse tags from JSON
+    # Parse tags from JSON and fix logo URLs
     for item in items:
         item["tags"] = item.get("tags") or []
+        # Fix logo URL if it's using a subdomain
+        if item.get("logo_url") and item.get("domain"):
+            try:
+                domain_parts = item["domain"].replace("www.", "").split(".")
+                if len(domain_parts) >= 2:
+                    main_domain = ".".join(domain_parts[-2:])
+                    if "logo.clearbit.com" in item["logo_url"]:
+                        item["logo_url"] = f"https://logo.clearbit.com/{main_domain}"
+            except Exception:
+                pass
 
     return PaginatedTrackedCompanies(
         items=[TrackedCompanyResponse.model_validate(item) for item in items],
@@ -206,6 +216,21 @@ def track_company(
     # Check subscription limits
     # TODO: Implement subscription limit check
 
+    # Fix logo URL - extract main domain from subdomain
+    logo_url = data.logo_url
+    if logo_url and data.domain:
+        try:
+            from urllib.parse import urlparse
+            # Extract main domain (remove subdomain)
+            domain_parts = data.domain.replace("www.", "").split(".")
+            if len(domain_parts) >= 2:
+                main_domain = ".".join(domain_parts[-2:])  # Get last 2 parts (e.g., "zenithbank.com")
+                # Update logo URL if it's a Clearbit URL
+                if "logo.clearbit.com" in logo_url:
+                    logo_url = f"https://logo.clearbit.com/{main_domain}"
+        except Exception:
+            pass  # Keep original logo_url if parsing fails
+
     # Create tracked company
     now = datetime.utcnow()
     company_data = {
@@ -214,7 +239,8 @@ def track_company(
         "company_name": data.company_name,
         "domain": data.domain,
         "linkedin_url": data.linkedin_url,
-        "logo_url": data.logo_url,
+        "logo_url": logo_url,  # Use fixed logo URL
+        "website": data.domain,  # Add website field
         "industry": data.industry,
         "employee_count": data.employee_count,
         "headquarters": data.headquarters,
@@ -267,13 +293,42 @@ def get_company_details(
     company = result.data[0]
     company["tags"] = company.get("tags") or []
 
+    # Fix logo URL if it's using a subdomain
+    if company.get("logo_url") and company.get("domain"):
+        try:
+            domain_parts = company["domain"].replace("www.", "").split(".")
+            if len(domain_parts) >= 2:
+                main_domain = ".".join(domain_parts[-2:])
+                if "logo.clearbit.com" in company["logo_url"]:
+                    company["logo_url"] = f"https://logo.clearbit.com/{main_domain}"
+        except Exception:
+            pass
+
     # Get contacts
     contacts_result = supabase.table("company_contacts").select("*").eq("company_id", company_id).eq("is_active", True).execute()
     contacts = contacts_result.data if contacts_result.data else []
 
+    # Map contact fields if needed (database uses 'name', schema expects 'full_name')
+    mapped_contacts = []
+    for c in contacts:
+        if "name" in c and "full_name" not in c:
+            c["full_name"] = c["name"]
+        mapped_contacts.append(c)
+
     # Get recent updates
     updates_result = supabase.table("company_updates").select("*").eq("company_id", company_id).order("created_at", desc=True).limit(10).execute()
     updates = updates_result.data if updates_result.data else []
+
+    # Map update fields if needed (database uses 'title', ensure it's present)
+    mapped_updates = []
+    for u in updates:
+        # Ensure title field exists (some code might use 'headline', schema uses 'title')
+        if "headline" in u and "title" not in u:
+            u["title"] = u["headline"]
+        # Map detected_at to created_at if needed
+        if "detected_at" in u and "created_at" not in u:
+            u["created_at"] = u["detected_at"]
+        mapped_updates.append(u)
 
     # Count unread updates
     unread_result = supabase.table("company_updates").select("id").eq("company_id", company_id).eq("is_read", False).execute()
@@ -281,8 +336,8 @@ def get_company_details(
 
     return TrackedCompanyWithDetails(
         **company,
-        contacts=[TrackedCompanyContactResponse.model_validate(c) for c in contacts],
-        recent_updates=[TrackedCompanyUpdateResponse.model_validate(u) for u in updates],
+        contacts=[TrackedCompanyContactResponse.model_validate(c) for c in mapped_contacts],
+        recent_updates=[TrackedCompanyUpdateResponse.model_validate(u) for u in mapped_updates],
         unread_update_count=unread_count,
     )
 
