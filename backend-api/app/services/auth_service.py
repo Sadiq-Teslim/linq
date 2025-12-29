@@ -331,7 +331,7 @@ class AuthService:
     def get_user_with_organization(self, user_id: int) -> Optional[Dict[str, Any]]:
         """Get user with organization and subscription info"""
         result = self.supabase.table("users").select(
-            "*, organizations!users_organization_id_fkey(id, name, industry, logo_url, subscriptions!organizations_subscription_id_fkey(plan, status, max_tracked_companies, max_team_members))"
+            "*, organizations!users_organization_id_fkey(id, name, logo_url, subscriptions!organizations_subscription_id_fkey(plan, status, max_tracked_companies, max_team_members))"
         ).eq("id", user_id).execute()
 
         if not result.data:
@@ -344,7 +344,9 @@ class AuthService:
             org = user["organizations"]
             user["organization_id"] = org.get("id")
             user["organization_name"] = org.get("name")
-            user["industry"] = org.get("industry")
+            # Industry is optional - only include if column exists
+            if "industry" in org:
+                user["industry"] = org.get("industry")
 
             if org.get("subscriptions"):
                 sub = org["subscriptions"]

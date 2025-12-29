@@ -214,9 +214,13 @@ def get_industry_feed(
     if not industry:
         org_id = current_user.get("organization_id")
         if org_id:
-            org_result = supabase.table("organizations").select("industry").eq("id", org_id).execute()
-            if org_result.data:
-                industry = org_result.data[0].get("industry")
+            try:
+                org_result = supabase.table("organizations").select("industry").eq("id", org_id).execute()
+                if org_result.data:
+                    industry = org_result.data[0].get("industry")
+            except Exception:
+                # Industry column might not exist, use default
+                pass
 
     # Default to Technology if no industry found
     industry = industry or "Technology"
