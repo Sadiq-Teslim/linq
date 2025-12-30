@@ -2,8 +2,12 @@
 Authentication service with Netflix-style single session enforcement (F3.2)
 Using Supabase for database operations
 """
+import time
 from datetime import datetime, timedelta
 from typing import Optional, Tuple, Dict, Any, TYPE_CHECKING
+
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+import httpx
 
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core.config import settings
@@ -173,36 +177,54 @@ class AuthService:
 
         return access_token, was_revoked
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=0.5, max=5),
+        retry=retry_if_exception_type((httpx.ReadError, httpx.ConnectError, httpx.TimeoutException, ConnectionError)),
+        reraise=True
+    )
+    def _execute_with_retry(self, query_builder):
+        """Execute a Supabase query with retry logic for network errors"""
+        return query_builder.execute()
+
     def validate_session(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate a session token and return the user"""
-        # Find active session
-        session_result = self.supabase.table("user_sessions")\
-            .select("*")\
-            .eq("session_token", token)\
-            .eq("is_active", True)\
-            .execute()
+        try:
+            # Find active session with retry logic
+            session_result = self._execute_with_retry(
+                self.supabase.table("user_sessions")
+                    .select("*")
+                    .eq("session_token", token)
+                    .eq("is_active", True)
+            )
 
-        if not session_result.data:
-            return None
+            if not session_result.data:
+                return None
 
-        session = session_result.data[0]
+            session = session_result.data[0]
 
-        # Update last activity
-        self.supabase.table("user_sessions")\
-            .update({"last_activity": datetime.utcnow().isoformat()})\
-            .eq("id", session["id"])\
-            .execute()
+            # Update last activity with retry logic
+            self._execute_with_retry(
+                self.supabase.table("user_sessions")
+                    .update({"last_activity": datetime.utcnow().isoformat()})
+                    .eq("id", session["id"])
+            )
 
-        # Get user
-        user_result = self.supabase.table("users")\
-            .select("*")\
-            .eq("id", session["user_id"])\
-            .execute()
+            # Get user with retry logic
+            user_result = self._execute_with_retry(
+                self.supabase.table("users")
+                    .select("*")
+                    .eq("id", session["user_id"])
+            )
 
-        if not user_result.data:
-            return None
+            if not user_result.data:
+                return None
 
-        return user_result.data[0]
+            return user_result.data[0]
+        except (httpx.ReadError, httpx.ConnectError, httpx.TimeoutException, ConnectionError) as e:
+            # Log the error but don't fail silently - let it propagate after retries
+            print(f"⚠ Network error during session validation: {e}")
+            raise
 
     def revoke_session(self, token: str) -> bool:
         """Logout - revoke the current session"""
