@@ -184,7 +184,7 @@ export const ResultCard = () => {
             onClick={() => setViewMode("details")}
             className={`px-2 py-1 text-xs rounded transition-colors ${
               viewMode === "details"
-                ? "bg-gold-500/20 text-gold-400"
+                ? "bg-blue-700/20 text-blue-700"
                 : "text-slate-400 hover:text-slate-300"
             }`}
           >
@@ -194,7 +194,7 @@ export const ResultCard = () => {
             onClick={() => setViewMode("contacts")}
             className={`px-2 py-1 text-xs rounded transition-colors ${
               viewMode === "contacts"
-                ? "bg-gold-500/20 text-gold-400"
+                ? "bg-green-700/20 text-green-700"
                 : "text-slate-400 hover:text-slate-300"
             }`}
           >
@@ -204,7 +204,7 @@ export const ResultCard = () => {
             onClick={() => setViewMode("updates")}
             className={`px-2 py-1 text-xs rounded transition-colors ${
               viewMode === "updates"
-                ? "bg-gold-500/20 text-gold-400"
+                ? "bg-blue-700/20 text-blue-700"
                 : "text-slate-400 hover:text-slate-300"
             }`}
           >
