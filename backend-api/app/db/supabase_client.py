@@ -14,19 +14,14 @@ class SupabaseClient:
     def __init__(self, url: str, key: str):
         self.rest_url = f"{url}/rest/v1"
         self.key = key
-        # Configure httpx client with better timeouts and connection pooling
-        http_client = httpx.Client(
-            timeout=httpx.Timeout(30.0, connect=10.0, read=20.0, write=10.0, pool=5.0),
-            limits=httpx.Limits(max_keepalive_connections=20, max_connections=100),
-            follow_redirects=True,
-        )
+        # SyncPostgrestClient doesn't support http_client parameter in this version
+        # It uses httpx internally with default settings
         self._client = SyncPostgrestClient(
             base_url=self.rest_url,
             headers={
                 "apikey": key,
                 "Authorization": f"Bearer {key}",
-            },
-            http_client=http_client
+            }
         )
 
     def table(self, table_name: str):
