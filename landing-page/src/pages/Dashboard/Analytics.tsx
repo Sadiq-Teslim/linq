@@ -78,7 +78,7 @@ export const DashboardAnalytics = () => {
           <h1 className="text-2xl md:text-3xl font-serif text-white mb-2">
             Analytics
           </h1>
-          <p className="text-slate-400">Full breakdown of your LINQ usage</p>
+          <p className="text-slate-400">Full breakdown of your LYNQ usage</p>
         </div>
         <div className="flex items-center gap-2 bg-white/[0.02] border border-white/10 rounded-lg p-1">
           {(["7d", "30d", "90d"] as const).map((range) => (
@@ -289,7 +289,7 @@ export const DashboardAnalytics = () => {
               </svg>
               <p>No usage data available yet</p>
               <p className="text-sm text-slate-600 mt-1">
-                Start using LINQ to see analytics
+                Start using LYNQ to see analytics
               </p>
             </div>
           </div>
@@ -545,7 +545,7 @@ export const DashboardAnalytics = () => {
           </div>
           <p className="text-slate-400 mb-1">No recent activity</p>
           <p className="text-sm text-slate-500">
-            Your activity log will appear here as you use LINQ
+            Your activity log will appear here as you use LYNQ
           </p>
         </div>
       </div>

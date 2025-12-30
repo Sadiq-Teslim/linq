@@ -88,7 +88,7 @@ export const SignupPage = () => {
               <span className="text-[#0a0f1c] font-bold text-sm">L</span>
             </div>
             <span className="text-xl font-semibold text-white tracking-tight">
-              LINQ
+              LYNQ
             </span>
           </button>
         </div>

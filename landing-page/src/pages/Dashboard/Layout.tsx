@@ -154,7 +154,7 @@ export const DashboardLayout = () => {
                 <span className="text-[#0a0f1c] font-bold text-sm">L</span>
               </div>
               <span className="text-xl font-semibold text-white tracking-tight hidden sm:block">
-                LINQ
+                LYNQ
               </span>
             </button>
             {!loading && !isActive && (

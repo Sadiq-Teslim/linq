@@ -10,7 +10,7 @@
   --blue-950: #0a1628;
   --blue-900: #0f1e3a;
   --blue-800: #1e3a5f;
-  --blue-700: #2563eb;
+  --blue-700: #60a5fa;
   --blue-600: #3b82f6;
   --blue-500: #60a5fa;
   --blue-400: #93c5fd;
@@ -61,8 +61,8 @@ body {
   padding: 0;
   width: 380px;
   height: 560px;
-  background: linear-gradient(180deg, var(--white) 0%, var(--blue-100) 100%);
-  color: var(--blue-900);
+  background: linear-gradient(180deg, var(--white) 0%, var(--blue-50) 100%);
+  color: var(--blue-800);
 }
 
 /* Smooth scrolling */

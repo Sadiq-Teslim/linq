@@ -410,7 +410,7 @@ export const DashboardAccessCode = () => {
         <ol className="text-sm text-slate-300 space-y-2 ml-7">
           <li>1. Install the Chrome extension</li>
           <li>2. Open the extension and paste your access code</li>
-          <li>3. Start using LINQ to track companies</li>
+          <li>3. Start using LYNQ to track companies</li>
         </ol>
         <p className="text-xs text-slate-500 mt-4 ml-7">
           Note: The extension is limited to inputting access codes and basic

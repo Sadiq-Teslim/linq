@@ -78,7 +78,7 @@ export const LoginPage = () => {
               <span className="text-[#0a0f1c] font-bold text-sm">L</span>
             </div>
             <span className="text-xl font-semibold text-white tracking-tight">
-              LINQ
+              LYNQ
             </span>
           </button>
         </div>
@@ -90,7 +90,7 @@ export const LoginPage = () => {
               Welcome back
             </h1>
             <p className="text-slate-400 text-sm">
-              Log in to your LINQ account
+              Log in to your LYNQ account
             </p>
           </div>
 

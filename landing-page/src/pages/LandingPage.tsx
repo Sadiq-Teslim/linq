@@ -198,7 +198,7 @@ export const LandingPage = () => {
               <span className="text-[#0a0f1c] font-bold text-sm">L</span>
             </div>
             <span className="text-xl font-semibold text-white tracking-tight">
-              LINQ
+              LYNQ
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
@@ -427,7 +427,7 @@ export const LandingPage = () => {
             Ready to close more deals?
           </h2>
           <p className="text-slate-400 mb-8">
-            Join sales teams using LINQ to stay ahead of the competition.
+            Join sales teams using LYNQ to stay ahead of the competition.
           </p>
           <button
             onClick={() => navigate("/auth/signup")}
@@ -446,7 +446,7 @@ export const LandingPage = () => {
               <span className="text-[#0a0f1c] font-bold text-xs">L</span>
             </div>
             <span className="text-sm text-slate-400">
-              © 2024 LINQ. All rights reserved.
+              © 2024 LYNQ. All rights reserved.
             </span>
           </div>
           <div className="flex items-center gap-6">

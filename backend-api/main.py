@@ -1,5 +1,5 @@
 """
-LINQ AI Backend API - Entry Point
+LYNQ AI Backend API - Entry Point
 B2B Sales Intelligence Platform
 """
 import os
@@ -18,7 +18,7 @@ from app.services.cache.redis_client import redis_cache
 # =============================================================================
 
 app = FastAPI(
-    title="LINQ AI API",
+    title="LYNQ AI API",
     description="B2B Sales Intelligence Platform API - Scalable and Secure",
     version="1.0.0",
     docs_url="/docs",  # Enable Swagger UI in all environments

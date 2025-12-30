@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     # =============================================================================
     # Google Gemini AI
     GEMINI_API_KEY: str = ""
+    
+    # X.AI (Grok) - Fallback for Gemini
+    XAI_API_KEY: str = ""
 
     # SerpAPI for company search and contact discovery
     SERP_API_KEY: str = ""

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useCompanyStore } from "@/entities/company/store";
 import { useToast } from "@/shared/ui/Toast";
 import { Button } from "@/shared/ui/Button";
@@ -13,11 +13,9 @@ import {
   CheckCircle,
   Globe,
 } from "lucide-react";
-import { useDebounce } from "@/shared/lib/useDebounce";
 
 export const AddCompanySearch = () => {
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebounce(query, 300);
   const [showResults, setShowResults] = useState(false);
 
   const {
@@ -31,16 +29,23 @@ export const AddCompanySearch = () => {
 
   const { addToast } = useToast();
 
-  // Search when debounced query changes
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      searchCompanies(debouncedQuery);
+  // Search only on Enter key or Search button click
+  const handleSearch = useCallback(() => {
+    if (query.trim()) {
+      searchCompanies(query.trim());
       setShowResults(true);
     } else {
       clearSearch();
       setShowResults(false);
     }
-  }, [debouncedQuery, searchCompanies, clearSearch]);
+  }, [query, searchCompanies, clearSearch]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearch();
+    }
+  }, [handleSearch]);
 
   const handleTrack = useCallback(
     async (company: (typeof searchResults)[0]) => {
@@ -76,31 +81,43 @@ export const AddCompanySearch = () => {
       {/* Search Input */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          {isSearching ? (
-            <Loader2 className="h-4 w-4 text-gold-400 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4 text-slate-500" />
-          )}
+          <Search className="h-4 w-4 text-slate-500" />
         </div>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => query && setShowResults(true)}
-          placeholder="Search companies to track..."
-          className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-sm
+          onKeyDown={handleKeyDown}
+          onFocus={() => searchResults.length > 0 && setShowResults(true)}
+          placeholder="Search companies to track... (Press Enter to search)"
+          className="w-full pl-10 pr-20 py-3 bg-white/5 border border-white/10 rounded-xl text-sm
                      placeholder:text-slate-500 text-white
-                     focus:outline-none focus:bg-white/[0.07] focus:border-gold-500/30 focus:ring-2 focus:ring-gold-500/10
+                     focus:outline-none focus:bg-white/[0.07] focus:border-blue-500/30 focus:ring-2 focus:ring-blue-500/10
                      transition-all duration-200"
         />
-        {query && (
+        <div className="absolute inset-y-0 right-0 flex items-center gap-1 pr-2">
+          {query && (
+            <button
+              onClick={handleClear}
+              className="p-1.5 text-slate-500 hover:text-slate-300 transition-colors"
+              title="Clear"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
           <button
-            onClick={handleClear}
-            className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+            onClick={handleSearch}
+            disabled={isSearching || !query.trim()}
+            className="p-1.5 text-blue-500 hover:text-blue-400 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
+            title="Search"
           >
-            <X className="w-4 h-4" />
+            {isSearching ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Search className="w-4 h-4" />
+            )}
           </button>
-        )}
+        </div>
       </div>
 
       {/* Search Results Dropdown */}

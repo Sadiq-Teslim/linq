@@ -12,13 +12,13 @@ export default {
           200: "#e5e5e5",
         },
         blue: {
-          950: "#0a1628",
-          900: "#0f1e3a",
-          800: "#1e3a5f",
-          700: "#2563eb", // Primary blue
+          950: "#e0f2fe", // Light backgrounds
+          900: "#e0f2fe",
+          800: "#bae6fd",
+          700: "#60a5fa", // Light blue primary (was #2563eb)
           600: "#3b82f6",
-          500: "#60a5fa",
-          400: "#93c5fd",
+          500: "#60a5fa", // Light blue
+          400: "#93c5fd", // Light blue
           300: "#bfdbfe",
           200: "#dbeafe",
           100: "#eff6ff",
@@ -51,7 +51,7 @@ export default {
           400: "#34d399",
           300: "#6ee7b7",
         },
-        primary: "#2563eb", // Blue
+        primary: "#60a5fa", // Light blue
         secondary: "#10b981", // Green
       },
       fontFamily: {

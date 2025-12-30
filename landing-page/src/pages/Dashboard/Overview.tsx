@@ -157,7 +157,7 @@ export const DashboardOverview = () => {
           Welcome back, {user?.full_name?.split(" ")[0] || "there"}
         </h1>
         <p className="text-slate-400">
-          Here's an overview of your LINQ account
+          Here's an overview of your LYNQ account
         </p>
       </div>
 

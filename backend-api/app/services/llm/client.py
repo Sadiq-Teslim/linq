@@ -62,7 +62,12 @@ class GeminiClient:
             return self._parse_analysis_response(response.text, company_name)
         except Exception as e:
             print(f"Gemini API error: {e}")
-            return self._fallback_response(company_name)
+            # Try Grok as fallback
+            try:
+                return await self._try_grok_fallback(prompt, company_name, "analysis")
+            except Exception as grok_error:
+                print(f"Grok fallback error: {grok_error}")
+                return self._fallback_response(company_name)
 
     @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=1, max=5))
     async def extract_decision_makers(
@@ -265,7 +270,12 @@ class GeminiClient:
             return self._parse_insights_response(response.text, company_name)
         except Exception as e:
             print(f"Gemini insights error: {e}")
-            return self._fallback_insights(company_name)
+            # Try Grok as fallback
+            try:
+                return await self._try_grok_fallback(prompt, company_name, "insights")
+            except Exception as grok_error:
+                print(f"Grok fallback error: {grok_error}")
+                return self._fallback_insights(company_name)
 
     async def analyze_company_update(
         self,
@@ -293,6 +303,13 @@ class GeminiClient:
             return self._parse_update_analysis(response.text)
         except Exception as e:
             print(f"Gemini update analysis error: {e}")
+            # Try Grok as fallback
+            try:
+                grok_result = await self._try_grok_fallback(prompt, company_name, "update_analysis")
+                if grok_result:
+                    return grok_result
+            except Exception as grok_error:
+                print(f"Grok fallback error: {grok_error}")
             return {
                 "importance": "medium",
                 "implications": [],
@@ -328,12 +345,17 @@ class GeminiClient:
             return self._parse_outreach_suggestions(response.text)
         except Exception as e:
             print(f"Gemini outreach error: {e}")
-            return {
-                "subject_line": f"Partnership opportunity with {company_name}",
-                "opening_line": f"Hi {contact.get('full_name', 'there')},",
-                "value_proposition": "",
-                "call_to_action": "",
-            }
+            # Try Grok as fallback
+            try:
+                return await self._try_grok_fallback(prompt, company_name, "outreach")
+            except Exception as grok_error:
+                print(f"Grok fallback error: {grok_error}")
+                return {
+                    "subject_line": f"Partnership opportunity with {company_name}",
+                    "opening_line": f"Hi {contact.get('full_name', 'there')},",
+                    "value_proposition": "",
+                    "call_to_action": "",
+                }
 
     def _build_company_context(
         self,
@@ -490,8 +512,51 @@ class GeminiClient:
             "growth_signals": [],
         }
 
+    async def _try_grok_fallback(self, prompt: str, company_name: str, response_type: str) -> Dict[str, Any]:
+        """Try Grok API as fallback when Gemini fails"""
+        if not settings.XAI_API_KEY:
+            raise Exception("XAI_API_KEY not configured")
+        
+        import httpx
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.x.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.XAI_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "grok-beta",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful AI assistant for B2B sales intelligence."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 2000,
+                }
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"Grok API error: {response.status_code}")
+            
+            result = response.json()
+            grok_text = result["choices"][0]["message"]["content"]
+            
+            # Parse based on response type
+            if response_type == "analysis":
+                return self._parse_analysis_response(grok_text, company_name)
+            elif response_type == "insights":
+                return self._parse_insights_response(grok_text, company_name)
+            elif response_type == "update_analysis":
+                return self._parse_update_analysis(grok_text)
+            elif response_type == "outreach":
+                return self._parse_outreach_suggestions(grok_text)
+            else:
+                raise Exception(f"Unknown response type: {response_type}")
+    
     def _fallback_response(self, company_name: str) -> Dict[str, Any]:
-        """Fallback when Gemini is unavailable"""
+        """Fallback when both Gemini and Grok are unavailable"""
         return {
             "summary": f"{company_name} is a business operating in the West African market. Further analysis requires AI configuration.",
             "conversion_score": 50,

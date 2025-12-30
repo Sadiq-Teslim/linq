@@ -3,7 +3,7 @@ API v1 Router - Aggregates all endpoints
 """
 from fastapi import APIRouter
 
-from .endpoints import auth, search, feed, export, companies, subscription, analytics, organization
+from .endpoints import auth, search, feed, export, companies, subscription, analytics, organization, internal
 
 api_router = APIRouter()
 
@@ -61,4 +61,11 @@ api_router.include_router(
     organization.router,
     prefix="/organization",
     tags=["Organization"],
+)
+
+# Internal endpoints for cron jobs (API key protected)
+api_router.include_router(
+    internal.router,
+    prefix="/internal",
+    tags=["Internal"],
 )

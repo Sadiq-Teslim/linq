@@ -109,7 +109,7 @@ const PopupContent = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-serif font-bold text-white tracking-tight text-base">
-                    LINQ
+                    LYNQ
                   </span>
                   <span className="text-[9px] bg-gradient-to-r from-gold-500 to-gold-400 text-navy-950 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
                     <Crown className="w-2.5 h-2.5" />
@@ -220,7 +220,7 @@ const PopupContent = () => {
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-slate-500">Powered by</span>
             <span className="text-[10px] font-semibold text-gold-400">
-              LINQ AI
+              LYNQ AI
             </span>
           </div>
           <span className="text-[10px] text-slate-500">

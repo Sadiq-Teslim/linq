@@ -134,7 +134,7 @@ export const LoginPage = () => {
           <div className="w-12 h-12 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-gold-500 to-gold-400 flex items-center justify-center shadow-lg shadow-gold-500/30">
             <Sparkles className="w-6 h-6 text-navy-950" />
           </div>
-          <h1 className="text-xl font-serif text-white mb-0.5">LINQ</h1>
+          <h1 className="text-xl font-serif text-white mb-0.5">LYNQ</h1>
           <p className="text-[10px] text-slate-400">B2B Sales Intelligence</p>
         </div>
 
@@ -149,7 +149,7 @@ export const LoginPage = () => {
                 Welcome Back
               </h2>
               <p className="text-[10px] text-slate-400 mt-0.5">
-                Sign in to your LINQ account
+                Sign in to your LYNQ account
               </p>
             </div>
 
