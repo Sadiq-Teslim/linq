@@ -4,25 +4,55 @@ export default {
   theme: {
     extend: {
       colors: {
+        // LYNQ Brand Colors: White, Blue, Green
+        white: {
+          DEFAULT: "#ffffff",
+          50: "#fafafa",
+          100: "#f5f5f5",
+          200: "#e5e5e5",
+        },
+        blue: {
+          950: "#0a1628",
+          900: "#0f1e3a",
+          800: "#1e3a5f",
+          700: "#2563eb", // Primary blue
+          600: "#3b82f6",
+          500: "#60a5fa",
+          400: "#93c5fd",
+          300: "#bfdbfe",
+          200: "#dbeafe",
+          100: "#eff6ff",
+          50: "#f0f9ff",
+        },
+        green: {
+          700: "#10b981", // Primary green (matching LYNQ logo)
+          600: "#34d399",
+          500: "#6ee7b7",
+          400: "#a7f3d0",
+          300: "#d1fae5",
+          200: "#ecfdf5",
+          100: "#f0fdf4",
+        },
+        // Legacy support (mapped to new colors)
         navy: {
-          950: "#0a0f1c",
-          900: "#0f172a",
-          800: "#1e293b",
-          700: "#334155",
-          600: "#475569",
-          500: "#64748b",
-          400: "#94a3b8",
-          300: "#cbd5e1",
-          200: "#e2e8f0",
-          100: "#f1f5f9",
+          950: "#0a1628",
+          900: "#0f1e3a",
+          800: "#1e3a5f",
+          700: "#2563eb",
+          600: "#3b82f6",
+          500: "#60a5fa",
+          400: "#93c5fd",
+          300: "#bfdbfe",
+          200: "#dbeafe",
+          100: "#eff6ff",
         },
         gold: {
-          500: "#d4a853",
-          400: "#e5be6a",
-          300: "#f0d590",
+          500: "#10b981", // Map gold to green
+          400: "#34d399",
+          300: "#6ee7b7",
         },
-        primary: "#d4a853",
-        secondary: "#e5be6a",
+        primary: "#2563eb", // Blue
+        secondary: "#10b981", // Green
       },
       fontFamily: {
         sans: ["DM Sans", "system-ui", "sans-serif"],
@@ -58,14 +88,19 @@ export default {
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
         pulseGlow: {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(212, 168, 83, 0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(212, 168, 83, 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(37, 99, 235, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(37, 99, 235, 0.5)" },
+        },
+        pulseGlowGreen: {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(16, 185, 129, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(16, 185, 129, 0.5)" },
         },
       },
       boxShadow: {
         soft: "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
-        "glow-gold": "0 0 20px rgba(212, 168, 83, 0.3)",
+        "glow-blue": "0 0 20px rgba(37, 99, 235, 0.3)",
         "glow-green": "0 0 20px rgba(16, 185, 129, 0.3)",
+        "glow-gold": "0 0 20px rgba(16, 185, 129, 0.3)", // Map to green
       },
     },
   },

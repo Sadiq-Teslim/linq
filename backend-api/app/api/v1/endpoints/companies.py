@@ -268,23 +268,26 @@ async def track_company(
     company["tags"] = company.get("tags") or []
     company_id = company["id"]
 
-    # Immediately discover contacts in the background (don't block response)
+    # Immediately discover contacts (await to ensure they're saved before response)
     try:
-        from app.services.contact_discovery_service import contact_discovery_service
-        import asyncio
+        # Discover contacts immediately - await to ensure they're available right away
+        await _discover_and_save_contacts(
+            company_id=company_id,
+            company_name=data.company_name,
+            company_domain=data.domain,
+            supabase=supabase,
+        )
+        print(f"✓ Contact discovery completed for {data.company_name}")
         
-        # Run contact discovery in background
-        asyncio.create_task(
-            _discover_and_save_contacts(
-                company_id=company_id,
-                company_name=data.company_name,
-                company_domain=data.domain,
-                supabase=supabase,
-            )
+        # Also fetch initial company updates (funding, news, events)
+        await _fetch_initial_company_updates(
+            company_id=company_id,
+            company_name=data.company_name,
+            supabase=supabase,
         )
     except Exception as e:
         # Log error but don't fail the request
-        print(f"Error starting contact discovery: {e}")
+        print(f"⚠ Error during contact discovery: {e}")
 
     return TrackedCompanyResponse.model_validate(company)
 
@@ -362,6 +365,104 @@ async def _discover_and_save_contacts(
         print(f"✓ Discovered and saved {contacts_added} contacts for {company_name}")
     except Exception as e:
         print(f"✗ Error discovering contacts for {company_name}: {e}")
+
+
+async def _fetch_initial_company_updates(
+    company_id: int,
+    company_name: str,
+    supabase: SupabaseClient,
+):
+    """Fetch initial company updates including funding, role changes, events"""
+    try:
+        from app.services.scraper.google import GoogleSearchService
+        
+        now = datetime.utcnow()
+        google_service = GoogleSearchService()
+        
+        # Search for recent news, funding, and events
+        company_news = await google_service.search_company_news(company_name, "Nigeria")
+        
+        updates_added = 0
+        for news_item in company_news[:10]:  # Get more initial updates
+            # Check if update already exists
+            existing_update = supabase.table("company_updates")\
+                .select("id")\
+                .eq("company_id", company_id)\
+                .eq("title", news_item.get("title", ""))\
+                .execute()
+            
+            if existing_update.data:
+                continue
+            
+            # Enhanced classification for funding, role changes, events
+            update_type = "news"
+            title_lower = news_item.get("title", "").lower()
+            snippet_lower = news_item.get("snippet", "").lower()
+            combined_text = f"{title_lower} {snippet_lower}"
+            
+            # Detect funding signals
+            funding_keywords = ["funding", "raised", "investment", "series", "round", "million", "billion", "$", "seed", "venture", "capital"]
+            if any(kw in combined_text for kw in funding_keywords):
+                update_type = "funding"
+            
+            # Detect role changes and promotions
+            elif any(kw in combined_text for kw in ["promoted", "appointed", "hired", "joined", "role", "ceo", "cfo", "cto", "vp", "director"]):
+                update_type = "hiring"  # Or we could add "role_change" type
+            
+            # Detect events
+            elif any(kw in combined_text for kw in ["summit", "conference", "event", "speaking", "attending", "webinar"]):
+                update_type = "event"
+            
+            # Detect partnerships
+            elif any(kw in combined_text for kw in ["partnership", "partner", "collaboration", "alliance"]):
+                update_type = "partnership"
+            
+            # Detect expansion/launches
+            elif any(kw in combined_text for kw in ["expansion", "launch", "opens", "launched"]):
+                update_type = "expansion"
+            
+            # Parse published_at date
+            published_at = None
+            date_str = news_item.get("date")
+            if date_str:
+                try:
+                    from dateutil import parser
+                    published_at = parser.parse(date_str).isoformat()
+                except:
+                    if "ago" in str(date_str).lower():
+                        published_at = now.isoformat()
+                    else:
+                        try:
+                            published_at = parser.parse(date_str).isoformat()
+                        except:
+                            published_at = now.isoformat()
+            else:
+                published_at = now.isoformat()
+            
+            # Determine importance
+            importance = "medium"
+            if update_type == "funding" or "ceo" in combined_text or "cfo" in combined_text:
+                importance = "high"
+            
+            update_data = {
+                "company_id": company_id,
+                "update_type": update_type,
+                "title": news_item.get("title", ""),
+                "summary": news_item.get("snippet", ""),
+                "source_url": news_item.get("link"),
+                "source_name": news_item.get("source", "Google News"),
+                "importance": importance,
+                "is_read": False,
+                "detected_at": now.isoformat(),
+                "published_at": published_at,
+                "created_at": now.isoformat(),
+            }
+            supabase.table("company_updates").insert(update_data).execute()
+            updates_added += 1
+        
+        print(f"✓ Fetched and saved {updates_added} initial updates for {company_name}")
+    except Exception as e:
+        print(f"⚠ Error fetching initial company updates: {e}")
 
 
 @router.get("/{company_id}", response_model=TrackedCompanyWithDetails)

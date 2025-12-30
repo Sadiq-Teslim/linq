@@ -66,9 +66,9 @@ export const ResultCard = () => {
         <div className="p-6">
           <div className="flex flex-col items-center justify-center py-8">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-gold-500 to-gold-400 animate-pulse" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-700 to-green-700 animate-pulse" />
               <div className="absolute inset-0 animate-ping">
-                <div className="w-12 h-12 rounded-full bg-gold-500/30" />
+                <div className="w-12 h-12 rounded-full bg-blue-700/30" />
               </div>
             </div>
             <p className="text-slate-400 mt-4 text-sm">Loading company details...</p>
@@ -285,7 +285,7 @@ export const ResultCard = () => {
                         {contact.full_name || contact.name || "Unknown"}
                       </p>
                       {contact.is_decision_maker && (
-                        <span className="text-[10px] bg-gold-500/10 text-gold-400 px-1.5 py-0.5 rounded border border-gold-500/20">
+                        <span className="text-[10px] bg-green-700/10 text-green-700 px-1.5 py-0.5 rounded border border-green-700/20">
                           DM
                         </span>
                       )}
@@ -299,7 +299,7 @@ export const ResultCard = () => {
                         <div className="flex items-center gap-1.5">
                           <a
                             href={`mailto:${contact.email}`}
-                            className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1.5 px-2 py-1 rounded bg-gold-500/10 hover:bg-gold-500/20 transition-colors"
+                            className="text-xs text-blue-700 hover:text-blue-600 flex items-center gap-1.5 px-2 py-1 rounded bg-blue-700/10 hover:bg-blue-700/20 transition-colors"
                             title={contact.email}
                           >
                             <Mail className="w-3.5 h-3.5" />
@@ -307,7 +307,7 @@ export const ResultCard = () => {
                           </a>
                           <button
                             onClick={() => contact.email && copyToClipboard(contact.email, `email-${contact.id}`)}
-                            className="p-1 text-gold-400 hover:text-gold-300 transition-colors"
+                            className="p-1 text-blue-700 hover:text-blue-600 transition-colors"
                             title="Copy email"
                           >
                             {copiedField === `email-${contact.id}` ? (
@@ -322,7 +322,7 @@ export const ResultCard = () => {
                         <div className="flex items-center gap-1.5">
                           <a
                             href={`tel:${contact.phone}`}
-                            className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1.5 px-2 py-1 rounded bg-gold-500/10 hover:bg-gold-500/20 transition-colors"
+                            className="text-xs text-blue-700 hover:text-blue-600 flex items-center gap-1.5 px-2 py-1 rounded bg-blue-700/10 hover:bg-blue-700/20 transition-colors"
                             title={contact.phone}
                           >
                             <Phone className="w-3.5 h-3.5" />
@@ -330,7 +330,7 @@ export const ResultCard = () => {
                           </a>
                           <button
                             onClick={() => contact.phone && copyToClipboard(contact.phone, `phone-${contact.id}`)}
-                            className="p-1 text-gold-400 hover:text-gold-300 transition-colors"
+                            className="p-1 text-blue-700 hover:text-blue-600 transition-colors"
                             title="Copy phone"
                           >
                             {copiedField === `phone-${contact.id}` ? (
@@ -346,7 +346,7 @@ export const ResultCard = () => {
                           href={contact.linkedin_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-gold-400 hover:text-gold-300 flex items-center gap-1.5 px-2 py-1 rounded bg-gold-500/10 hover:bg-gold-500/20 transition-colors"
+                          className="text-xs text-green-700 hover:text-green-600 flex items-center gap-1.5 px-2 py-1 rounded bg-green-700/10 hover:bg-green-700/20 transition-colors"
                           title="View LinkedIn profile"
                         >
                           <Linkedin className="w-3.5 h-3.5" />
@@ -437,7 +437,7 @@ export const ResultCard = () => {
             : "recently"}
         </span>
         {(selectedCompany.unread_update_count ?? 0) > 0 && (
-          <span className="text-gold-400 font-medium">
+          <span className="text-blue-700 font-medium">
             {selectedCompany.unread_update_count} new updates
           </span>
         )}
