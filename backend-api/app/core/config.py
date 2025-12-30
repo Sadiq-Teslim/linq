@@ -49,8 +49,16 @@ class Settings(BaseSettings):
     # Google Gemini AI
     GEMINI_API_KEY: str = ""
     
-    # X.AI (Grok) - Fallback for Gemini
+    # Ollama (Llama 3.2) - Local/Dev MVP
+    OLLAMA_BASE_URL: str = "http://localhost:11434"  # Local default
+    OLLAMA_MODEL: str = "llama3.2"  # Llama 3.2 model
+    OLLAMA_ENABLED: bool = True  # Enable Ollama for dev/MVP
+    
+    # X.AI (Grok) - Fallback for Gemini/Ollama
     XAI_API_KEY: str = ""
+    
+    # OpenAI - Final fallback
+    OPENAI_API_KEY: str = ""
 
     # SerpAPI for company search and contact discovery
     SERP_API_KEY: str = ""

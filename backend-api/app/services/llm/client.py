@@ -1,5 +1,6 @@
 """
 Google Gemini API wrapper for AI-powered lead qualification
+Fallback chain: Gemini → Ollama (Llama 3.2) → Grok → OpenAI
 """
 from typing import Optional, Dict, Any, List
 import google.generativeai as genai
@@ -62,12 +63,8 @@ class GeminiClient:
             return self._parse_analysis_response(response.text, company_name)
         except Exception as e:
             print(f"Gemini API error: {e}")
-            # Try Grok as fallback
-            try:
-                return await self._try_grok_fallback(prompt, company_name, "analysis")
-            except Exception as grok_error:
-                print(f"Grok fallback error: {grok_error}")
-                return self._fallback_response(company_name)
+            # Fallback chain: Ollama → Grok → OpenAI
+            return await self._try_fallback_chain(prompt, company_name, "analysis")
 
     @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=1, max=5))
     async def extract_decision_makers(
@@ -270,12 +267,11 @@ class GeminiClient:
             return self._parse_insights_response(response.text, company_name)
         except Exception as e:
             print(f"Gemini insights error: {e}")
-            # Try Grok as fallback
-            try:
-                return await self._try_grok_fallback(prompt, company_name, "insights")
-            except Exception as grok_error:
-                print(f"Grok fallback error: {grok_error}")
-                return self._fallback_insights(company_name)
+            # Fallback chain: Ollama → Grok → OpenAI
+            result = await self._try_fallback_chain(prompt, company_name, "insights")
+            if result:
+                return result
+            return self._fallback_insights(company_name)
 
     async def analyze_company_update(
         self,
@@ -303,13 +299,10 @@ class GeminiClient:
             return self._parse_update_analysis(response.text)
         except Exception as e:
             print(f"Gemini update analysis error: {e}")
-            # Try Grok as fallback
-            try:
-                grok_result = await self._try_grok_fallback(prompt, company_name, "update_analysis")
-                if grok_result:
-                    return grok_result
-            except Exception as grok_error:
-                print(f"Grok fallback error: {grok_error}")
+            # Fallback chain: Ollama → Grok → OpenAI
+            result = await self._try_fallback_chain(prompt, company_name, "update_analysis")
+            if result:
+                return result
             return {
                 "importance": "medium",
                 "implications": [],
@@ -345,17 +338,16 @@ class GeminiClient:
             return self._parse_outreach_suggestions(response.text)
         except Exception as e:
             print(f"Gemini outreach error: {e}")
-            # Try Grok as fallback
-            try:
-                return await self._try_grok_fallback(prompt, company_name, "outreach")
-            except Exception as grok_error:
-                print(f"Grok fallback error: {grok_error}")
-                return {
-                    "subject_line": f"Partnership opportunity with {company_name}",
-                    "opening_line": f"Hi {contact.get('full_name', 'there')},",
-                    "value_proposition": "",
-                    "call_to_action": "",
-                }
+            # Fallback chain: Ollama → Grok → OpenAI
+            result = await self._try_fallback_chain(prompt, company_name, "outreach")
+            if result:
+                return result
+            return {
+                "subject_line": f"Partnership opportunity with {company_name}",
+                "opening_line": f"Hi {contact.get('full_name', 'there')},",
+                "value_proposition": "",
+                "call_to_action": "",
+            }
 
     def _build_company_context(
         self,
@@ -512,6 +504,106 @@ class GeminiClient:
             "growth_signals": [],
         }
 
+    async def _try_fallback_chain(self, prompt: str, company_name: str, response_type: str) -> Optional[Dict[str, Any]]:
+        """
+        Try fallback chain: Ollama → Grok → OpenAI
+        Returns result immediately if any service responds successfully
+        """
+        # Try Ollama first (for dev/MVP)
+        if settings.OLLAMA_ENABLED:
+            try:
+                result = await self._try_ollama_fallback(prompt, company_name, response_type)
+                if result:
+                    print(f"✓ Ollama responded successfully for {response_type}")
+                    return result
+            except Exception as ollama_error:
+                print(f"Ollama fallback error: {ollama_error}")
+        
+        # Try Grok
+        if settings.XAI_API_KEY:
+            try:
+                result = await self._try_grok_fallback(prompt, company_name, response_type)
+                if result:
+                    print(f"✓ Grok responded successfully for {response_type}")
+                    return result
+            except Exception as grok_error:
+                print(f"Grok fallback error: {grok_error}")
+        
+        # Try OpenAI as final fallback
+        if settings.OPENAI_API_KEY:
+            try:
+                result = await self._try_openai_fallback(prompt, company_name, response_type)
+                if result:
+                    print(f"✓ OpenAI responded successfully for {response_type}")
+                    return result
+            except Exception as openai_error:
+                print(f"OpenAI fallback error: {openai_error}")
+        
+        return None
+    
+    async def _try_ollama_fallback(self, prompt: str, company_name: str, response_type: str) -> Dict[str, Any]:
+        """Try Ollama API (Llama 3.2) as fallback"""
+        import httpx
+        
+        base_url = settings.OLLAMA_BASE_URL.rstrip('/')
+        model = settings.OLLAMA_MODEL
+        
+        print(f"🤖 [Ollama] Attempting to call Ollama at {base_url} with model {model}")
+        print(f"🤖 [Ollama] Request type: {response_type} for company: {company_name}")
+        
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                print(f"🤖 [Ollama] Sending POST request to {base_url}/api/generate")
+                response = await client.post(
+                    f"{base_url}/api/generate",
+                    json={
+                        "model": model,
+                        "prompt": prompt,
+                        "stream": False,
+                        "options": {
+                            "temperature": 0.7,
+                            "top_p": 0.9,
+                        }
+                    }
+                )
+                
+                print(f"🤖 [Ollama] Response status: {response.status_code}")
+                
+                if response.status_code != 200:
+                    error_msg = f"Ollama API error: {response.status_code} - {response.text}"
+                    print(f"❌ [Ollama] {error_msg}")
+                    raise Exception(error_msg)
+                
+                result = response.json()
+                ollama_text = result.get("response", "")
+                
+                if not ollama_text:
+                    print("❌ [Ollama] Empty response received")
+                    raise Exception("Ollama returned empty response")
+                
+                print(f"✅ [Ollama] Successfully received response ({len(ollama_text)} chars)")
+                
+                # Parse based on response type
+                if response_type == "analysis":
+                    return self._parse_analysis_response(ollama_text, company_name)
+                elif response_type == "insights":
+                    return self._parse_insights_response(ollama_text, company_name)
+                elif response_type == "update_analysis":
+                    return self._parse_update_analysis(ollama_text)
+                elif response_type == "outreach":
+                    return self._parse_outreach_suggestions(ollama_text)
+                else:
+                    raise Exception(f"Unknown response type: {response_type}")
+        except httpx.TimeoutException:
+            print(f"❌ [Ollama] Request timeout after 60 seconds")
+            raise Exception("Ollama request timeout")
+        except httpx.ConnectError as e:
+            print(f"❌ [Ollama] Connection error: {e}")
+            raise Exception(f"Ollama connection error: {e}")
+        except Exception as e:
+            print(f"❌ [Ollama] Error: {e}")
+            raise
+
     async def _try_grok_fallback(self, prompt: str, company_name: str, response_type: str) -> Dict[str, Any]:
         """Try Grok API as fallback when Gemini fails"""
         if not settings.XAI_API_KEY:
@@ -552,6 +644,49 @@ class GeminiClient:
                 return self._parse_update_analysis(grok_text)
             elif response_type == "outreach":
                 return self._parse_outreach_suggestions(grok_text)
+            else:
+                raise Exception(f"Unknown response type: {response_type}")
+    
+    async def _try_openai_fallback(self, prompt: str, company_name: str, response_type: str) -> Dict[str, Any]:
+        """Try OpenAI API as final fallback when Gemini and Grok fail"""
+        if not settings.OPENAI_API_KEY:
+            raise Exception("OPENAI_API_KEY not configured")
+        
+        import httpx
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "gpt-4o-mini",  # Cost-effective model
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful AI assistant for B2B sales intelligence. Provide clear, professional, and well-formatted responses."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 2000,
+                }
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"OpenAI API error: {response.status_code}")
+            
+            result = response.json()
+            openai_text = result["choices"][0]["message"]["content"]
+            
+            # Parse based on response type
+            if response_type == "analysis":
+                return self._parse_analysis_response(openai_text, company_name)
+            elif response_type == "insights":
+                return self._parse_insights_response(openai_text, company_name)
+            elif response_type == "update_analysis":
+                return self._parse_update_analysis(openai_text)
+            elif response_type == "outreach":
+                return self._parse_outreach_suggestions(openai_text)
             else:
                 raise Exception(f"Unknown response type: {response_type}")
     

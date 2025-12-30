@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.db.supabase_client import get_supabase_client, SupabaseClient
 from app.api.v1.endpoints.auth import get_current_user
 from app.services.company_search_service import company_search_service
+from app.services.llm.text_formatter import text_formatter
 from app.schemas.company import (
     GlobalCompanySearchQuery,
     GlobalCompanySearchResult,
@@ -231,12 +232,22 @@ async def track_company(
         except Exception:
             pass  # Keep original logo_url if parsing fails
 
+    # Format company name and description using AI
+    formatted_company_name = data.company_name
+    formatted_description = data.description
+    try:
+        formatted_company_name = await text_formatter.format_company_name(data.company_name)
+        if data.description:
+            formatted_description = await text_formatter.format_description(data.description)
+    except Exception as e:
+        print(f"Error formatting company data: {e}")
+    
     # Create tracked company
     now = datetime.utcnow()
     company_data = {
         "organization_id": org_id,
         "added_by_id": current_user["id"],
-        "company_name": data.company_name,
+        "company_name": formatted_company_name,
         "domain": data.domain,
         "linkedin_url": data.linkedin_url,
         "logo_url": logo_url,  # Use fixed logo URL
@@ -244,7 +255,7 @@ async def track_company(
         "industry": data.industry,
         "employee_count": data.employee_count,
         "headquarters": data.headquarters,
-        "description": data.description,
+        "description": formatted_description,
         "is_priority": data.is_priority,
         "update_frequency": data.update_frequency.value,
         "notify_on_update": data.notify_on_update,
@@ -333,7 +344,40 @@ async def _discover_and_save_contacts(
                     full_name = email_local.replace(".", " ").replace("_", " ").title()
                 else:
                     # Skip contacts without name or email
+                    print(f"⚠ Skipping contact: no name or email (data: {contact_data})")
                     continue
+            
+            # Format contact name using AI to ensure proper English (with timeout to avoid blocking)
+            try:
+                import asyncio
+                full_name = await asyncio.wait_for(
+                    text_formatter.format_contact_name(full_name),
+                    timeout=5.0  # 5 second timeout for AI formatting
+                )
+            except asyncio.TimeoutError:
+                print(f"⚠ AI formatting timeout for '{full_name}', using original")
+                full_name = full_name.strip()
+            except Exception as e:
+                print(f"⚠ Error formatting contact name '{full_name}': {e}")
+                full_name = full_name.strip()
+            
+            # Format title if available (with timeout)
+            title = contact_data.get("title")
+            if title:
+                try:
+                    import asyncio
+                    title = await asyncio.wait_for(
+                        text_formatter.format_title(title),
+                        timeout=5.0
+                    )
+                except (asyncio.TimeoutError, Exception) as e:
+                    print(f"⚠ Error formatting title '{title}': {e}")
+                    title = title.strip() if title else None
+            
+            # Ensure full_name is not empty after formatting
+            if not full_name or not full_name.strip():
+                print(f"⚠ Skipping contact: empty name after formatting")
+                continue
             
             # Check if contact already exists
             existing_contact = supabase.table("company_contacts")\
@@ -343,24 +387,28 @@ async def _discover_and_save_contacts(
                 .execute()
             
             if not existing_contact.data:
-                contact_record = {
-                    "company_id": company_id,
-                    "full_name": full_name.strip(),  # Ensure it's a valid string
-                    "title": contact_data.get("title"),
-                    "department": contact_data.get("department", "other"),
-                    "email": contact_data.get("email"),
-                    "phone": contact_data.get("phone"),
-                    "linkedin_url": contact_data.get("linkedin_url"),
-                    "is_decision_maker": contact_data.get("is_decision_maker", False),
-                    "is_verified": False,
-                    "verification_score": contact_data.get("confidence_score", 0.5),
-                    "source": contact_data.get("source", "automated"),
-                    "is_active": True,
-                    "created_at": now.isoformat(),
-                    "updated_at": now.isoformat(),
-                }
-                supabase.table("company_contacts").insert(contact_record).execute()
-                contacts_added += 1
+                try:
+                    contact_record = {
+                        "company_id": company_id,
+                        "full_name": full_name,  # Already formatted
+                        "title": title,
+                        "department": contact_data.get("department", "other"),
+                        "email": contact_data.get("email"),
+                        "phone": contact_data.get("phone"),
+                        "linkedin_url": contact_data.get("linkedin_url"),
+                        "is_decision_maker": contact_data.get("is_decision_maker", False),
+                        "is_verified": False,
+                        "verification_score": contact_data.get("confidence_score", 0.5),
+                        "source": contact_data.get("source", "automated"),
+                        "is_active": True,
+                        "created_at": now.isoformat(),
+                        "updated_at": now.isoformat(),
+                    }
+                    supabase.table("company_contacts").insert(contact_record).execute()
+                    contacts_added += 1
+                except Exception as e:
+                    print(f"⚠ Error saving contact '{full_name}': {e}")
+                    continue
         
         print(f"✓ Discovered and saved {contacts_added} contacts for {company_name}")
     except Exception as e:
@@ -370,7 +418,8 @@ async def _discover_and_save_contacts(
 async def _fetch_initial_company_updates(
     company_id: int,
     company_name: str,
-    supabase: SupabaseClient,
+    company_domain: Optional[str] = None,
+    supabase: SupabaseClient = None,
 ):
     """Fetch initial company updates including funding, role changes, events"""
     try:
@@ -409,9 +458,9 @@ async def _fetch_initial_company_updates(
             elif any(kw in combined_text for kw in ["promoted", "appointed", "hired", "joined", "role", "ceo", "cfo", "cto", "vp", "director"]):
                 update_type = "hiring"  # Or we could add "role_change" type
             
-            # Detect events
+            # Detect events (map to news since event type may not be in DB constraint)
             elif any(kw in combined_text for kw in ["summit", "conference", "event", "speaking", "attending", "webinar"]):
-                update_type = "event"
+                update_type = "news"  # Use "news" instead of "event" to match DB constraint
             
             # Detect partnerships
             elif any(kw in combined_text for kw in ["partnership", "partner", "collaboration", "alliance"]):
@@ -444,11 +493,20 @@ async def _fetch_initial_company_updates(
             if update_type == "funding" or "ceo" in combined_text or "cfo" in combined_text:
                 importance = "high"
             
+            # Format title and summary using AI
+            title = news_item.get("title", "")
+            summary = news_item.get("snippet", "")
+            try:
+                title = await text_formatter.format_text(title, "This is a news article title", "title")
+                summary = await text_formatter.format_description(summary)
+            except Exception as e:
+                print(f"Error formatting update text: {e}")
+            
             update_data = {
                 "company_id": company_id,
                 "update_type": update_type,
-                "title": news_item.get("title", ""),
-                "summary": news_item.get("snippet", ""),
+                "title": title,
+                "summary": summary,
                 "source_url": news_item.get("link"),
                 "source_name": news_item.get("source", "Google News"),
                 "importance": importance,
