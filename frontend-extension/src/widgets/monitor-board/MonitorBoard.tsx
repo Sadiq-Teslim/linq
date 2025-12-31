@@ -28,7 +28,11 @@ const formatTimeAgo = (dateString: string) => {
   return date.toLocaleDateString();
 };
 
-export const MonitorBoard = () => {
+interface MonitorBoardProps {
+  showAll?: boolean;
+}
+
+export const MonitorBoard: React.FC<MonitorBoardProps> = ({ showAll = false }) => {
   const {
     trackedCompanies,
     updates,
@@ -130,8 +134,8 @@ export const MonitorBoard = () => {
       </div>
 
       {/* Company List */}
-      <div className="divide-y divide-white/5 max-h-64 overflow-y-auto">
-        {sortedCompanies.map((company) => {
+      <div className={`divide-y divide-white/5 overflow-y-auto ${showAll ? 'max-h-[400px]' : 'max-h-64'}`}>
+        {(showAll ? sortedCompanies : sortedCompanies.slice(0, 5)).map((company) => {
           const companyUpdates = updates.filter(
             (u) => u.company_id === company.id && !u.is_read,
           );

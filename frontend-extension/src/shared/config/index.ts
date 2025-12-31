@@ -6,14 +6,14 @@
 export const CONFIG = {
   // API Configuration
   API_BASE_URL:
-    import.meta.env.VITE_API_BASE_URL || "https://linq-api.onrender.com/api/v1",
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1",
 
   // Dashboard URL (for links to web app)
   DASHBOARD_URL:
     import.meta.env.VITE_DASHBOARD_URL || "https://use-linq.netlify.app",
 
-  // Request timeout in ms
-  API_TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT) || 30000,
+  // Request timeout in ms (increased for Ollama CPU mode which can take 2-3 minutes)
+  API_TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT) || 240000, // 4 minutes
 
   // Storage keys (for consistency)
   STORAGE_KEYS: {

@@ -4,7 +4,7 @@ Handles company tracking, contacts, and updates
 """
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 
 from app.db.supabase_client import get_supabase_client, SupabaseClient
 from app.api.v1.endpoints.auth import get_current_user
@@ -523,9 +523,93 @@ async def _fetch_initial_company_updates(
         print(f"⚠ Error fetching initial company updates: {e}")
 
 
+async def _generate_and_log_insights(
+    company_id: int,
+    company_name: str,
+    company_data: Dict[str, Any],
+    recent_updates: List[Dict[str, Any]],
+    contacts: List[Dict[str, Any]],
+    supabase: SupabaseClient,
+):
+    """Background task to generate AI insights and log the response"""
+    try:
+        from app.services.llm.client import GeminiClient
+        import json
+        
+        llm_client = GeminiClient()
+        print(f"🤖 [AI Insights Background] Generating insights for {company_name}...")
+        
+        ai_insights = await llm_client.generate_company_insights(
+            company_name=company_name,
+            company_data=company_data,
+            recent_updates=recent_updates,
+            contacts=contacts,
+        )
+        
+        # Format insights as readable text
+        if ai_insights:
+            print(f"✅ [AI Insights Background] Successfully generated insights for {company_name}")
+            print(f"📝 [AI Insights Background] Raw response: {json.dumps(ai_insights, indent=2)}")
+            
+            insights_parts = []
+            if ai_insights.get("strategic_insights"):
+                insights_parts.append("Strategic Insights:\n" + "\n".join(f"• {i}" for i in ai_insights["strategic_insights"][:3]))
+            if ai_insights.get("action_recommendations"):
+                insights_parts.append("\nRecommended Actions:\n" + "\n".join(f"• {i}" for i in ai_insights["action_recommendations"][:3]))
+            if ai_insights.get("growth_signals"):
+                insights_parts.append("\nGrowth Signals:\n" + "\n".join(f"• {i}" for i in ai_insights["growth_signals"][:3]))
+            if ai_insights.get("relationship_opportunities"):
+                insights_parts.append("\nRelationship Opportunities:\n" + "\n".join(f"• {i}" for i in ai_insights["relationship_opportunities"][:3]))
+            if ai_insights.get("risk_factors"):
+                insights_parts.append("\nRisk Factors:\n" + "\n".join(f"• {i}" for i in ai_insights["risk_factors"][:3]))
+            
+            ai_insights_text = "\n\n".join(insights_parts) if insights_parts else None
+            
+            if ai_insights_text:
+                print(f"📄 [AI Insights Background] Formatted insights:\n{ai_insights_text}\n")
+                
+                # Save insights to the company_updates table as a special "ai_insight" type
+                try:
+                    # Check if an AI insight already exists for this company
+                    existing = supabase.table("company_updates").select("id").eq("company_id", company_id).eq("update_type", "ai_insight").execute()
+                    
+                    now = datetime.utcnow().isoformat()
+                    insight_data = {
+                        "company_id": company_id,
+                        "update_type": "news",  # Use "news" type since "ai_insight" may not exist in enum
+                        "title": f"AI Strategic Analysis for {company_name}",
+                        "summary": ai_insights_text,
+                        "source_name": "LYNQ AI (Ollama)",
+                        "importance": "high",
+                        "is_read": False,
+                        "detected_at": now,
+                        "published_at": now,
+                        "created_at": now,
+                    }
+                    
+                    if existing.data:
+                        # Update existing insight
+                        supabase.table("company_updates").update({
+                            "summary": ai_insights_text,
+                            "detected_at": now,
+                        }).eq("id", existing.data[0]["id"]).execute()
+                        print(f"💾 [AI Insights Background] Updated existing AI insights for {company_name}")
+                    else:
+                        # Insert new insight
+                        supabase.table("company_updates").insert(insight_data).execute()
+                        print(f"💾 [AI Insights Background] Saved new AI insights for {company_name}")
+                except Exception as db_error:
+                    print(f"⚠️ [AI Insights Background] Failed to save insights to database: {db_error}")
+    except Exception as e:
+        print(f"❌ [AI Insights Background] Error generating insights: {e}")
+        import traceback
+        traceback.print_exc()
+
+
 @router.get("/{company_id}", response_model=TrackedCompanyWithDetails)
 async def get_company_details(
     company_id: int,
+    background_tasks: BackgroundTasks,
     current_user: Dict[str, Any] = Depends(get_current_user),
     supabase: SupabaseClient = Depends(get_supabase_client),
 ):
@@ -600,32 +684,21 @@ async def get_company_details(
     unread_result = supabase.table("company_updates").select("id").eq("company_id", company_id).eq("is_read", False).execute()
     unread_count = len(unread_result.data) if unread_result.data else 0
 
-    # Generate AI insights if Gemini is available
-    ai_insights_text = None
-    try:
-        from app.services.llm.client import GeminiClient
-        import json
-        llm_client = GeminiClient()
-        if llm_client.model:
-            ai_insights = await llm_client.generate_company_insights(
-                company_name=company.get("company_name", ""),
-                company_data=company,
-                recent_updates=mapped_updates,
-                contacts=mapped_contacts,
-            )
-            # Format insights as readable text
-            if ai_insights:
-                insights_parts = []
-                if ai_insights.get("strategic_insights"):
-                    insights_parts.append("Strategic Insights:\n" + "\n".join(f"• {i}" for i in ai_insights["strategic_insights"][:3]))
-                if ai_insights.get("action_recommendations"):
-                    insights_parts.append("\nRecommended Actions:\n" + "\n".join(f"• {i}" for i in ai_insights["action_recommendations"][:3]))
-                if ai_insights.get("growth_signals"):
-                    insights_parts.append("\nGrowth Signals:\n" + "\n".join(f"• {i}" for i in ai_insights["growth_signals"][:3]))
-                ai_insights_text = "\n\n".join(insights_parts) if insights_parts else None
-    except Exception as e:
-        print(f"Error generating AI insights: {e}")
-        ai_insights_text = None
+    # Get existing AI insights from database (if available)
+    ai_insights_text = company.get("ai_insights")
+    
+    # Generate AI insights in background (non-blocking)
+    # This allows the API to return immediately while Ollama generates insights
+    background_tasks.add_task(
+        _generate_and_log_insights,
+        company_id=company_id,
+        company_name=company.get("company_name", ""),
+        company_data=company,
+        recent_updates=mapped_updates,
+        contacts=mapped_contacts,
+        supabase=supabase,
+    )
+    print(f"🚀 [AI Insights] Started background task for {company.get('company_name', '')} - API returning immediately")
 
     # Build response
     response_data = {

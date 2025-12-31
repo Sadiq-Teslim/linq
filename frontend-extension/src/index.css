@@ -59,10 +59,11 @@ h3,
 body {
   margin: 0;
   padding: 0;
-  width: 380px;
-  height: 560px;
-  background: linear-gradient(180deg, var(--white) 0%, var(--blue-50) 100%);
-  color: var(--blue-800);
+  width: 420px;
+  height: 580px;
+  background: #f8fafc;
+  color: var(--blue-950);
+  overflow: hidden;
 }
 
 /* Smooth scrolling */

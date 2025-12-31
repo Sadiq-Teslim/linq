@@ -383,7 +383,7 @@ class GeminiClient:
         return "\n".join(parts) if parts else "Limited company information available."
 
     def _parse_insights_response(self, response_text: str, company_name: str) -> Dict[str, Any]:
-        """Parse insights response"""
+        """Parse insights response - handles both JSON and markdown/natural language formats"""
         import json
         import re
 
@@ -391,11 +391,13 @@ class GeminiClient:
         json_match = re.search(r'\{[^{}]*"insights"[^{}]*\}', response_text, re.DOTALL)
         if json_match:
             try:
-                return json.loads(json_match.group(0))
+                parsed = json.loads(json_match.group(0))
+                if parsed.get("strategic_insights") or parsed.get("action_recommendations"):
+                    return parsed
             except:
                 pass
 
-        # Fallback parsing
+        # Fallback parsing for markdown/natural language responses (like Ollama)
         insights = {
             "strategic_insights": [],
             "relationship_opportunities": [],
@@ -405,24 +407,58 @@ class GeminiClient:
         }
 
         current_section = None
-        for line in response_text.split("\n"):
+        lines = response_text.split("\n")
+        
+        for i, line in enumerate(lines):
             line = line.strip()
             if not line:
                 continue
 
             lower_line = line.lower()
-            if "strategic" in lower_line or "insights" in lower_line:
+            
+            # Detect section headers (markdown or plain text)
+            if re.match(r'^[*#]+\s*(strategic|insights)', lower_line) or "strategic insights" in lower_line:
                 current_section = "strategic"
-            elif "relationship" in lower_line or "opportunity" in lower_line:
+                continue
+            elif "relationship" in lower_line and ("opportunity" in lower_line or "opportunities" in lower_line):
                 current_section = "relationship"
-            elif "action" in lower_line or "recommendation" in lower_line:
+                continue
+            elif "recommendation" in lower_line or ("action" in lower_line and "recommendation" in lower_line):
                 current_section = "action"
-            elif "risk" in lower_line:
+                continue
+            elif "decision point" in lower_line or ("action" in lower_line and current_section != "action"):
+                # "Decision Points" section should also map to action_recommendations
+                current_section = "action"
+                continue
+            elif "risk" in lower_line and ("factor" in lower_line or "concern" in lower_line):
                 current_section = "risk"
-            elif "growth" in lower_line or "signal" in lower_line:
+                continue
+            elif "growth" in lower_line and ("signal" in lower_line or "indicator" in lower_line):
                 current_section = "growth"
+                continue
+            
+            # Extract items from numbered lists (1., 2., 3.), bullet points (-, *), or bold text
+            item = None
+            
+            # Numbered list: "1. Text" or "1) Text"
+            numbered_match = re.match(r'^\d+[.)]\s*(.+)', line)
+            if numbered_match:
+                item = numbered_match.group(1).strip()
+                # Remove markdown bold/italic formatting
+                item = re.sub(r'\*\*([^*]+)\*\*', r'\1', item)  # Remove **bold**
+                item = re.sub(r'\*([^*]+)\*', r'\1', item)  # Remove *italic*
+            # Bullet points: "- Text" or "* Text"
             elif line.startswith("-") or line.startswith("*"):
                 item = line.lstrip("-* ").strip()
+                # Remove markdown formatting
+                item = re.sub(r'\*\*([^*]+)\*\*', r'\1', item)
+                item = re.sub(r'\*([^*]+)\*', r'\1', item)
+            # Bold text on its own line (sometimes used for emphasis)
+            elif line.startswith("**") and line.endswith("**") and len(line) > 4:
+                item = line.strip("*").strip()
+            
+            # Add item to appropriate section
+            if item and len(item) > 10:  # Only add if it's substantial (not just a header)
                 if current_section == "strategic":
                     insights["strategic_insights"].append(item)
                 elif current_section == "relationship":
@@ -433,7 +469,14 @@ class GeminiClient:
                     insights["risk_factors"].append(item)
                 elif current_section == "growth":
                     insights["growth_signals"].append(item)
-
+        
+        # If we found insights, return them; otherwise return empty structure
+        if any(insights.values()):
+            print(f"✅ [Parser] Extracted {sum(len(v) for v in insights.values())} insights from response")
+        else:
+            print(f"⚠️ [Parser] No insights extracted - response may be in unexpected format")
+            print(f"📝 [Parser] Response text (first 500 chars): {response_text[:500]}")
+        
         return insights
 
     def _parse_update_analysis(self, response_text: str) -> Dict[str, Any]:
@@ -552,19 +595,60 @@ class GeminiClient:
         print(f"🤖 [Ollama] Request type: {response_type} for company: {company_name}")
         
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                print(f"🤖 [Ollama] Sending POST request to {base_url}/api/generate")
+            # Use longer timeout for model loading (180 seconds for CPU mode)
+            # Also use /api/chat which is more efficient for chat-style prompts
+            async with httpx.AsyncClient(timeout=180.0) as client:
+                # First, check if model is available (quick check)
+                try:
+                    models_response = await client.get(f"{base_url}/api/tags", timeout=5.0)
+                    if models_response.status_code == 200:
+                        models_data = models_response.json()
+                        available_models = [m.get("name", "") for m in models_data.get("models", [])]
+                        # Check if model exists (with or without :latest tag)
+                        model_found = False
+                        for available in available_models:
+                            # Check exact match or if available model starts with our model name
+                            if available == model or available.startswith(f"{model}:") or model.startswith(available.split(":")[0]):
+                                model_found = True
+                                # Use the actual available model name if it has a tag
+                                if ":" in available and ":" not in model:
+                                    model = available  # Use the full name with tag
+                                break
+                        
+                        if not model_found:
+                            print(f"⚠️ [Ollama] Model {model} not found. Available models: {available_models}")
+                            print(f"💡 [Ollama] Run: ollama pull {model}")
+                        else:
+                            print(f"✅ [Ollama] Model {model} is available")
+                except Exception as e:
+                    print(f"⚠️ [Ollama] Could not check available models: {e}")
+                
+                # Use /api/chat for better performance with system prompts
+                print(f"🤖 [Ollama] Sending POST request to {base_url}/api/chat")
                 response = await client.post(
-                    f"{base_url}/api/generate",
+                    f"{base_url}/api/chat",
                     json={
                         "model": model,
-                        "prompt": prompt,
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": "You are a B2B sales intelligence AI. Give concise, professional responses. Keep answers brief."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt[:2000] if len(prompt) > 2000 else prompt  # Limit prompt length for CPU performance
+                            }
+                        ],
                         "stream": False,
                         "options": {
                             "temperature": 0.7,
                             "top_p": 0.9,
+                            "num_predict": 300,  # Limit response length for faster generation (reduced for CPU performance)
+                            "num_ctx": 2048,  # Reduce context window for faster processing
+                            "repeat_penalty": 1.1,  # Prevent repetition
                         }
-                    }
+                    },
+                    timeout=180.0
                 )
                 
                 print(f"🤖 [Ollama] Response status: {response.status_code}")
@@ -575,13 +659,16 @@ class GeminiClient:
                     raise Exception(error_msg)
                 
                 result = response.json()
-                ollama_text = result.get("response", "")
+                # /api/chat returns message.content instead of response
+                ollama_text = result.get("message", {}).get("content", "") or result.get("response", "")
                 
                 if not ollama_text:
                     print("❌ [Ollama] Empty response received")
                     raise Exception("Ollama returned empty response")
                 
                 print(f"✅ [Ollama] Successfully received response ({len(ollama_text)} chars)")
+                print(f"📝 [Ollama] Response preview (first 500 chars): {ollama_text[:500]}...")
+                print(f"📄 [Ollama] Full response:\n{ollama_text}\n")
                 
                 # Parse based on response type
                 if response_type == "analysis":
@@ -595,7 +682,9 @@ class GeminiClient:
                 else:
                     raise Exception(f"Unknown response type: {response_type}")
         except httpx.TimeoutException:
-            print(f"❌ [Ollama] Request timeout after 60 seconds")
+            print(f"❌ [Ollama] Request timeout after 180 seconds")
+            print(f"💡 [Ollama] Model is running in CPU mode (low VRAM) which is very slow.")
+            print(f"💡 [Ollama] Consider: 1) Using a smaller model, 2) Reducing prompt length, or 3) Using GPU if available")
             raise Exception("Ollama request timeout")
         except httpx.ConnectError as e:
             print(f"❌ [Ollama] Connection error: {e}")

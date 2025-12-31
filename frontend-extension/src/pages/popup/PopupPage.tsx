@@ -4,26 +4,25 @@ import { AddCompanySearch } from "@/features/add-company";
 import { MonitorBoard } from "@/widgets/monitor-board";
 import { MarketPulse } from "@/widgets/market-pulse";
 import { ResultCard } from "@/widgets/intelligence-card/ResultCard";
-import { ToastProvider, useToast } from "@/shared/ui/Toast";
+import { ToastProvider, useToast, Sidebar } from "@/shared/ui";
 import { CONFIG } from "@/shared/config";
-import {
-  LogOut,
-  Sparkles,
-  Settings,
-  Bell,
-  Crown,
-  ExternalLink,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import { Building2, Newspaper, Sparkles } from "lucide-react";
 import { useCompanyStore } from "@/entities/company/store";
+
+type TabType = "home" | "companies" | "feed" | "settings";
 
 const PopupContent = () => {
   const { logout, user, refreshUser } = useAuthStore();
-  const { unreadCount, fetchTrackedCompanies, fetchUpdates, isRefreshing, selectedCompany, clearSelection } =
-    useCompanyStore();
+  const {
+    unreadCount,
+    fetchTrackedCompanies,
+    fetchUpdates,
+    isRefreshing,
+    selectedCompany,
+    clearSelection,
+  } = useCompanyStore();
   const { addToast } = useToast();
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>("home");
 
   // Fetch data on mount
   useEffect(() => {
@@ -33,21 +32,23 @@ const PopupContent = () => {
         fetchUpdates(),
         refreshUser(),
       ]);
-      
-      // Refresh industry feed on load
+
+      // Refresh industry feed in background
       try {
-        // Trigger feed refresh in background (don't wait)
-        fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://linq-api.onrender.com/api/v1'}/feed/refresh`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('linq-extension-auth') ? JSON.parse(localStorage.getItem('linq-extension-auth')!).state?.token : ''}`,
-          },
-        }).catch(() => {}); // Ignore errors, it's a background refresh
+        fetch(
+          `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1"}/feed/refresh`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("linq-extension-auth") ? JSON.parse(localStorage.getItem("linq-extension-auth")!).state?.token : ""}`,
+            },
+          }
+        ).catch(() => {});
       } catch (e) {
         // Ignore
       }
     };
-    
+
     loadData();
   }, []);
 
@@ -67,10 +68,6 @@ const PopupContent = () => {
     window.open(`${CONFIG.DASHBOARD_URL}/dashboard/overview`, "_blank");
   };
 
-  const handleOpenSettings = () => {
-    window.open(`${CONFIG.DASHBOARD_URL}/dashboard/settings`, "_blank");
-  };
-
   const handleRefresh = async () => {
     await Promise.all([fetchTrackedCompanies(), fetchUpdates(), refreshUser()]);
     addToast({
@@ -80,156 +77,189 @@ const PopupContent = () => {
     });
   };
 
-  const handleNotifications = () => {
-    if (unreadCount === 0) {
-      addToast({
-        type: "info",
-        title: "No Notifications",
-        message: "You're all caught up!",
-      });
-    } else {
-      setShowNotifications(!showNotifications);
-    }
-  };
-
   const handleLogout = async () => {
     await logout();
   };
 
-  return (
-    <div className="w-[380px] min-h-[560px] bg-gradient-to-b from-navy-950 to-navy-900 flex flex-col">
-      {/* Header */}
-      <header className="bg-navy-950/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-br from-gold-500 to-gold-400 rounded-xl flex items-center justify-center shadow-lg shadow-gold-500/20">
-                <Sparkles className="w-5 h-5 text-navy-950" />
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    // Clear selection when switching tabs
+    if (tab !== "companies" && selectedCompany) {
+      clearSelection();
+    }
+  };
+
+  // Render content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case "home":
+        return (
+          <>
+            {/* Quick Search */}
+            <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1.5 h-5 bg-gradient-to-b from-blue-600 to-green-500 rounded-full" />
+                <h2 className="text-sm font-semibold text-blue-950">
+                  Track Companies
+                </h2>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-serif font-bold text-white tracking-tight text-base">
-                    LYNQ
-                  </span>
-                  <span className="text-[9px] bg-gradient-to-r from-gold-500 to-gold-400 text-navy-950 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
-                    <Crown className="w-2.5 h-2.5" />
-                    {planLabel}
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-500 block truncate max-w-[150px]">
-                  {user?.organization_name || user?.email}
-                </span>
-              </div>
+              <AddCompanySearch />
             </div>
-            <div className="flex items-center gap-1">
-              {/* Refresh */}
-              <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500
-                         hover:text-gold-400 hover:bg-white/5 transition-all disabled:opacity-50"
-                title="Refresh data"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-              </button>
-              {/* Notifications */}
-              <button
-                onClick={handleNotifications}
-                className="relative w-8 h-8 flex items-center justify-center rounded-lg text-slate-500
-                         hover:text-gold-400 hover:bg-white/5 transition-all"
-                title="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold-500 text-navy-950 text-[9px] font-bold rounded-full flex items-center justify-center">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </button>
-              {/* Open Dashboard */}
+
+            {/* Monitor Board */}
+            <MonitorBoard />
+
+            {/* Company Details - Show when a company is selected */}
+            {selectedCompany && (
+              <div className="relative">
+                <ResultCard />
+              </div>
+            )}
+
+            {/* Quick Feed Preview */}
+            <MarketPulse limit={3} />
+          </>
+        );
+
+      case "companies":
+        return (
+          <>
+            {/* Search */}
+            <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="w-4 h-4 text-blue-600" />
+                <h2 className="text-sm font-semibold text-blue-950">
+                  Track New Company
+                </h2>
+              </div>
+              <AddCompanySearch />
+            </div>
+
+            {/* Full Monitor Board */}
+            <MonitorBoard showAll />
+
+            {/* Company Details */}
+            {selectedCompany && (
+              <div className="relative">
+                <ResultCard />
+              </div>
+            )}
+          </>
+        );
+
+      case "feed":
+        return (
+          <>
+            <div className="flex items-center gap-2 mb-4">
+              <Newspaper className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-semibold text-blue-950">
+                Industry News
+              </h2>
+            </div>
+            <MarketPulse limit={10} />
+          </>
+        );
+
+      case "settings":
+        return (
+          <div className="bg-white rounded-2xl border border-blue-100 p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-semibold text-blue-950">
+                Account Settings
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 rounded-xl">
+                <p className="text-sm font-medium text-blue-950">
+                  {user?.email}
+                </p>
+                <p className="text-xs text-slate-600 mt-1">
+                  {user?.organization_name || "Personal Account"}
+                </p>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-blue-600 to-green-500 rounded-xl text-white">
+                <p className="text-sm font-semibold">{planLabel} Plan</p>
+                <p className="text-xs mt-1 opacity-90">
+                  {user?.subscription?.max_tracked_companies === -1
+                    ? "Unlimited companies"
+                    : `${user?.subscription?.max_tracked_companies || 5} companies`}
+                </p>
+              </div>
               <button
                 onClick={handleOpenDashboard}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500
-                         hover:text-gold-400 hover:bg-white/5 transition-all"
-                title="Open Dashboard"
+                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
               >
-                <ExternalLink className="w-4 h-4" />
-              </button>
-              {/* Settings */}
-              <button
-                onClick={handleOpenSettings}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500
-                         hover:text-gold-400 hover:bg-white/5 transition-all"
-                title="Settings"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-              {/* Logout */}
-              <button
-                onClick={handleLogout}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500
-                         hover:text-red-400 hover:bg-red-500/10 transition-all"
-                title="Logout"
-              >
-                <LogOut className="w-4 h-4" />
+                Open Full Dashboard
               </button>
             </div>
           </div>
-        </div>
-      </header>
+        );
 
-      {/* Main Content */}
-      <main className="flex-1 p-4 overflow-y-auto space-y-4">
-        {/* Add Company Search */}
-        <div className="bg-white/[0.02] rounded-2xl border border-white/5 p-4 backdrop-blur-sm relative z-40">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1.5 h-5 bg-gradient-to-b from-gold-500 to-gold-400 rounded-full" />
-            <h2 className="text-sm font-semibold text-white">
-              Track Companies
-            </h2>
-          </div>
-          <AddCompanySearch />
-        </div>
+      default:
+        return null;
+    }
+  };
 
-        {/* Monitor Board */}
-        <MonitorBoard />
+  return (
+    <div className="w-[420px] h-[580px] bg-slate-50 flex overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        unreadCount={unreadCount}
+        isRefreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        onOpenDashboard={handleOpenDashboard}
+        onLogout={handleLogout}
+        planLabel={planLabel}
+      />
 
-        {/* Company Details - Show when a company is selected */}
-        {selectedCompany && (
-          <div className="relative">
-            <ResultCard />
-            <button
-              onClick={clearSelection}
-              className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-              title="Close details"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Industry News Feed */}
-        <MarketPulse limit={4} />
-      </main>
-
-      {/* Footer */}
-      <footer className="px-4 py-2.5 border-t border-white/5 bg-navy-950/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-slate-500">Powered by</span>
-            <span className="text-[10px] font-semibold text-gold-400">
-              LYNQ AI
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="bg-white border-b border-blue-100 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-serif font-bold text-blue-950 text-lg tracking-tight">
+              LYNQ
+            </span>
+            <span className="text-[10px] bg-gradient-to-r from-blue-600 to-green-500 text-white px-2 py-0.5 rounded-full font-medium">
+              {activeTab === "home"
+                ? "Dashboard"
+                : activeTab === "companies"
+                  ? "Companies"
+                  : activeTab === "feed"
+                    ? "News"
+                    : "Settings"}
             </span>
           </div>
-          <span className="text-[10px] text-slate-500">
-            {user?.subscription?.max_tracked_companies === -1
-              ? "Unlimited"
-              : `${user?.subscription?.max_tracked_companies || 5} companies`}
-          </span>
-        </div>
-      </footer>
+          <div className="text-xs text-slate-500 truncate max-w-[150px]">
+            {user?.organization_name || user?.email}
+          </div>
+        </header>
+
+        {/* Scrollable Content */}
+        <main className="flex-1 p-4 overflow-y-auto space-y-4">
+          {renderContent()}
+        </main>
+
+        {/* Footer */}
+        <footer className="px-4 py-2 border-t border-blue-100 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-slate-500">Powered by</span>
+              <span className="text-[10px] font-semibold text-blue-600">
+                LYNQ AI
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-500">
+              {user?.subscription?.max_tracked_companies === -1
+                ? "Unlimited"
+                : `${user?.subscription?.max_tracked_companies || 5} companies`}
+            </span>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };

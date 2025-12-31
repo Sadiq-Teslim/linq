@@ -159,23 +159,36 @@ Text to format:
         base_url = settings.OLLAMA_BASE_URL.rstrip('/')
         model = settings.OLLAMA_MODEL
         
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Use /api/chat for better performance
             response = await client.post(
-                f"{base_url}/api/generate",
+                f"{base_url}/api/chat",
                 json={
                     "model": model,
-                    "prompt": prompt,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are a text formatting assistant. Return only the formatted text, no explanations."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
                     "stream": False,
                     "options": {
                         "temperature": 0.3,
                         "top_p": 0.9,
+                        "num_predict": 200,  # Limit response length for faster formatting
                     }
-                }
+                },
+                timeout=60.0
             )
             
             if response.status_code == 200:
                 result = response.json()
-                return result.get("response", "").strip()
+                # /api/chat returns message.content
+                return result.get("message", {}).get("content", "") or result.get("response", "")
             raise Exception(f"Ollama API error: {response.status_code}")
     
     async def _format_with_grok(self, prompt: str) -> str:
