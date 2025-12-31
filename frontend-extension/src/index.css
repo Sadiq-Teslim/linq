@@ -59,10 +59,10 @@ h3,
 body {
   margin: 0;
   padding: 0;
-  width: 420px;
-  height: 580px;
+  width: 380px;
+  height: 520px;
   background: #f8fafc;
-  color: var(--blue-950);
+  color: #0a1628;
   overflow: hidden;
 }
 
