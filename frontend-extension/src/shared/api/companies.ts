@@ -1,8 +1,10 @@
 /**
  * Companies API - Track and monitor companies
  * Updated to match backend endpoint structure
+ * Uses local API for Ollama-based AI insights
  */
-import { api } from "./client";
+import { api, localApi } from "./client";
+import { CONFIG } from "../config";
 import type {
   TrackedCompany,
   TrackedCompanyDetails,
@@ -70,8 +72,12 @@ export const companiesApi = {
 
   // Get detailed info about a tracked company
   // Backend: GET /companies/{company_id}
+  // Uses LOCAL API if USE_LOCAL_AI is enabled (for Ollama AI insights)
   getDetails: async (companyId: string): Promise<TrackedCompanyDetails> => {
-    const response = await api.get<TrackedCompanyDetails>(
+    // Use local API for AI insights when local Ollama is enabled
+    const client = CONFIG.FEATURES.USE_LOCAL_AI ? localApi : api;
+    
+    const response = await client.get<TrackedCompanyDetails>(
       `/companies/${companyId}`,
     );
     // Transform contacts to ensure full_name is mapped to name
@@ -131,9 +137,11 @@ export const companiesApi = {
   },
 
   // Trigger manual refresh for a company
+  // Uses LOCAL API if USE_LOCAL_AI is enabled (for Ollama AI insights)
   // Backend: POST /companies/{company_id}/refresh
   refresh: async (companyId: string): Promise<TrackedCompany> => {
-    const response = await api.post<TrackedCompany>(
+    const client = CONFIG.FEATURES.USE_LOCAL_AI ? localApi : api;
+    const response = await client.post<TrackedCompany>(
       `/companies/${companyId}/refresh`,
     );
     return response.data;
