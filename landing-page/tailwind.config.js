@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // LYNQ Brand Colors: White, Blue, Green
+        // LYNQ Brand Colors: White, Blue, Green with proper dark text support
         white: {
           DEFAULT: "#ffffff",
           50: "#fafafa",
@@ -12,9 +12,9 @@ export default {
           200: "#e5e5e5",
         },
         blue: {
-          950: "#0a1628",
-          900: "#0f1e3a",
-          800: "#1e3a5f",
+          950: "#0c1629", // DARK blue for text
+          900: "#1e293b", // Dark slate-blue
+          800: "#334155", // Medium dark
           700: "#2563eb", // Primary blue
           600: "#3b82f6",
           500: "#60a5fa",
@@ -32,12 +32,72 @@ export default {
           300: "#d1fae5",
           200: "#ecfdf5",
           100: "#f0fdf4",
+          50: "#f0fdf4",
         },
-        primary: "#2563eb", // Blue
+        slate: {
+          950: "#020617",
+          900: "#0f172a",
+          800: "#1e293b",
+          700: "#334155",
+          600: "#475569",
+          500: "#64748b",
+          400: "#94a3b8",
+          300: "#cbd5e1",
+          200: "#e2e8f0",
+          100: "#f1f5f9",
+          50: "#f8fafc",
+        },
+        primary: "#2563eb", // Blue primary
         secondary: "#10b981", // Green
       },
       fontFamily: {
-        inter: ["Inter", "sans-serif"],
+        sans: ["DM Sans", "system-ui", "sans-serif"],
+        serif: ["DM Serif Display", "serif"],
+      },
+      animation: {
+        "fade-in": "fadeIn 0.3s ease-out forwards",
+        "fade-in-up": "fadeInUp 0.6s ease-out forwards",
+        "scale-in": "scaleIn 0.2s ease-out forwards",
+        "slide-up": "slideUp 0.3s ease-out",
+        "slide-in-right": "slideInRight 0.3s ease-out",
+        "pulse-glow": "pulseGlow 2s ease-in-out infinite",
+        "float": "float 6s ease-in-out infinite",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        fadeInUp: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        slideInRight: {
+          "0%": { opacity: "0", transform: "translateX(100%)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        pulseGlow: {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(37, 99, 235, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(37, 99, 235, 0.5)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+      },
+      boxShadow: {
+        soft: "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
+        "glow-blue": "0 0 20px rgba(37, 99, 235, 0.3)",
+        "glow-green": "0 0 20px rgba(16, 185, 129, 0.3)",
+        "card": "0 1px 3px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)",
       },
     },
   },

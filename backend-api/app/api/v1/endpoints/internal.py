@@ -27,7 +27,7 @@ def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")) -> bool:
 
 
 @router.post("/refresh-companies")
-@router.get("/refresh-companies")  # Also allow GET for cron jobs
+@router.get("/refresh-companies")  
 async def refresh_all_companies(
     background_tasks: BackgroundTasks,
     _: bool = Depends(verify_api_key),

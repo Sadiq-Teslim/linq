@@ -3,6 +3,12 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { api } from "../../lib/api";
 
+const SparklesIcon = () => (
+  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+  </svg>
+);
+
 export const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -141,24 +147,24 @@ export const DashboardLayout = () => {
   const plan = subscriptionStatus?.plan || "free_trial";
 
   return (
-    <div className="min-h-screen bg-[#0a0f1c]">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1c]/95 backdrop-blur-md border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/")}
               className="flex items-center gap-2"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-                <span className="text-[#0a0f1c] font-bold text-sm">L</span>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-700 to-green-600 flex items-center justify-center shadow-lg shadow-blue-700/20">
+                <SparklesIcon />
               </div>
-              <span className="text-xl font-semibold text-white tracking-tight hidden sm:block">
+              <span className="text-xl font-bold text-slate-900 tracking-tight hidden sm:block">
                 LYNQ
               </span>
             </button>
             {!loading && !isActive && (
-              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full border border-red-500/30">
+              <span className="text-xs bg-red-50 text-red-600 px-2.5 py-1 rounded-full border border-red-200 font-medium">
                 Expired
               </span>
             )}
@@ -167,14 +173,14 @@ export const DashboardLayout = () => {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             <div className="text-right">
-              <span className="text-sm text-white block">{user?.email}</span>
+              <span className="text-sm font-medium text-slate-900 block">{user?.email}</span>
               <span className="text-xs text-slate-500 capitalize">
                 {plan.replace("_", " ")} Plan
               </span>
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm text-slate-400 hover:text-white transition-colors px-4 py-2 rounded-lg border border-white/10 hover:border-white/20"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors px-4 py-2 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
             >
               Logout
             </button>
@@ -183,7 +189,7 @@ export const DashboardLayout = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-400 hover:text-white transition-colors"
+            className="md:hidden p-2 text-slate-500 hover:text-slate-900 transition-colors"
           >
             {mobileMenuOpen ? (
               <svg
@@ -223,7 +229,7 @@ export const DashboardLayout = () => {
             mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <div className="px-4 py-4 space-y-2 border-t border-white/5">
+          <div className="px-4 py-4 space-y-2 border-t border-slate-100 bg-white">
             {navItems.map((item) => (
               <button
                 key={item.path}
@@ -231,26 +237,26 @@ export const DashboardLayout = () => {
                   navigate(item.path);
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                   location.pathname === item.path
-                    ? "bg-amber-500/10 text-amber-400"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "bg-blue-50 text-blue-700 border border-blue-100"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
                 {item.icon}
                 {item.label}
               </button>
             ))}
-            <div className="pt-2 border-t border-white/5">
+            <div className="pt-2 border-t border-slate-100">
               <div className="px-4 py-2">
-                <span className="text-sm text-white block">{user?.email}</span>
+                <span className="text-sm font-medium text-slate-900 block">{user?.email}</span>
                 <span className="text-xs text-slate-500 capitalize">
                   {plan.replace("_", " ")} Plan
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="w-full mt-2 text-sm text-red-400 hover:text-red-300 px-4 py-3 rounded-lg hover:bg-red-500/10 transition-all flex items-center gap-3"
+                className="w-full mt-2 text-sm text-red-600 hover:text-red-700 px-4 py-3 rounded-xl hover:bg-red-50 transition-all flex items-center gap-3 font-medium"
               >
                 <svg
                   className="w-5 h-5"
@@ -274,15 +280,15 @@ export const DashboardLayout = () => {
 
       {/* Subscription warning */}
       {!loading && !isActive && (
-        <div className="fixed top-[73px] left-0 right-0 z-40 bg-red-500/10 border-b border-red-500/20">
+        <div className="fixed top-[73px] left-0 right-0 z-40 bg-red-50 border-b border-red-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-red-400">
+              <p className="text-sm text-red-700">
                 Your subscription has expired. Some features may be limited.
               </p>
               <button
                 onClick={() => navigate("/dashboard/payment")}
-                className="text-sm font-medium text-red-400 hover:text-red-300 underline transition-colors"
+                className="text-sm font-semibold text-red-700 hover:text-red-800 underline transition-colors"
               >
                 Renew now
               </button>
@@ -301,10 +307,10 @@ export const DashboardLayout = () => {
                   <button
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                       location.pathname === item.path
-                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-700/20"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm"
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
