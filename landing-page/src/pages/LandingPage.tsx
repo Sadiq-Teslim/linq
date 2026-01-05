@@ -174,9 +174,9 @@ export const LandingPage = () => {
     setDemoResults(null);
     
     try {
-      // Call real company search API (no auth needed for search)
-      const searchResponse = await getApiClient().get("/companies/search", {
-        params: { query: demoQuery },
+      // Call public search API (no auth required)
+      const searchResponse = await getApiClient().get("/public/search", {
+        params: { query: demoQuery, limit: 5 },
         timeout: 30000,
       });
       
