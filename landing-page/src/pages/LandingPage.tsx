@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, getApiClient } from "../lib/api";
 
 // Icon components
 const SparklesIcon = () => (
@@ -70,33 +70,33 @@ const LoaderIcon = () => (
   </svg>
 );
 
-// Demo result data
-const getDemoResults = (companyName: string) => ({
-  company: {
-    name: companyName || "Stripe",
-    domain: companyName ? `${companyName.toLowerCase().replace(/\s+/g, '')}.com` : "stripe.com",
-    industry: "Financial Technology",
-    headquarters: "San Francisco, CA",
-    employees: "5,000+",
-    description: `${companyName || "Stripe"} is a leading technology company providing payment processing solutions for businesses of all sizes.`,
-  },
-  contacts: [
-    { name: "John Smith", title: "VP of Sales", email: "j.smith@company.com" },
-    { name: "Sarah Chen", title: "Head of Partnerships", email: "s.chen@company.com" },
-    { name: "Mike Johnson", title: "Director of BD", email: "m.johnson@company.com" },
-  ],
-  insights: [
-    "Recently raised $600M Series G at $95B valuation",
-    "Expanding into 3 new markets in Q2 2024",
-    "Hiring aggressively for enterprise sales team",
-    "New product launch announced for next quarter",
-  ],
-  news: [
-    { title: "Company Announces Record Q4 Revenue", date: "2 days ago" },
-    { title: "New Partnership with Major Bank", date: "1 week ago" },
-    { title: "Executive Leadership Changes", date: "2 weeks ago" },
-  ],
-});
+// Types for real API responses
+interface CompanyResult {
+  name: string;
+  domain: string;
+  industry?: string;
+  headquarters?: string;
+  employee_count?: string;
+  description?: string;
+  logo_url?: string;
+  website?: string;
+  linkedin_url?: string;
+}
+
+interface ContactResult {
+  full_name: string;
+  title?: string;
+  email?: string;
+  linkedin_url?: string;
+}
+
+interface DemoResults {
+  company: CompanyResult;
+  contacts: ContactResult[];
+  insights: string[];
+  news: { title: string; date: string }[];
+  isReal: boolean;
+}
 
 export const LandingPage = () => {
   const navigate = useNavigate();
@@ -106,7 +106,8 @@ export const LandingPage = () => {
   // Try LYNQ demo state
   const [demoQuery, setDemoQuery] = useState("");
   const [demoLoading, setDemoLoading] = useState(false);
-  const [demoResults, setDemoResults] = useState<any>(null);
+  const [demoResults, setDemoResults] = useState<DemoResults | null>(null);
+  const [demoError, setDemoError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"company" | "contacts" | "insights">("company");
 
   useEffect(() => {
@@ -169,11 +170,92 @@ export const LandingPage = () => {
     if (!demoQuery.trim()) return;
     
     setDemoLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setDemoResults(getDemoResults(demoQuery));
-    setDemoLoading(false);
-    setActiveTab("company");
+    setDemoError(null);
+    setDemoResults(null);
+    
+    try {
+      // Call real company search API (no auth needed for search)
+      const searchResponse = await getApiClient().get("/companies/search", {
+        params: { query: demoQuery },
+        timeout: 30000,
+      });
+      
+      const companies = searchResponse.data?.companies || searchResponse.data?.results || [];
+      
+      if (companies.length === 0) {
+        setDemoError(`No companies found for "${demoQuery}". Try searching for well-known companies like "Stripe", "Shopify", or "Slack".`);
+        setDemoLoading(false);
+        return;
+      }
+      
+      // Get the first/best match
+      const company = companies[0];
+      
+      // Generate sample insights based on real company data
+      const insights: string[] = [];
+      if (company.employee_count) {
+        insights.push(`Company has approximately ${company.employee_count} employees`);
+      }
+      if (company.industry) {
+        insights.push(`Operating in the ${company.industry} industry`);
+      }
+      if (company.headquarters) {
+        insights.push(`Headquartered in ${company.headquarters}`);
+      }
+      if (company.description) {
+        insights.push("Sign up to get AI-powered strategic insights and growth signals");
+      }
+      // Add teaser insights
+      insights.push("🔒 Recent funding & valuation data (sign up to unlock)");
+      insights.push("🔒 Hiring trends & growth indicators (sign up to unlock)");
+      insights.push("🔒 Competitive positioning analysis (sign up to unlock)");
+      
+      // Sample contacts (blurred for demo)
+      const sampleContacts: ContactResult[] = [
+        { full_name: "Executive Contact 1", title: "VP of Sales", email: "•••••@" + (company.domain || "company.com") },
+        { full_name: "Executive Contact 2", title: "Head of Partnerships", email: "•••••@" + (company.domain || "company.com") },
+        { full_name: "Executive Contact 3", title: "Director of Business Development", email: "•••••@" + (company.domain || "company.com") },
+      ];
+      
+      // Sample news
+      const sampleNews = [
+        { title: "🔒 Latest company news (sign up to unlock)", date: "Recent" },
+        { title: "🔒 Industry updates & trends (sign up to unlock)", date: "This week" },
+        { title: "🔒 Key events & announcements (sign up to unlock)", date: "This month" },
+      ];
+      
+      setDemoResults({
+        company: {
+          name: company.name || company.company_name || demoQuery,
+          domain: company.domain || "",
+          industry: company.industry || "Technology",
+          headquarters: company.headquarters || company.location || "",
+          employee_count: company.employee_count || "",
+          description: company.description || `${company.name} is a company in the ${company.industry || "technology"} sector.`,
+          logo_url: company.logo_url,
+          website: company.website || (company.domain ? `https://${company.domain}` : ""),
+          linkedin_url: company.linkedin_url,
+        },
+        contacts: sampleContacts,
+        insights,
+        news: sampleNews,
+        isReal: true,
+      });
+      setActiveTab("company");
+    } catch (error: any) {
+      console.error("Demo search error:", error);
+      
+      // Fallback: Show a helpful message
+      if (error.response?.status === 404) {
+        setDemoError(`No results found for "${demoQuery}". Try a different company name.`);
+      } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        setDemoError("Search is taking longer than expected. Please try again.");
+      } else {
+        setDemoError("Unable to search right now. Please try again in a moment.");
+      }
+    } finally {
+      setDemoLoading(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -360,6 +442,13 @@ export const LandingPage = () => {
             </div>
           </form>
 
+          {/* Error Message */}
+          {demoError && (
+            <div className="max-w-2xl mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-fade-in-up">
+              {demoError}
+            </div>
+          )}
+
           {/* Demo Results */}
           {demoResults && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden animate-fade-in-up">
@@ -389,96 +478,171 @@ export const LandingPage = () => {
                 {activeTab === "company" && (
                   <div className="space-y-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center text-2xl font-bold text-blue-700">
-                        {demoResults.company.name.charAt(0)}
+                      {demoResults.company.logo_url ? (
+                        <img 
+                          src={demoResults.company.logo_url} 
+                          alt={demoResults.company.name}
+                          className="w-16 h-16 rounded-xl object-cover border border-slate-200"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-16 h-16 rounded-xl bg-gradient-to-br from-blue-100 to-green-100 flex items-center justify-center text-2xl font-bold text-blue-700 ${demoResults.company.logo_url ? 'hidden' : ''}`}>
+                        {demoResults.company.name.charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-900">{demoResults.company.name}</h3>
-                        <p className="text-slate-500">{demoResults.company.domain}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xl font-bold text-slate-900">{demoResults.company.name}</h3>
+                          {demoResults.isReal && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                              Real Data
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1">
+                          {demoResults.company.domain && (
+                            <a href={`https://${demoResults.company.domain}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 text-sm">
+                              {demoResults.company.domain}
+                            </a>
+                          )}
+                          {demoResults.company.linkedin_url && (
+                            <a href={demoResults.company.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 text-sm">
+                              LinkedIn →
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[
-                        { label: "Industry", value: demoResults.company.industry },
-                        { label: "HQ", value: demoResults.company.headquarters },
-                        { label: "Employees", value: demoResults.company.employees },
-                        { label: "Website", value: demoResults.company.domain },
+                        { label: "Industry", value: demoResults.company.industry || "—" },
+                        { label: "Headquarters", value: demoResults.company.headquarters || "—" },
+                        { label: "Employees", value: demoResults.company.employee_count || "—" },
+                        { label: "Website", value: demoResults.company.domain || "—" },
                       ].map((item) => (
                         <div key={item.label} className="bg-slate-50 rounded-xl p-4">
                           <div className="text-xs text-slate-500 mb-1">{item.label}</div>
-                          <div className="text-sm font-semibold text-slate-900">{item.value}</div>
+                          <div className="text-sm font-semibold text-slate-900 truncate">{item.value}</div>
                         </div>
                       ))}
                     </div>
-                    <p className="text-slate-600">{demoResults.company.description}</p>
+                    {demoResults.company.description && (
+                      <p className="text-slate-600">{demoResults.company.description}</p>
+                    )}
                     
                     {/* Recent News */}
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-700 mb-3">Recent News</h4>
+                      <h4 className="text-sm font-semibold text-slate-700 mb-3">Recent News & Updates</h4>
                       <div className="space-y-2">
-                        {demoResults.news.map((item: any, i: number) => (
+                        {demoResults.news.map((item, i: number) => (
                           <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                             <span className="text-sm text-slate-700">{item.title}</span>
                             <span className="text-xs text-slate-400">{item.date}</span>
                           </div>
                         ))}
                       </div>
+                      <p className="text-xs text-slate-500 mt-3 text-center">
+                        Sign up to access full news feed and real-time updates
+                      </p>
                     </div>
                   </div>
                 )}
 
                 {activeTab === "contacts" && (
                   <div className="space-y-4">
-                    <p className="text-sm text-slate-500 mb-4">
-                      Key decision makers at {demoResults.company.name} that you can reach out to:
-                    </p>
-                    {demoResults.contacts.map((contact: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-slate-500">
+                        Key decision makers at {demoResults.company.name}:
+                      </p>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        3+ contacts available
+                      </span>
+                    </div>
+                    {demoResults.contacts.map((contact, i: number) => (
+                      <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold">
-                            {contact.name.split(" ").map((n: string) => n[0]).join("")}
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm">
+                            {contact.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                           </div>
                           <div>
-                            <div className="font-semibold text-slate-900">{contact.name}</div>
+                            <div className="font-semibold text-slate-900 blur-[3px] hover:blur-none transition-all cursor-pointer" title="Sign up to reveal">
+                              {contact.full_name}
+                            </div>
                             <div className="text-sm text-slate-500">{contact.title}</div>
                           </div>
                         </div>
-                        <div className="text-sm text-blue-600 font-medium blur-sm hover:blur-none transition-all cursor-pointer" title="Sign up to reveal">
-                          {contact.email}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-slate-400 blur-[4px]" title="Sign up to reveal">
+                            {contact.email}
+                          </span>
+                          <span className="text-xs text-blue-600">🔒</span>
                         </div>
                       </div>
                     ))}
-                    <div className="text-center pt-4">
-                      <button
-                        onClick={() => navigate("/auth/signup")}
-                        className="text-sm font-medium text-blue-700 hover:text-blue-800"
-                      >
-                        Sign up to reveal all contacts →
-                      </button>
+                    <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 border border-blue-100">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800">Unlock all contacts</p>
+                          <p className="text-xs text-slate-500">Get verified emails, LinkedIn profiles, and more</p>
+                        </div>
+                        <button
+                          onClick={() => navigate("/auth/signup")}
+                          className="px-4 py-2 text-sm font-semibold text-white btn-gradient rounded-lg shadow-sm"
+                        >
+                          Sign Up Free
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {activeTab === "insights" && (
                   <div className="space-y-4">
-                    <p className="text-sm text-slate-500 mb-4">
-                      AI-generated insights about {demoResults.company.name}:
-                    </p>
-                    {demoResults.insights.map((insight: string, i: number) => (
-                      <div key={i} className="flex items-start gap-3 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border border-blue-100">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <SparklesIcon />
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-slate-500">
+                        AI-powered insights about {demoResults.company.name}:
+                      </p>
+                      <span className="text-xs bg-gradient-to-r from-blue-600 to-green-600 text-white px-2 py-1 rounded-full flex items-center gap-1">
+                        <SparklesIcon /> AI Analysis
+                      </span>
+                    </div>
+                    {demoResults.insights.map((insight: string, i: number) => {
+                      const isLocked = insight.includes("🔒");
+                      return (
+                        <div 
+                          key={i} 
+                          className={`flex items-start gap-3 p-4 rounded-xl border ${
+                            isLocked 
+                              ? "bg-slate-50 border-slate-200" 
+                              : "bg-gradient-to-r from-blue-50 to-green-50 border-blue-100"
+                          }`}
+                        >
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                            isLocked 
+                              ? "bg-slate-200 text-slate-400" 
+                              : "bg-gradient-to-br from-blue-600 to-green-600 text-white"
+                          }`}>
+                            {isLocked ? "🔒" : <SparklesIcon />}
+                          </div>
+                          <p className={isLocked ? "text-slate-500" : "text-slate-700"}>{insight}</p>
                         </div>
-                        <p className="text-slate-700">{insight}</p>
+                      );
+                    })}
+                    <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 border border-blue-100">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800">Unlock full AI analysis</p>
+                          <p className="text-xs text-slate-500">Strategic insights, risk factors, and outreach recommendations</p>
+                        </div>
+                        <button
+                          onClick={() => navigate("/auth/signup")}
+                          className="px-4 py-2 text-sm font-semibold text-white btn-gradient rounded-lg shadow-sm"
+                        >
+                          Sign Up Free
+                        </button>
                       </div>
-                    ))}
-                    <div className="text-center pt-4">
-                      <button
-                        onClick={() => navigate("/auth/signup")}
-                        className="text-sm font-medium text-blue-700 hover:text-blue-800"
-                      >
-                        Get full AI analysis →
-                      </button>
                     </div>
                   </div>
                 )}
