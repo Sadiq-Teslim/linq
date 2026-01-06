@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getApiClient } from "../lib/api";
 
@@ -186,7 +186,7 @@ export const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [demoCompany, setDemoCompany] = useState<DemoCompany | null>(null);
-  const revealRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // const revealRefs = useRef<(HTMLDivElement | null)[]>([]); 
 
   // Reveal animation on scroll
   useEffect(() => {
