@@ -1,57 +1,69 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=DM+Serif+Display:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600;700&family=DM+Serif+Display&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* LYNQ Brand Colors: White, Blue, Green */
-  --white: #ffffff;
-  --white-50: #fafafa;
-  --white-100: #f5f5f5;
-  --blue-950: #0c1629;
-  --blue-900: #1e293b;
-  --blue-800: #334155;
-  --blue-700: #2563eb;
-  --blue-600: #3b82f6;
-  --blue-500: #60a5fa;
-  --blue-400: #93c5fd;
-  --blue-300: #bfdbfe;
-  --blue-200: #dbeafe;
-  --blue-100: #eff6ff;
-  --blue-50: #f0f9ff;
-  --green-700: #10b981;
-  --green-600: #34d399;
-  --green-500: #6ee7b7;
-  --green-400: #a7f3d0;
-  --green-300: #d1fae5;
-  --green-200: #ecfdf5;
-  --green-100: #f0fdf4;
+  --font-serif: 'DM Serif Display', serif;
+  --font-sans: 'DM Sans', sans-serif;
+  --color-primary: #2563eb;
+  --color-accent: #10b981;
 }
 
 * {
-  font-family: "DM Sans", sans-serif;
-}
-
-h1,
-h2,
-h3,
-.font-serif {
-  font-family: "DM Serif Display", serif;
+  font-family: var(--font-sans);
 }
 
 body {
-  @apply bg-white text-slate-900 antialiased;
+  @apply bg-[#fafafa] text-slate-800 antialiased;
+  overflow-x: hidden;
 }
 
-/* Smooth scrolling */
+h1, h2, h3, h4, h5, .font-serif {
+  font-family: var(--font-serif);
+}
+
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom gradient text */
+/* Selection */
+::selection {
+  @apply bg-emerald-100 text-emerald-900;
+}
+
+/* Smooth Reveal Animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+/* Gradient Text */
 .text-gradient {
-  background: linear-gradient(135deg, var(--blue-700) 0%, var(--green-700) 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -59,183 +71,89 @@ html {
 
 /* Button gradient */
 .btn-gradient {
-  background: linear-gradient(135deg, var(--blue-700) 0%, var(--green-700) 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
 }
 
 .btn-gradient:hover {
-  background: linear-gradient(135deg, var(--blue-600) 0%, var(--green-600) 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #34d399 100%);
 }
 
-/* Card hover effect */
-.card-hover {
-  @apply transition-all duration-300;
-}
-
-.card-hover:hover {
-  @apply shadow-lg -translate-y-1;
-}
-
-/* Bento Grid Cards */
-.bento-card {
-  @apply relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
-}
-
-.bento-card:hover {
-  transform: scale(1.02);
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.15),
-    0 12px 24px -8px rgba(37, 99, 235, 0.1);
-  border-color: rgba(37, 99, 235, 0.2);
-}
-
-.bento-card::before {
-  content: '';
+/* Background Blobs */
+.blob {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(37, 99, 235, 0.02) 100%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
+  filter: blur(80px);
+  z-index: -1;
+  opacity: 0.5;
+  animation: float 10s ease-in-out infinite;
+  mix-blend-mode: multiply;
 }
 
-.bento-card:hover::before {
-  opacity: 1;
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
-/* Bento card variants */
-.bento-card-featured {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
-.bento-card-blue {
-  background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
-.bento-card-green {
-  background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%);
-}
-
-.bento-card-dark {
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-}
-
-/* Shimmer effect for bento cards */
-.bento-shimmer {
+/* Shimmer Effect */
+.shimmer {
   position: relative;
   overflow: hidden;
 }
 
-.bento-shimmer::after {
+.shimmer::after {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
     90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    transparent 100%
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
   );
-  transition: left 0.6s ease;
+  animation: shimmer 3s infinite;
 }
 
-.bento-shimmer:hover::after {
-  left: 100%;
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
 }
 
-/* Floating animation */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-delayed {
-  animation: float 6s ease-in-out infinite;
-  animation-delay: -3s;
-}
-
-/* Glow effect */
-.glow-blue {
-  box-shadow: 0 0 60px rgba(37, 99, 235, 0.3);
-}
-
-.glow-green {
-  box-shadow: 0 0 60px rgba(16, 185, 129, 0.3);
-}
-
-/* Subtle fade in animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-.animate-delay-100 {
-  animation-delay: 0.1s;
-}
-.animate-delay-200 {
-  animation-delay: 0.2s;
-}
-.animate-delay-300 {
-  animation-delay: 0.3s;
-}
-.animate-delay-400 {
-  animation-delay: 0.4s;
-}
-.animate-delay-500 {
-  animation-delay: 0.5s;
-}
-
-/* Modal animations */
+/* Fade in animation */
 @keyframes fadeIn {
-  from {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Ping animation for badge dot */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
     opacity: 0;
   }
-  to {
-    opacity: 1;
-  }
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.2s ease-out forwards;
-}
-
-/* Custom scrollbar - Light theme */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -253,32 +171,37 @@ html {
   background: #94a3b8;
 }
 
-/* Glass morphism effect */
-.glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+/* Bento Grid */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-/* Decorative gradient blob */
-.gradient-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.5;
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, minmax(280px, auto)) auto;
+  }
+  
+  .bento-large {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
 }
 
-.gradient-blob-blue {
-  background: linear-gradient(135deg, var(--blue-200) 0%, var(--blue-300) 100%);
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300;
 }
 
-.gradient-blob-green {
-  background: linear-gradient(135deg, var(--green-200) 0%, var(--green-300) 100%);
+.card-hover:hover {
+  @apply shadow-lg -translate-y-1;
 }
 
 /* Input focus styles */
 input:focus, textarea:focus {
-  @apply outline-none ring-2 ring-blue-500/50 border-blue-500;
+  @apply outline-none ring-2 ring-blue-500/20 border-blue-500;
 }
 
 /* Subtle grid pattern */
