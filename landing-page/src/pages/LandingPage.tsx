@@ -277,7 +277,7 @@ export const LandingPage = () => {
       <div className="blob blob-green w-80 h-80 bottom-20 left-20 animation-delay-4000" />
 
       {/* 1. Navigation Bar */}
-      <nav className="fixed top-0 w-full z-50 nav-glass transition-all duration-300">
+      <nav className="fixed top-0 w-full z-50 glass border-b border-white/10 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 group relative z-10">
@@ -584,21 +584,21 @@ export const LandingPage = () => {
                   {demoContacts.map((contact, i) => (
                     <div key={i} className={`relative ${!contact.revealed ? 'group cursor-pointer' : ''}`}>
                       {!contact.revealed && (
-                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
-                          <span className="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium shadow-lg">Unlock to see details</span>
+                        <div className="absolute inset-0 z-10 flex items-center justify-center glass bg-white/20 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
+                          <span className="glass-card text-white text-xs px-3 py-1.5 rounded-lg font-medium shadow-lg border border-white/20">Unlock to see details</span>
                         </div>
                       )}
-                      <div className={`flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-blue-200 transition-colors ${!contact.revealed ? 'blur-[3px] select-none' : ''}`}>
+                      <div className={`flex items-center justify-between p-4 rounded-xl glass-card border border-white/10 hover:border-blue-500/30 transition-colors ${!contact.revealed ? 'blur-[3px] select-none' : ''}`}>
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${contact.revealed ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${contact.revealed ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : 'bg-white/10 text-white/40'}`}>
                             {contact.initials}
                           </div>
                           <div>
-                            <div className="font-semibold text-slate-900 text-sm">{contact.name}</div>
-                            <div className="text-xs text-slate-500">{contact.title}</div>
+                            <div className="font-semibold text-white text-sm">{contact.name}</div>
+                            <div className="text-xs text-white/60">{contact.title}</div>
                           </div>
                         </div>
-                        <button className="text-xs font-medium text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors">
+                        <button className="text-xs font-medium text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-lg hover:bg-blue-500/20 transition-colors">
                           {contact.revealed ? 'View' : 'Reveal'}
                         </button>
                       </div>
@@ -610,25 +610,25 @@ export const LandingPage = () => {
               {/* Content 3: AI Insights */}
               {activeTab === 2 && (
                 <div className="space-y-4 animate-fadeIn">
-                  <div className="flex gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                    <TrendingUpIcon />
+                  <div className="flex gap-3 p-4 glass-card border border-blue-500/30 rounded-xl glow-blue">
+                    <TrendingUpIcon className="text-blue-400 flex-shrink-0" />
                     <div>
-                      <h5 className="text-sm font-semibold text-blue-900">High Growth Signal</h5>
-                      <p className="text-xs text-blue-700 mt-1">Company increased headcount by 15% in the last quarter, specifically in engineering roles.</p>
+                      <h5 className="text-sm font-semibold text-white">High Growth Signal</h5>
+                      <p className="text-xs text-white/70 mt-1">Company increased headcount by 15% in the last quarter, specifically in engineering roles.</p>
                     </div>
                   </div>
-                  <div className="flex gap-3 p-4 bg-white border border-slate-200 rounded-xl opacity-60">
-                    <LockIcon />
+                  <div className="flex gap-3 p-4 glass-card border border-white/10 rounded-xl opacity-60">
+                    <LockIcon className="text-white/40 flex-shrink-0" />
                     <div className="blur-[4px] select-none">
-                      <h5 className="text-sm font-semibold text-slate-900">Technology Stack Change</h5>
-                      <p className="text-xs text-slate-600 mt-1">Recently dropped Salesforce and is currently evaluating CRM alternatives.</p>
+                      <h5 className="text-sm font-semibold text-white">Technology Stack Change</h5>
+                      <p className="text-xs text-white/60 mt-1">Recently dropped Salesforce and is currently evaluating CRM alternatives.</p>
                     </div>
                   </div>
-                  <div className="flex gap-3 p-4 bg-white border border-slate-200 rounded-xl opacity-60">
-                    <LockIcon />
+                  <div className="flex gap-3 p-4 glass-card border border-white/10 rounded-xl opacity-60">
+                    <LockIcon className="text-white/40 flex-shrink-0" />
                     <div className="blur-[4px] select-none">
-                      <h5 className="text-sm font-semibold text-slate-900">Buying Intent Detected</h5>
-                      <p className="text-xs text-slate-600 mt-1">Multiple team members viewed competitor pricing pages.</p>
+                      <h5 className="text-sm font-semibold text-white">Buying Intent Detected</h5>
+                      <p className="text-xs text-white/60 mt-1">Multiple team members viewed competitor pricing pages.</p>
                     </div>
                   </div>
                 </div>
@@ -636,11 +636,11 @@ export const LandingPage = () => {
             </div>
 
             {/* Bottom CTA Banner in Demo */}
-            <div className="bg-slate-50 p-4 text-center border-t border-slate-100">
-              <p className="text-sm text-slate-600 mb-2">Want to see real data?</p>
+            <div className="glass-card p-4 text-center border-t border-white/10">
+              <p className="text-sm text-white/70 mb-2">Want to see real data?</p>
               <button
                 onClick={() => navigate("/auth/signup")}
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 group"
+                className="text-sm font-semibold text-blue-400 hover:text-blue-300 inline-flex items-center gap-1 group transition-colors"
               >
                 Sign up for free
                 <span className="group-hover:translate-x-1 transition-transform">
@@ -739,19 +739,19 @@ export const LandingPage = () => {
       {/* 6. Final CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="reveal relative rounded-[2.5rem] bg-slate-900 overflow-hidden px-6 py-20 text-center shadow-2xl">
+          <div className="reveal relative rounded-[2.5rem] glass-card overflow-hidden px-6 py-20 text-center glow-blue">
             {/* Decorative Blur Circles */}
-            <div className="absolute top-0 left-0 w-64 h-64 bg-blue-600/30 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-600/20 rounded-full blur-[80px] translate-x-1/2 translate-y-1/2" />
+            <div className="absolute top-0 left-0 w-64 h-64 bg-blue-600/30 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-green-600/20 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2" />
 
             <div className="relative z-10">
               <h2 className="text-3xl md:text-5xl font-serif text-white mb-6 tracking-tight">Ready to supercharge your sales?</h2>
-              <p className="text-slate-300 text-lg max-w-2xl mx-auto mb-10">Join thousands of sales professionals finding their next big deal with LYNQ.</p>
+              <p className="text-white/70 text-lg max-w-2xl mx-auto mb-10">Join thousands of sales professionals finding their next big deal with LYNQ.</p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
                   onClick={() => navigate("/auth/signup")}
-                  className="px-8 py-4 rounded-2xl bg-white text-slate-900 font-semibold text-lg hover:scale-105 transition-transform shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
+                  className="px-8 py-4 rounded-2xl btn-gradient text-white font-semibold text-lg hover:scale-105 transition-all shimmer glow-blue"
                 >
                   Get Started for Free
                 </button>
@@ -762,21 +762,21 @@ export const LandingPage = () => {
       </section>
 
       {/* 7. Footer */}
-      <footer className="bg-white border-t border-slate-200 pt-16 pb-8 px-6">
+      <footer className="glass border-t border-white/10 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 mb-12">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white shadow-lg glow-blue">
               <RadarIcon />
             </div>
-            <span className="font-bold text-xl tracking-tight text-slate-900">LYNQ</span>
+            <span className="font-bold text-xl tracking-tight text-gradient">LYNQ</span>
           </div>
-          <div className="flex gap-8 text-sm text-slate-500">
-            <a href="#" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-900 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-slate-900 transition-colors">Support</a>
+          <div className="flex gap-8 text-sm text-white/60">
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-white transition-colors">Support</a>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto text-center md:text-left text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto text-center md:text-left text-xs text-white/40">
           © 2024 LYNQ Inc. All rights reserved.
         </div>
       </footer>
