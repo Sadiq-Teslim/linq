@@ -45,16 +45,16 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         className={`
           w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200
           ${isActive 
-            ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" 
+            ? "bg-gradient-to-br from-blue-500 to-green-500 text-white shadow-lg shadow-blue-500/40" 
             : variant === "danger"
-              ? "text-slate-400 hover:text-red-500 hover:bg-red-50"
-              : "text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+              ? "text-white/50 hover:text-red-400 hover:bg-red-500/20"
+              : "text-white/60 hover:text-blue-400 hover:bg-white/10"
           }
         `}
       >
         {icon}
         {badge !== undefined && badge > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-500 to-green-600 text-white text-[8px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-green-500/50 animate-pulse">
             {badge > 9 ? "9+" : badge}
           </span>
         )}
@@ -63,10 +63,10 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
       {/* Tooltip */}
       {showTooltip && (
         <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-          <div className="bg-slate-800 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-lg whitespace-nowrap">
+          <div className="glass bg-white/10 backdrop-blur-xl text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl border border-white/20 whitespace-nowrap">
             {label}
             {/* Arrow */}
-            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800" />
+            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-white/20" />
           </div>
         </div>
       )}
@@ -96,28 +96,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
   planLabel = "Trial",
 }) => {
   return (
-    <div className="w-12 bg-white border-r border-slate-100 flex flex-col items-center py-2 gap-0.5">
+    <div className="w-12 glass border-r border-white/10 flex flex-col items-center py-2 gap-0.5">
       {/* Logo */}
-      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center shadow-md shadow-blue-600/20 mb-2">
+      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/40 mb-2 animate-pulse-glow">
         <Sparkles className="w-4 h-4 text-white" />
       </div>
       
       {/* Plan Badge */}
       <div className="mb-2 relative group">
-        <div className="w-8 h-5 bg-gradient-to-r from-blue-600 to-green-500 rounded flex items-center justify-center">
+        <div className="w-8 h-5 bg-gradient-to-r from-blue-500 to-green-500 rounded flex items-center justify-center shadow-md">
           <Crown className="w-2.5 h-2.5 text-white" />
         </div>
         {/* Plan Tooltip */}
         <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="bg-slate-800 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-lg whitespace-nowrap">
+          <div className="glass bg-white/10 backdrop-blur-xl text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl border border-white/20 whitespace-nowrap">
             {planLabel} Plan
-            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800" />
+            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-white/20" />
           </div>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="w-5 h-px bg-slate-100 mb-1" />
+      <div className="w-5 h-px bg-white/10 mb-1" />
 
       {/* Main Navigation */}
       <div className="flex flex-col gap-0.5 flex-1">
@@ -149,7 +149,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Divider */}
-      <div className="w-5 h-px bg-slate-100 my-1" />
+      <div className="w-5 h-px bg-white/10 my-1" />
 
       {/* Bottom Actions */}
       <div className="flex flex-col gap-0.5">
@@ -176,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
         
         {/* Divider */}
-        <div className="w-5 h-px bg-slate-100 my-1 mx-auto" />
+        <div className="w-5 h-px bg-white/10 my-1 mx-auto" />
         
         <SidebarItem
           icon={<LogOut className="w-4 h-4" />}

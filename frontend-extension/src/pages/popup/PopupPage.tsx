@@ -124,10 +124,10 @@ const PopupContent = () => {
         return (
           <>
             {/* Quick Search */}
-            <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+            <div className="glass-card rounded-2xl p-4 card-hover">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-1.5 h-5 bg-gradient-to-b from-blue-600 to-green-500 rounded-full" />
-                <h2 className="text-sm font-semibold text-blue-950">
+                <div className="w-1.5 h-5 bg-gradient-to-b from-blue-500 to-green-500 rounded-full animate-pulse-glow" />
+                <h2 className="text-sm font-semibold text-white">
                   Track Companies
                 </h2>
               </div>
@@ -150,10 +150,10 @@ const PopupContent = () => {
         return (
           <>
             {/* Search */}
-            <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
+            <div className="glass-card rounded-2xl p-4 card-hover">
               <div className="flex items-center gap-2 mb-3">
-                <Building2 className="w-4 h-4 text-blue-600" />
-                <h2 className="text-sm font-semibold text-blue-950">
+                <Building2 className="w-4 h-4 text-blue-400" />
+                <h2 className="text-sm font-semibold text-white">
                   Track New Company
                 </h2>
               </div>
@@ -176,8 +176,8 @@ const PopupContent = () => {
         return (
           <>
             <div className="flex items-center gap-2 mb-4">
-              <Newspaper className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-semibold text-blue-950">
+              <Newspaper className="w-5 h-5 text-blue-400" />
+              <h2 className="text-lg font-semibold text-white">
                 Industry News
               </h2>
             </div>
@@ -190,12 +190,12 @@ const PopupContent = () => {
           <>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-blue-950">
+                <Bell className="w-5 h-5 text-blue-400" />
+                <h2 className="text-lg font-semibold text-white">
                   Notifications
                 </h2>
                 {unreadCount > 0 && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                  <span className="badge badge-success">
                     {unreadCount} new
                   </span>
                 )}
@@ -203,7 +203,7 @@ const PopupContent = () => {
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                  className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 transition-colors"
                 >
                   <CheckCircle className="w-3.5 h-3.5" />
                   Mark all read
@@ -212,12 +212,12 @@ const PopupContent = () => {
             </div>
             
             {updates.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-blue-100 p-8 shadow-sm text-center">
-                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="glass-card rounded-2xl p-8 text-center">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Bell className="w-6 h-6 text-blue-400" />
                 </div>
-                <h3 className="text-sm font-medium text-blue-950">No notifications yet</h3>
-                <p className="text-xs text-slate-500 mt-1">
+                <h3 className="text-sm font-medium text-white">No notifications yet</h3>
+                <p className="text-xs text-white/60 mt-1">
                   Company updates and alerts will appear here
                 </p>
               </div>
@@ -226,51 +226,49 @@ const PopupContent = () => {
                 {updates.slice(0, 20).map((update) => (
                   <div
                     key={update.id}
-                    className={`bg-white rounded-xl border p-3 shadow-sm transition-colors ${
-                      update.is_read 
-                        ? "border-blue-50" 
-                        : "border-green-200 bg-green-50/30"
+                    className={`glass-card rounded-xl p-3 card-hover ${
+                      !update.is_read && "border-green-500/30"
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         update.importance === "high" || update.importance === "critical"
-                          ? "bg-orange-100"
-                          : "bg-blue-100"
+                          ? "bg-orange-500/20"
+                          : "bg-blue-500/20"
                       }`}>
                         {update.importance === "high" || update.importance === "critical" ? (
-                          <AlertCircle className="w-4 h-4 text-orange-600" />
+                          <AlertCircle className="w-4 h-4 text-orange-400" />
                         ) : (
-                          <Bell className="w-4 h-4 text-blue-600" />
+                          <Bell className="w-4 h-4 text-blue-400" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-blue-950 line-clamp-2">
+                        <p className="text-sm font-medium text-white line-clamp-2">
                           {update.headline}
                         </p>
                         {update.summary && (
-                          <p className="text-xs text-slate-600 mt-0.5 line-clamp-2">
+                          <p className="text-xs text-white/70 mt-0.5 line-clamp-2">
                             {update.summary}
                           </p>
                         )}
                         <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                          <span className="text-[10px] text-white/50 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatTimeAgo(update.detected_at)}
                           </span>
                           {update.importance && (
                             <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                               update.importance === "critical"
-                                ? "bg-red-100 text-red-700"
+                                ? "bg-red-500/20 text-red-400 border border-red-500/30"
                                 : update.importance === "high"
-                                  ? "bg-orange-100 text-orange-700"
-                                  : "bg-blue-100 text-blue-700"
+                                  ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
+                                  : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                             }`}>
                               {update.importance}
                             </span>
                           )}
                           {!update.is_read && (
-                            <span className="w-2 h-2 bg-green-500 rounded-full" />
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                           )}
                         </div>
                       </div>
@@ -284,23 +282,23 @@ const PopupContent = () => {
 
       case "settings":
         return (
-          <div className="bg-white rounded-2xl border border-blue-100 p-6 shadow-sm">
+          <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-semibold text-blue-950">
+              <Sparkles className="w-5 h-5 text-blue-400" />
+              <h2 className="text-lg font-semibold text-white">
                 Account Settings
               </h2>
             </div>
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-xl">
-                <p className="text-sm font-medium text-blue-950">
+              <div className="p-4 glass rounded-xl border border-white/10">
+                <p className="text-sm font-medium text-white">
                   {user?.email}
                 </p>
-                <p className="text-xs text-slate-600 mt-1">
+                <p className="text-xs text-white/60 mt-1">
                   {user?.organization_name || "Personal Account"}
                 </p>
               </div>
-              <div className="p-4 bg-gradient-to-r from-blue-600 to-green-500 rounded-xl text-white">
+              <div className="p-4 bg-gradient-to-r from-blue-600 to-green-500 rounded-xl text-white shadow-lg glow-blue">
                 <p className="text-sm font-semibold">{planLabel} Plan</p>
                 <p className="text-xs mt-1 opacity-90">
                   {user?.subscription?.max_tracked_companies === -1
@@ -310,7 +308,7 @@ const PopupContent = () => {
               </div>
               <button
                 onClick={handleOpenDashboard}
-                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
+                className="btn-primary w-full py-2.5 px-4 text-sm font-medium rounded-xl"
               >
                 Open Full Dashboard
               </button>
@@ -324,7 +322,7 @@ const PopupContent = () => {
   };
 
   return (
-    <div className="w-[380px] h-[520px] bg-slate-50 flex overflow-hidden">
+    <div className="w-[380px] h-[520px] flex overflow-hidden relative">
       {/* Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -338,14 +336,14 @@ const PopupContent = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Header */}
-        <header className="bg-white border-b border-blue-100 px-3 py-2 flex items-center justify-between">
+        <header className="glass border-b border-white/10 px-3 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-blue-950 text-base tracking-tight">
+            <span className="font-serif font-bold text-white text-base tracking-tight">
               LYNQ
             </span>
-            <span className="text-[9px] bg-gradient-to-r from-blue-600 to-green-500 text-white px-1.5 py-0.5 rounded-full font-medium">
+            <span className="text-[9px] bg-gradient-to-r from-blue-500 to-green-500 text-white px-1.5 py-0.5 rounded-full font-medium shadow-lg">
               {activeTab === "home"
                 ? "Dashboard"
                 : activeTab === "companies"
@@ -357,7 +355,7 @@ const PopupContent = () => {
                       : "Settings"}
             </span>
           </div>
-          <div className="text-[10px] text-slate-500 truncate max-w-[100px]">
+          <div className="text-[10px] text-white/70 truncate max-w-[100px]">
             {user?.organization_name || user?.email}
           </div>
         </header>
@@ -368,15 +366,15 @@ const PopupContent = () => {
         </main>
 
         {/* Footer */}
-        <footer className="px-3 py-1.5 border-t border-blue-100 bg-white">
+        <footer className="px-3 py-1.5 border-t border-white/10 glass">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <span className="text-[9px] text-slate-400">Powered by</span>
-              <span className="text-[9px] font-semibold text-blue-600">
+              <span className="text-[9px] text-white/50">Powered by</span>
+              <span className="text-[9px] font-semibold text-blue-400">
                 LYNQ AI
               </span>
             </div>
-            <span className="text-[9px] text-slate-400">
+            <span className="text-[9px] text-white/50">
               {user?.subscription?.max_tracked_companies === -1
                 ? "Unlimited"
                 : `${user?.subscription?.max_tracked_companies || 5} comp`}
