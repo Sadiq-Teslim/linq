@@ -3,7 +3,7 @@ API v1 Router - Aggregates all endpoints
 """
 from fastapi import APIRouter
 
-from .endpoints import auth, search, feed, export, companies, subscription, analytics, organization, internal, public
+from .endpoints import auth, search, feed, export, companies, subscription, analytics, organization, internal, public, enrichment
 
 api_router = APIRouter()
 
@@ -75,4 +75,11 @@ api_router.include_router(
     public.router,
     prefix="/public",
     tags=["Public"],
+)
+
+# Waterfall enrichment endpoints (Apollo + Hunter)
+api_router.include_router(
+    enrichment.router,
+    prefix="/enrichment",
+    tags=["Data Enrichment"],
 )
