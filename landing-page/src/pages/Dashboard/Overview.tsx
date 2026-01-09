@@ -47,7 +47,7 @@ export const DashboardOverview = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -69,9 +69,9 @@ export const DashboardOverview = () => {
       label: "Plan Status",
       value: plan.replace("_", " "),
       subtext: isActive ? "Active" : "Inactive",
-      subtextColor: isActive ? "text-green-600" : "text-red-600",
-      bgColor: isActive ? "bg-green-50" : "bg-red-50",
-      borderColor: isActive ? "border-green-100" : "border-red-100",
+      subtextColor: isActive ? "text-green-400" : "text-red-400",
+      bgColor: isActive ? "bg-green-500/20" : "bg-red-500/20",
+      borderColor: isActive ? "border-green-500/30" : "border-red-500/30",
       icon: (
         <svg
           className="w-5 h-5"
@@ -93,8 +93,8 @@ export const DashboardOverview = () => {
       value: `${currentCompanies}`,
       subtext: maxCompanies === -1 ? "of ∞" : `of ${maxCompanies}`,
       progress: usagePercent,
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-100",
+      bgColor: "bg-blue-500/20",
+      borderColor: "border-blue-500/30",
       icon: (
         <svg
           className="w-5 h-5"
@@ -115,8 +115,8 @@ export const DashboardOverview = () => {
       label: "Total Contacts",
       value: usage?.total_contacts || 0,
       subtext: "Across all companies",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-100",
+      bgColor: "bg-green-500/20",
+      borderColor: "border-green-500/30",
       icon: (
         <svg
           className="w-5 h-5"
@@ -137,8 +137,8 @@ export const DashboardOverview = () => {
       label: "Updates (30 days)",
       value: usage?.updates_last_30_days || 0,
       subtext: "Company updates",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-100",
+      bgColor: "bg-blue-500/20",
+      borderColor: "border-blue-500/30",
       icon: (
         <svg
           className="w-5 h-5"
@@ -161,10 +161,10 @@ export const DashboardOverview = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-serif text-slate-900 mb-2">
+        <h1 className="text-2xl md:text-3xl font-serif text-white mb-2">
           Welcome back, {user?.full_name?.split(" ")[0] || "there"}
         </h1>
-        <p className="text-slate-500">
+        <p className="text-slate-400">
           Here's an overview of your LYNQ account
         </p>
       </div>
@@ -174,27 +174,27 @@ export const DashboardOverview = () => {
         {stats.map((stat, index) => (
           <div
             key={stat.label}
-            className={`p-5 rounded-2xl bg-white border border-slate-100 hover:border-blue-200 hover:shadow-lg transition-all duration-300`}
+            className={`p-5 rounded-2xl glass-card border border-white/10 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300`}
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex items-center gap-3 mb-3">
-              <div className={`w-10 h-10 rounded-xl ${stat.bgColor} ${stat.borderColor} border flex items-center justify-center text-blue-700`}>
+              <div className={`w-10 h-10 rounded-xl ${stat.bgColor} ${stat.borderColor} border flex items-center justify-center text-blue-300`}>
                 {stat.icon}
               </div>
-              <span className="text-sm font-medium text-slate-500">{stat.label}</span>
+              <span className="text-sm font-medium text-slate-300">{stat.label}</span>
             </div>
-            <div className="text-2xl font-serif text-slate-900 capitalize mb-1">
+            <div className="text-2xl font-serif text-white capitalize mb-1">
               {stat.value}
             </div>
             {stat.progress !== undefined && (
-              <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div className="mt-2 w-full bg-slate-800/50 rounded-full h-1.5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     stat.progress >= 90
                       ? "bg-red-500"
                       : stat.progress >= 70
                         ? "bg-yellow-500"
-                        : "bg-gradient-to-r from-blue-600 to-green-500"
+                        : "bg-gradient-to-r from-blue-500 to-green-500"
                   }`}
                   style={{ width: `${stat.progress}%` }}
                 />
@@ -211,34 +211,35 @@ export const DashboardOverview = () => {
 
       {/* Chart */}
       {usage?.usage_by_day && usage.usage_by_day.length > 0 && (
-        <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">
+        <div className="p-6 rounded-2xl glass-card border border-white/10 shadow-lg">
+          <h2 className="text-lg font-bold text-white mb-6">
             Activity Over Time
           </h2>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={usage.usage_by_day}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="#e2e8f0"
+                stroke="#334155"
               />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
+              <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="#94a3b8" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e2e8f0",
+                  backgroundColor: "rgba(15, 23, 42, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
                   borderRadius: "12px",
-                  color: "#1e293b",
-                  boxShadow: "0 10px 40px -10px rgba(0, 0, 0, 0.1)",
+                  color: "#ffffff",
+                  boxShadow: "0 10px 40px -10px rgba(0, 0, 0, 0.3)",
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="companies"
-                stroke="#2563eb"
+                stroke="#3b82f6"
                 strokeWidth={2}
-                dot={{ fill: "#2563eb", strokeWidth: 0, r: 4 }}
-                activeDot={{ r: 6, fill: "#2563eb" }}
+                dot={{ fill: "#3b82f6", strokeWidth: 0, r: 4 }}
+                activeDot={{ r: 6, fill: "#3b82f6" }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -247,8 +248,8 @@ export const DashboardOverview = () => {
 
       {/* Quick Actions & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">
+        <div className="p-6 rounded-2xl glass-card border border-white/10 shadow-lg">
+          <h2 className="text-lg font-bold text-white mb-4">
             Activity Summary
           </h2>
           <div className="space-y-4">
@@ -265,10 +266,10 @@ export const DashboardOverview = () => {
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex justify-between items-center py-3 border-b border-slate-100 last:border-0"
+                className="flex justify-between items-center py-3 border-b border-white/10 last:border-0"
               >
-                <span className="text-slate-600 text-sm">{item.label}</span>
-                <span className="text-xl font-serif text-slate-900">
+                <span className="text-slate-300 text-sm">{item.label}</span>
+                <span className="text-xl font-serif text-white">
                   {item.value}
                 </span>
               </div>
@@ -276,8 +277,8 @@ export const DashboardOverview = () => {
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">
+        <div className="p-6 rounded-2xl glass-card border border-white/10 shadow-lg">
+          <h2 className="text-lg font-bold text-white mb-4">
             Quick Actions
           </h2>
           <div className="space-y-3">
@@ -289,11 +290,11 @@ export const DashboardOverview = () => {
               <button
                 key={action.path}
                 onClick={() => navigate(action.path)}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-100 text-slate-700 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 flex items-center justify-between group"
+                className="w-full text-left px-4 py-3 rounded-xl glass border border-white/10 text-slate-300 hover:text-blue-300 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-200 flex items-center justify-between group"
               >
                 {action.label}
                 <svg
-                  className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all"
+                  className="w-4 h-4 text-slate-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -313,15 +314,15 @@ export const DashboardOverview = () => {
 
       {/* Upgrade Prompt */}
       {!isActive && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-500/20 to-green-500/20 border border-blue-500/30 glass-card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h3 className="font-bold text-slate-900 mb-1">
+              <h3 className="font-bold text-white mb-1">
                 {subscriptionStatus?.status === "expired"
                   ? "Your subscription has expired"
                   : "Upgrade Your Plan"}
               </h3>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-300">
                 {subscriptionStatus?.status === "expired"
                   ? "Renew your subscription to continue using all features."
                   : "Unlock all features and start tracking companies today."}
@@ -329,7 +330,7 @@ export const DashboardOverview = () => {
             </div>
             <button
               onClick={() => navigate("/dashboard/payment")}
-              className="flex-shrink-0 px-6 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-600/20"
+              className="flex-shrink-0 px-6 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500 transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] transform"
             >
               {subscriptionStatus?.status === "expired"
                 ? "Renew Now"

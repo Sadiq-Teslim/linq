@@ -42,10 +42,10 @@ const toastIcons = {
 };
 
 const toastStyles = {
-  success: "bg-gradient-to-r from-emerald-500 to-green-500 text-white",
+  success: "bg-gradient-to-r from-green-600 to-green-500 text-white",
   error: "bg-gradient-to-r from-red-500 to-rose-500 text-white",
   warning: "bg-gradient-to-r from-amber-500 to-orange-500 text-white",
-  info: "bg-gradient-to-r from-blue-500 to-indigo-500 text-white",
+  info: "bg-gradient-to-r from-blue-600 to-blue-500 text-white",
 };
 
 const ToastItem = ({

@@ -147,24 +147,31 @@ export const DashboardLayout = () => {
   const plan = subscriptionStatus?.plan || "free_trial";
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 -z-10"></div>
+      
+      {/* Floating shapes */}
+      <div className="fixed top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-float -z-10"></div>
+      <div className="fixed bottom-0 right-0 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-float -z-10" style={{ animationDelay: '2s' }}></div>
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-700 to-green-600 flex items-center justify-center shadow-lg shadow-blue-700/20">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-300">
                 <SparklesIcon />
               </div>
-              <span className="text-xl font-bold text-slate-900 tracking-tight hidden sm:block">
+              <span className="text-xl font-bold text-white tracking-tight hidden sm:block group-hover:text-blue-300 transition-colors">
                 LYNQ
               </span>
             </button>
             {!loading && !isActive && (
-              <span className="text-xs bg-red-50 text-red-600 px-2.5 py-1 rounded-full border border-red-200 font-medium">
+              <span className="text-xs bg-red-500/20 text-red-300 px-2.5 py-1 rounded-full border border-red-500/30 font-medium glass">
                 Expired
               </span>
             )}
@@ -173,14 +180,14 @@ export const DashboardLayout = () => {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             <div className="text-right">
-              <span className="text-sm font-medium text-slate-900 block">{user?.email}</span>
-              <span className="text-xs text-slate-500 capitalize">
+              <span className="text-sm font-medium text-white block">{user?.email}</span>
+              <span className="text-xs text-slate-400 capitalize">
                 {plan.replace("_", " ")} Plan
               </span>
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors px-4 py-2 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-2 rounded-lg glass border border-white/10 hover:border-red-500/30 hover:bg-red-500/10"
             >
               Logout
             </button>
@@ -189,7 +196,7 @@ export const DashboardLayout = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-500 hover:text-slate-900 transition-colors"
+            className="md:hidden p-2 text-slate-400 hover:text-white transition-colors"
           >
             {mobileMenuOpen ? (
               <svg
@@ -229,7 +236,7 @@ export const DashboardLayout = () => {
             mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <div className="px-4 py-4 space-y-2 border-t border-slate-100 bg-white">
+          <div className="px-4 py-4 space-y-2 border-t border-white/10 glass">
             {navItems.map((item) => (
               <button
                 key={item.path}
@@ -239,24 +246,24 @@ export const DashboardLayout = () => {
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                   location.pathname === item.path
-                    ? "bg-blue-50 text-blue-700 border border-blue-100"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 glass"
+                    : "text-slate-300 hover:text-white hover:bg-white/5 glass border border-white/10"
                 }`}
               >
                 {item.icon}
                 {item.label}
               </button>
             ))}
-            <div className="pt-2 border-t border-slate-100">
+            <div className="pt-2 border-t border-white/10">
               <div className="px-4 py-2">
-                <span className="text-sm font-medium text-slate-900 block">{user?.email}</span>
-                <span className="text-xs text-slate-500 capitalize">
+                <span className="text-sm font-medium text-white block">{user?.email}</span>
+                <span className="text-xs text-slate-400 capitalize">
                   {plan.replace("_", " ")} Plan
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="w-full mt-2 text-sm text-red-600 hover:text-red-700 px-4 py-3 rounded-xl hover:bg-red-50 transition-all flex items-center gap-3 font-medium"
+                className="w-full mt-2 text-sm text-red-300 hover:text-red-200 px-4 py-3 rounded-xl hover:bg-red-500/10 glass border border-red-500/20 transition-all flex items-center gap-3 font-medium"
               >
                 <svg
                   className="w-5 h-5"
@@ -280,15 +287,15 @@ export const DashboardLayout = () => {
 
       {/* Subscription warning */}
       {!loading && !isActive && (
-        <div className="fixed top-[73px] left-0 right-0 z-40 bg-red-50 border-b border-red-200">
+        <div className="fixed top-[73px] left-0 right-0 z-40 bg-red-500/20 border-b border-red-500/30 glass">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-red-700">
+              <p className="text-sm text-red-300">
                 Your subscription has expired. Some features may be limited.
               </p>
               <button
                 onClick={() => navigate("/dashboard/payment")}
-                className="text-sm font-semibold text-red-700 hover:text-red-800 underline transition-colors"
+                className="text-sm font-semibold text-red-300 hover:text-red-200 underline transition-colors"
               >
                 Renew now
               </button>
@@ -309,8 +316,8 @@ export const DashboardLayout = () => {
                     onClick={() => navigate(item.path)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                       location.pathname === item.path
-                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-700/20"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm"
+                        ? "bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/30"
+                        : "text-slate-300 hover:text-white hover:bg-white/5 glass border border-white/10 hover:border-blue-500/20"
                     }`}
                     style={{ animationDelay: `${index * 50}ms` }}
                   >

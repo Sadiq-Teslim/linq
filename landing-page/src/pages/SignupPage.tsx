@@ -70,31 +70,35 @@ export const SignupPage = () => {
   };
 
   const inputClass =
-    "w-full px-4 py-3 rounded-lg bg-white/[0.03] border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all";
+    "w-full px-4 py-3 rounded-lg glass bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/30 transition-all duration-200";
 
   return (
-    <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center px-4 py-12">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800/20 via-[#0a0f1c] to-[#0a0f1c]"></div>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900"></div>
+      
+      {/* Floating shapes */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md z-10">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 group"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-              <span className="text-[#0a0f1c] font-bold text-sm">L</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-300">
+              <span className="text-white font-bold text-sm">L</span>
             </div>
-            <span className="text-xl font-semibold text-white tracking-tight">
+            <span className="text-xl font-semibold text-white tracking-tight group-hover:text-blue-300 transition-colors">
               LYNQ
             </span>
           </button>
         </div>
 
         {/* Card */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+        <div className="glass-card rounded-2xl p-8 border border-white/10 shadow-2xl">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-serif text-white mb-2">
               Create your account
@@ -115,7 +119,7 @@ export const SignupPage = () => {
             type="button"
             onClick={handleGoogleSignup}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-white text-sm font-medium transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg glass border border-white/10 hover:border-blue-500/30 hover:bg-white/5 text-white text-sm font-medium transition-all duration-200 disabled:opacity-50 hover:shadow-lg hover:shadow-blue-500/10"
           >
             {googleLoading ? (
               <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -257,10 +261,10 @@ export const SignupPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg font-medium text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all disabled:opacity-50 flex items-center justify-center"
+              className="w-full py-3 rounded-lg font-medium text-white bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500 transition-all duration-200 disabled:opacity-50 flex items-center justify-center shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] transform"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-[#0a0f1c]/20 border-t-[#0a0f1c] rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
               ) : (
                 "Create Account"
               )}
@@ -283,7 +287,7 @@ export const SignupPage = () => {
               Already have an account?{" "}
               <button
                 onClick={() => navigate("/auth/login")}
-                className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
+                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
               >
                 Log in
               </button>

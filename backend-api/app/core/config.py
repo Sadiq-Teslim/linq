@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     # Google Gemini AI
     GEMINI_API_KEY: str = ""
     
+    # Groq AI - Fast and reliable for text formatting
+    GROQ_API_KEY: str = ""
+    
     # Ollama (Llama 3.2) - Local/Dev MVP
     OLLAMA_BASE_URL: str = "http://localhost:11434"  # Local default
     OLLAMA_MODEL: str = "llama3.2:latest"  # Llama 3.2 model (use :latest tag to match what's installed)

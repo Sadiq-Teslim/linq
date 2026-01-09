@@ -81,7 +81,7 @@ export const AddCompanySearch = () => {
       {/* Search Input */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-slate-500" />
+          <Search className="h-4 w-4 text-slate-400" />
         </div>
         <input
           type="text"
@@ -91,7 +91,7 @@ export const AddCompanySearch = () => {
           onFocus={() => searchResults.length > 0 && setShowResults(true)}
           placeholder="Search companies to track... (Press Enter to search)"
           className="w-full pl-10 pr-20 py-3 bg-white/5 border border-white/10 rounded-xl text-sm
-                     placeholder:text-slate-500 text-white
+                     placeholder:text-slate-400 text-white
                      focus:outline-none focus:bg-white/[0.07] focus:border-blue-500/30 focus:ring-2 focus:ring-blue-500/10
                      transition-all duration-200"
         />
@@ -99,7 +99,7 @@ export const AddCompanySearch = () => {
           {query && (
             <button
               onClick={handleClear}
-              className="p-1.5 text-slate-500 hover:text-slate-300 transition-colors"
+              className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors"
               title="Clear"
             >
               <X className="w-4 h-4" />
@@ -108,7 +108,7 @@ export const AddCompanySearch = () => {
           <button
             onClick={handleSearch}
             disabled={isSearching || !query.trim()}
-            className="p-1.5 text-blue-500 hover:text-blue-400 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
+            className="p-1.5 text-blue-400 hover:text-blue-300 disabled:text-slate-500 disabled:cursor-not-allowed transition-colors"
             title="Search"
           >
             {isSearching ? (
@@ -146,7 +146,7 @@ export const AddCompanySearch = () => {
                           }}
                         />
                       ) : (
-                        <Building2 className="w-5 h-5 text-slate-500" />
+                        <Building2 className="w-5 h-5 text-slate-400" />
                       )}
                     </div>
 
@@ -157,7 +157,7 @@ export const AddCompanySearch = () => {
                           {company.name}
                         </p>
                         {company.is_already_tracked && (
-                          <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                          <span className="flex items-center gap-1 text-[10px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded-full border border-green-500/30">
                             <CheckCircle className="w-2.5 h-2.5" />
                             Tracking
                           </span>
@@ -165,19 +165,19 @@ export const AddCompanySearch = () => {
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500">
                         {company.industry && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 text-slate-300">
                             <Globe className="w-3 h-3" />
                             {company.industry}
                           </span>
                         )}
                         {company.headquarters && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 text-slate-300">
                             <MapPin className="w-3 h-3" />
                             {company.headquarters}
                           </span>
                         )}
                         {company.employee_count && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 text-slate-300">
                             <Users className="w-3 h-3" />
                             {company.employee_count}
                           </span>
@@ -212,11 +212,11 @@ export const AddCompanySearch = () => {
 
       {/* No Results */}
       {showResults && query && !isSearching && searchResults.length === 0 && (
-        <div className="absolute z-[100] w-full mt-2 bg-navy-800 rounded-xl border border-white/10 shadow-xl p-4">
-          <p className="text-sm text-slate-400 text-center">
+        <div className="absolute z-[100] w-full mt-2 glass-card rounded-xl border border-white/10 shadow-xl p-4">
+          <p className="text-sm text-slate-300 text-center">
             No companies found for "{query}"
           </p>
-          <p className="text-xs text-slate-500 text-center mt-1">
+          <p className="text-xs text-slate-400 text-center mt-1">
             Try a different search term
           </p>
         </div>

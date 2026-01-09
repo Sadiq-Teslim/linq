@@ -59,16 +59,16 @@ export const ResultCard = () => {
   // Loading State
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl border border-blue-200 overflow-hidden shadow-sm">
+      <div className="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-lg">
         <div className="p-6">
           <div className="flex flex-col items-center justify-center py-8">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-green-500 animate-pulse" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-green-600 animate-pulse" />
               <div className="absolute inset-0 animate-ping">
                 <div className="w-12 h-12 rounded-full bg-blue-500/30" />
               </div>
             </div>
-            <p className="text-slate-600 mt-4 text-sm">Loading company details...</p>
+            <p className="text-slate-300 mt-4 text-sm">Loading company details...</p>
           </div>
         </div>
       </div>
@@ -78,18 +78,18 @@ export const ResultCard = () => {
   // Error State
   if (error) {
     return (
-      <div className="bg-red-50 rounded-2xl border border-red-200 p-6">
+      <div className="glass-card rounded-2xl border border-red-500/30 bg-red-500/10 p-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-red-100 rounded-xl">
-            <AlertCircle className="w-6 h-6 text-red-600" />
+          <div className="p-3 bg-red-500/20 rounded-xl">
+            <AlertCircle className="w-6 h-6 text-red-400" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-red-700">Error</h3>
-            <p className="text-sm text-red-600 mt-1">{error}</p>
+            <h3 className="font-semibold text-red-300">Error</h3>
+            <p className="text-sm text-red-400 mt-1">{error}</p>
           </div>
           <button
             onClick={clearSelection}
-            className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+            className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -114,12 +114,12 @@ export const ResultCard = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-blue-200 overflow-hidden shadow-sm">
+    <div className="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-lg">
       {/* Header */}
-      <div className="p-4 border-b border-blue-100">
+      <div className="p-4 border-b border-white/10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-200 flex-shrink-0">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center border border-blue-500/30 flex-shrink-0">
               {selectedCompany.logo_url ? (
                 <img
                   src={selectedCompany.logo_url}
@@ -130,33 +130,33 @@ export const ResultCard = () => {
                   }}
                 />
               ) : (
-                <Building2 className="w-6 h-6 text-blue-500" />
+                <Building2 className="w-6 h-6 text-blue-400" />
               )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg text-blue-950 truncate">
+                <h3 className="font-semibold text-lg text-white truncate">
                   {selectedCompany.company_name}
                 </h3>
                 {selectedCompany.is_priority && (
-                  <Star className="w-4 h-4 text-green-700 fill-green-700" />
+                  <Star className="w-4 h-4 text-green-400 fill-green-400" />
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 {selectedCompany.industry && (
-                  <span className="text-xs text-slate-600 flex items-center gap-1">
+                  <span className="text-xs text-slate-300 flex items-center gap-1">
                     <Briefcase className="w-3 h-3" />
                     {selectedCompany.industry}
                   </span>
                 )}
                 {selectedCompany.headquarters && (
-                  <span className="text-xs text-slate-600 flex items-center gap-1">
+                  <span className="text-xs text-slate-300 flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     {selectedCompany.headquarters}
                   </span>
                 )}
                 {selectedCompany.employee_count && (
-                  <span className="text-xs text-slate-600 flex items-center gap-1">
+                  <span className="text-xs text-slate-300 flex items-center gap-1">
                     <Users className="w-3 h-3" />
                     {selectedCompany.employee_count}
                   </span>
@@ -166,7 +166,7 @@ export const ResultCard = () => {
           </div>
           <button
             onClick={clearSelection}
-            className="w-6 h-6 flex items-center justify-center rounded-lg bg-blue-50 hover:bg-blue-100 text-slate-600 hover:text-blue-700 transition-colors flex-shrink-0"
+            className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors flex-shrink-0"
             title="Close details"
           >
             <X className="w-4 h-4" />
@@ -175,14 +175,14 @@ export const ResultCard = () => {
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1 bg-blue-50 rounded-lg p-0.5">
+      <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5 border border-white/10">
           <button
             onClick={() => setViewMode("details")}
             className={`px-2 py-1 text-xs rounded transition-colors ${
               viewMode === "details"
-                ? "bg-blue-100 text-blue-700 font-medium"
-                : "text-slate-600 hover:text-blue-700"
+                ? "bg-blue-500/20 text-blue-300 font-medium border border-blue-500/30"
+                : "text-slate-400 hover:text-blue-300"
             }`}
           >
             Details
@@ -191,8 +191,8 @@ export const ResultCard = () => {
             onClick={() => setViewMode("contacts")}
             className={`px-2 py-1 text-xs rounded transition-colors ${
               viewMode === "contacts"
-                ? "bg-green-700/20 text-green-700"
-                : "text-slate-400 hover:text-slate-300"
+                ? "bg-green-500/20 text-green-300 font-medium border border-green-500/30"
+                : "text-slate-400 hover:text-green-300"
             }`}
           >
             Contacts
@@ -201,8 +201,8 @@ export const ResultCard = () => {
             onClick={() => setViewMode("updates")}
             className={`px-2 py-1 text-xs rounded transition-colors ${
               viewMode === "updates"
-                ? "bg-blue-100 text-blue-700 font-medium"
-                : "text-slate-600 hover:text-blue-700"
+                ? "bg-blue-500/20 text-blue-300 font-medium border border-blue-500/30"
+                : "text-slate-400 hover:text-blue-300"
             }`}
           >
             Updates
@@ -254,8 +254,8 @@ export const ResultCard = () => {
 
       {/* Description - Show only in details or contacts view */}
       {(viewMode === "details" || viewMode === "contacts") && selectedCompany.description && (
-        <div className="px-4 py-3 border-b border-blue-100">
-          <p className="text-sm text-slate-700 leading-relaxed">
+        <div className="px-4 py-3 border-b border-white/10">
+          <p className="text-sm text-slate-300 leading-relaxed">
             {selectedCompany.description}
           </p>
         </div>
@@ -263,14 +263,14 @@ export const ResultCard = () => {
 
       {/* Contacts - Show only in details or contacts view */}
       {(viewMode === "details" || viewMode === "contacts") && (
-        <div className="px-4 py-3 border-b border-blue-100">
+        <div className="px-4 py-3 border-b border-white/10">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-semibold text-blue-950 flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold text-white flex items-center gap-1.5">
               <Users className="w-4 h-4" />
               Contacts ({selectedCompany.contacts?.length || 0})
             </h4>
             {selectedCompany.last_updated && (
-              <span className="text-[10px] text-slate-500 flex items-center gap-1">
+              <span className="text-[10px] text-slate-400 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Updated {formatTimeAgo(selectedCompany.last_updated)}
               </span>
@@ -285,7 +285,7 @@ export const ResultCard = () => {
           ) : (
             <div className="py-6 text-center">
               <Users className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No contacts found</p>
+              <p className="text-sm text-slate-300">No contacts found</p>
               <p className="text-xs text-slate-400 mt-1">
                 Click refresh to discover contacts
               </p>
@@ -296,8 +296,8 @@ export const ResultCard = () => {
 
       {/* Recent Updates - Show only in details or updates view */}
       {(viewMode === "details" || viewMode === "updates") && (
-        <div className="px-4 py-3 border-b border-white/5">
-          <h4 className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
+        <div className="px-4 py-3 border-b border-white/10">
+          <h4 className="text-xs font-semibold text-white mb-2 flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5" />
             Recent Updates ({selectedCompany.recent_updates?.length || 0})
           </h4>
@@ -306,7 +306,7 @@ export const ResultCard = () => {
               {selectedCompany.recent_updates.map((update) => (
               <div
                 key={update.id}
-                className="p-2 bg-white/5 rounded-lg border border-white/5"
+                className="p-2 bg-white/5 rounded-lg border border-white/10"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -317,17 +317,17 @@ export const ResultCard = () => {
                       </p>
                     )}
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[10px] text-slate-400">
                         {formatTimeAgo(update.detected_at)}
                       </span>
                       {update.importance && (
                         <span
                           className={`text-[10px] px-1.5 py-0.5 rounded ${
                             update.importance === "critical"
-                              ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                              ? "bg-red-500/20 text-red-400 border border-red-500/30"
                               : update.importance === "high"
-                                ? "bg-orange-500/10 text-orange-400 border border-orange-500/20"
-                                : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
+                                ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
+                                : "bg-slate-500/20 text-slate-300 border border-slate-500/30"
                           }`}
                         >
                           {update.importance}
@@ -341,9 +341,9 @@ export const ResultCard = () => {
             </div>
           ) : (
             <div className="py-6 text-center">
-              <TrendingUp className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No updates yet</p>
-              <p className="text-xs text-slate-600 mt-1">
+              <TrendingUp className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+              <p className="text-sm text-slate-300">No updates yet</p>
+              <p className="text-xs text-slate-400 mt-1">
                 Updates will appear here as they are detected
               </p>
             </div>
@@ -352,7 +352,7 @@ export const ResultCard = () => {
       )}
 
       {/* Footer Info */}
-      <div className="px-4 py-2 bg-blue-50 flex items-center justify-between text-xs text-slate-600">
+      <div className="px-4 py-2 bg-blue-500/10 border-t border-white/10 flex items-center justify-between text-xs text-slate-300">
         <span>
           Tracking since{" "}
           {(selectedCompany.created_at || selectedCompany.added_at)
@@ -360,7 +360,7 @@ export const ResultCard = () => {
             : "recently"}
         </span>
         {(selectedCompany.unread_update_count ?? 0) > 0 && (
-          <span className="text-blue-700 font-medium">
+          <span className="text-blue-300 font-medium">
             {selectedCompany.unread_update_count} new updates
           </span>
         )}

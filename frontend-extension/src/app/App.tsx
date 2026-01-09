@@ -24,9 +24,9 @@ function App() {
     return (
       <div className="h-[560px] w-[380px] bg-gradient-to-b from-navy-950 to-navy-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gold-500 to-gold-400 flex items-center justify-center shadow-lg shadow-gold-500/30 animate-pulse">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-600 to-green-600 flex items-center justify-center shadow-lg shadow-blue-500/30 animate-pulse">
             <svg
-              className="w-6 h-6 text-navy-950"
+              className="w-6 h-6 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

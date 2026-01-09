@@ -14,6 +14,7 @@ class TextFormatter:
     """
     
     def __init__(self):
+        self.groq_available = bool(settings.GROQ_API_KEY)
         self.gemini_available = bool(settings.GEMINI_API_KEY)
         self.ollama_available = bool(settings.OLLAMA_ENABLED)
         self.grok_available = bool(settings.XAI_API_KEY)
@@ -74,11 +75,21 @@ class TextFormatter:
         context: Optional[str],
         format_type: str
     ) -> str:
-        """Format text using AI (tries Gemini → Ollama → Grok → OpenAI)"""
+        """Format text using AI (tries Groq → Gemini → Ollama → Grok → OpenAI)"""
         
         prompt = self._build_formatting_prompt(text, context, format_type)
         
-        # Try Gemini first
+        # Try Groq first (fast and reliable)
+        if self.groq_available:
+            try:
+                result = await self._format_with_groq(prompt)
+                if result:
+                    print("✓ Groq formatted text successfully")
+                    return result
+            except Exception as e:
+                print(f"Groq formatting error: {e}")
+        
+        # Try Gemini
         if self.gemini_available:
             try:
                 result = await self._format_with_gemini(prompt)
@@ -142,6 +153,31 @@ Text to format:
         base_prompt += f"\nFormatting requirements: {instruction}"
         
         return base_prompt
+    
+    async def _format_with_groq(self, prompt: str) -> str:
+        """Format using Groq (fast and reliable)"""
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.GROQ_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "llama-3.1-70b-versatile",  # Fast and accurate model
+                    "messages": [
+                        {"role": "system", "content": "You are a text formatting assistant. Return only the formatted text, no explanations."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 500,
+                }
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return result["choices"][0]["message"]["content"].strip()
+            raise Exception(f"Groq API error: {response.status_code}")
     
     async def _format_with_gemini(self, prompt: str) -> str:
         """Format using Gemini"""

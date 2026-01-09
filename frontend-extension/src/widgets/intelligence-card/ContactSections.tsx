@@ -64,39 +64,39 @@ const ContactCard: React.FC<{
 
   return (
     <div
-      className={`p-3 bg-white rounded-lg border ${
-        recentlyChanged ? "border-green-300 bg-green-50" : "border-blue-200"
+      className={`p-3 glass rounded-lg border ${
+        recentlyChanged ? "border-green-500/30 bg-green-500/10" : "border-white/10 bg-white/5"
       } transition-all shadow-sm`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-medium text-blue-950 truncate">
+            <p className="text-sm font-medium text-white truncate">
               {contact.full_name || contact.name || "Unknown"}
             </p>
             {contact.is_decision_maker && (
-              <span className="text-[10px] bg-green-700/20 text-green-700 px-1.5 py-0.5 rounded border border-green-700/30 font-medium">
+              <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded border border-green-500/30 font-medium">
                 DM
               </span>
             )}
             {contact.is_verified && (
-              <span className="text-[10px] bg-blue-500/20 text-blue-700 px-1.5 py-0.5 rounded border border-blue-500/30 font-medium flex items-center gap-1">
+              <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30 font-medium flex items-center gap-1">
                 <Shield className="w-2.5 h-2.5" />
                 Verified
               </span>
             )}
             {recentlyChanged && (
-              <span className="text-[10px] bg-green-500/20 text-green-700 px-1.5 py-0.5 rounded border border-green-500/30 font-medium flex items-center gap-1">
+              <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded border border-green-500/30 font-medium flex items-center gap-1">
                 <Clock className="w-2.5 h-2.5" />
                 Recent
               </span>
             )}
           </div>
           {contact.title && (
-            <p className="text-xs text-slate-600 mt-1 truncate">{contact.title}</p>
+            <p className="text-xs text-slate-300 mt-1 truncate">{contact.title}</p>
           )}
           {contact.department && contact.department !== "other" && (
-            <p className="text-xs text-slate-500 truncate">{contact.department}</p>
+            <p className="text-xs text-slate-400 truncate">{contact.department}</p>
           )}
           {contact.updated_at && (
             <p className="text-[10px] text-slate-400 mt-1">
@@ -108,7 +108,7 @@ const ContactCard: React.FC<{
               <div className="flex items-center gap-1.5">
                 <a
                   href={`mailto:${contact.email}`}
-                  className="text-xs text-blue-700 hover:text-blue-600 flex items-center gap-1.5 px-2 py-1 rounded bg-blue-100 hover:bg-blue-200 transition-colors"
+                  className="text-xs text-blue-300 hover:text-blue-200 flex items-center gap-1.5 px-2 py-1 rounded bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 transition-colors"
                   title={contact.email}
                 >
                   <Mail className="w-3.5 h-3.5" />
@@ -116,7 +116,7 @@ const ContactCard: React.FC<{
                 </a>
                 <button
                   onClick={() => contact.email && onCopy(contact.email, `email-${contact.id}`)}
-                  className="p-1 text-blue-700 hover:text-blue-600 transition-colors"
+                  className="p-1 text-blue-300 hover:text-blue-200 transition-colors"
                   title="Copy email"
                 >
                   {copiedField === `email-${contact.id}` ? (
@@ -131,7 +131,7 @@ const ContactCard: React.FC<{
               <div className="flex items-center gap-1.5">
                 <a
                   href={`tel:${contact.phone}`}
-                  className="text-xs text-blue-700 hover:text-blue-600 flex items-center gap-1.5 px-2 py-1 rounded bg-blue-100 hover:bg-blue-200 transition-colors"
+                  className="text-xs text-blue-300 hover:text-blue-200 flex items-center gap-1.5 px-2 py-1 rounded bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 transition-colors"
                   title={contact.phone}
                 >
                   <Phone className="w-3.5 h-3.5" />
@@ -139,7 +139,7 @@ const ContactCard: React.FC<{
                 </a>
                 <button
                   onClick={() => contact.phone && onCopy(contact.phone, `phone-${contact.id}`)}
-                  className="p-1 text-blue-700 hover:text-blue-600 transition-colors"
+                  className="p-1 text-blue-300 hover:text-blue-200 transition-colors"
                   title="Copy phone"
                 >
                   {copiedField === `phone-${contact.id}` ? (
@@ -155,7 +155,7 @@ const ContactCard: React.FC<{
                 href={contact.linkedin_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-green-700 hover:text-green-600 flex items-center gap-1.5 px-2 py-1 rounded bg-green-100 hover:bg-green-200 transition-colors"
+                className="text-xs text-green-300 hover:text-green-200 flex items-center gap-1.5 px-2 py-1 rounded bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 transition-colors"
                 title="View LinkedIn profile"
               >
                 <Linkedin className="w-3.5 h-3.5" />
@@ -222,7 +222,7 @@ export const ContactSections: React.FC<ContactSectionsProps> = ({
     return (
       <div className="py-6 text-center">
         <Users className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-        <p className="text-sm text-slate-500">No contacts found</p>
+        <p className="text-sm text-slate-300">No contacts found</p>
         <p className="text-xs text-slate-400 mt-1">
           Contacts will appear here once discovered
         </p>
@@ -236,18 +236,18 @@ export const ContactSections: React.FC<ContactSectionsProps> = ({
         <div key={idx} className="space-y-2">
           <div className="flex items-center gap-2">
             {section.color === "green" ? (
-              <section.icon className="w-4 h-4 text-green-700" />
+              <section.icon className="w-4 h-4 text-green-400" />
             ) : (
-              <section.icon className="w-4 h-4 text-blue-700" />
+              <section.icon className="w-4 h-4 text-blue-400" />
             )}
             <h5 className={`text-xs font-semibold ${
-              section.color === "green" ? "text-green-700" : "text-blue-700"
+              section.color === "green" ? "text-green-300" : "text-blue-300"
             }`}>
               {section.title} ({section.contacts.length})
             </h5>
           </div>
           {section.description && (
-            <p className="text-[10px] text-slate-500 mb-2">{section.description}</p>
+            <p className="text-[10px] text-slate-400 mb-2">{section.description}</p>
           )}
           <div className="space-y-2">
             {section.contacts.map((contact) => (

@@ -62,9 +62,9 @@ const getNewsConfig = (newsType: string) => {
     case "partnership":
       return {
         icon: Layers,
-        bg: "bg-indigo-500/20",
-        border: "border-indigo-500/30",
-        text: "text-indigo-400",
+        bg: "bg-blue-500/20",
+        border: "border-blue-500/30",
+        text: "text-blue-400",
         label: "Partnership",
       };
     case "regulation":

@@ -77,7 +77,7 @@ export const AnalyzeButton = () => {
       {/* Search Input */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-slate-500" />
+          <Search className="h-4 w-4 text-slate-400" />
         </div>
         <input
           type="text"
@@ -87,15 +87,15 @@ export const AnalyzeButton = () => {
           placeholder="Search any company..."
           disabled={isLoading || analyzing}
           className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-sm
-                     placeholder:text-slate-500 text-white
-                     focus:outline-none focus:bg-white/[0.07] focus:border-gold-500/30 focus:ring-2 focus:ring-gold-500/10
+                     placeholder:text-slate-400 text-white
+                     focus:outline-none focus:bg-white/[0.07] focus:border-blue-500/30 focus:ring-2 focus:ring-blue-500/10
                      disabled:opacity-50 disabled:cursor-not-allowed
                      transition-all duration-200"
         />
         {companyName && !isLoading && !analyzing && (
           <button
             onClick={() => setCompanyName("")}
-            className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+            className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -104,8 +104,8 @@ export const AnalyzeButton = () => {
 
       {/* Country Toggle */}
       <div className="flex items-center gap-2">
-        <MapPin className="w-3.5 h-3.5 text-slate-500" />
-        <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/5">
+        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+        <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/10">
           {(["Nigeria", "Ghana"] as const).map((c) => (
             <button
               key={c}
@@ -113,8 +113,8 @@ export const AnalyzeButton = () => {
               disabled={isLoading || analyzing}
               className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
                 country === c
-                  ? "bg-gold-500/10 text-gold-400 border border-gold-500/20"
-                  : "text-slate-500 hover:text-slate-300"
+                  ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                  : "text-slate-400 hover:text-slate-200"
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {c === "Nigeria" && "🇳🇬 "}

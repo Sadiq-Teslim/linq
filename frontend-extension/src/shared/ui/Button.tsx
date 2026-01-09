@@ -26,10 +26,10 @@ export const Button = ({
 
   const variants = {
     primary: cn(
-      "bg-gradient-to-r from-gold-500 to-gold-400 text-navy-950",
-      "hover:from-gold-400 hover:to-gold-300",
-      "focus:ring-gold-500",
-      "shadow-md hover:shadow-lg hover:shadow-gold-500/20 hover:-translate-y-0.5",
+      "bg-gradient-to-r from-blue-600 to-green-600 text-white",
+      "hover:from-blue-500 hover:to-green-500",
+      "focus:ring-blue-500",
+      "shadow-md hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5",
     ),
     secondary: cn(
       "bg-white/5 text-white border border-white/10",

@@ -318,59 +318,107 @@ export const LandingPage = () => {
         </div>
       </nav>
 
-      {/* 2. Hero Section */}
+      {/* 2. Hero Section with Grid */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 overflow-hidden min-h-screen flex items-center">
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          {/* Badge */}
-          <div className="reveal inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-white/90 text-xs font-semibold tracking-wide mb-8 glow-blue">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            Trusted by 500+ Sales Teams
-          </div>
-
-          {/* Headline */}
-          <h1 className="reveal text-5xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-white mb-6 font-serif" style={{ transitionDelay: '100ms' }}>
-            Turn Cold Leads into <br />
-            <span className="text-gradient italic pr-2">Closed Deals</span>
-          </h1>
-
-          {/* Subheadline */}
-          <p className="reveal text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed" style={{ transitionDelay: '200ms' }}>
-            LYNQ uses advanced AI to uncover high-intent buyers, verified contact data, and actionable insights so you can sell smarter, not harder.
-          </p>
-
-          {/* CTAs */}
-          <div className="reveal flex flex-col sm:flex-row items-center justify-center gap-4 mb-16" style={{ transitionDelay: '300ms' }}>
-            <button
-              onClick={() => navigate("/auth/signup")}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl btn-gradient text-white font-semibold text-lg transition-all duration-300 shimmer"
-            >
-              Start Free Trial
-            </button>
-            <a
-              href="#demo"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card text-white font-semibold text-lg hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-2 group border border-white/20"
-            >
-              <PlayCircleIcon />
-              <span className="group-hover:translate-x-1 transition-transform">View Demo</span>
-            </a>
-          </div>
-
-          {/* Stats */}
-          <div className="reveal grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 pt-8 border-t border-white/10" style={{ transitionDelay: '400ms' }}>
-            {[
-              { value: "95M+", label: "Companies" },
-              { value: "750M+", label: "Contacts" },
-              { value: "98%", label: "Data Accuracy" },
-              { value: "2x", label: "Faster Pipeline" },
-            ].map((stat) => (
-              <div key={stat.label} className="glass-card p-4 rounded-xl">
-                <div className="text-3xl font-bold text-gradient font-serif mb-1">{stat.value}</div>
-                <div className="text-xs font-medium text-white/60 uppercase tracking-wider">{stat.label}</div>
+        {/* Background Grid Pattern */}
+        <div className="absolute inset-0 bg-grid opacity-20"></div>
+        
+        <div className="max-w-7xl mx-auto w-full relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left Column: Content */}
+            <div className="text-left lg:text-left">
+              {/* Badge */}
+              <div className="reveal inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-white/90 text-xs font-semibold tracking-wide mb-8 glow-blue">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                Trusted by 500+ Sales Teams
               </div>
-            ))}
+
+              {/* Headline */}
+              <h1 className="reveal text-5xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-white mb-6 font-serif" style={{ transitionDelay: '100ms' }}>
+                Turn Cold Leads into <br />
+                <span className="text-gradient italic pr-2">Closed Deals</span>
+              </h1>
+
+              {/* Subheadline */}
+              <p className="reveal text-lg md:text-xl text-white/70 max-w-2xl mb-10 leading-relaxed" style={{ transitionDelay: '200ms' }}>
+                LYNQ uses advanced AI to uncover high-intent buyers, verified contact data, and actionable insights so you can sell smarter, not harder.
+              </p>
+
+              {/* CTAs */}
+              <div className="reveal flex flex-col sm:flex-row items-start gap-4 mb-12" style={{ transitionDelay: '300ms' }}>
+                <button
+                  onClick={() => navigate("/auth/signup")}
+                  className="px-8 py-4 rounded-2xl btn-gradient text-white font-semibold text-lg transition-all duration-300 shimmer hover:scale-105"
+                >
+                  Start Free Trial
+                </button>
+                <a
+                  href="#demo"
+                  className="px-8 py-4 rounded-2xl glass-card text-white font-semibold text-lg hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-2 group border border-white/20"
+                >
+                  <PlayCircleIcon />
+                  <span className="group-hover:translate-x-1 transition-transform">View Demo</span>
+                </a>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="reveal grid grid-cols-3 gap-6" style={{ transitionDelay: '400ms' }}>
+                {[
+                  { value: "95M+", label: "Companies", icon: BuildingIcon },
+                  { value: "750M+", label: "Contacts", icon: UsersIcon },
+                  { value: "98%", label: "Accuracy", icon: SparklesIcon },
+                ].map((stat) => (
+                  <div key={stat.label} className="glass-card p-4 rounded-xl border border-white/10 hover:border-blue-500/30 transition-all group">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-green-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <stat.icon className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div className="text-2xl font-bold text-gradient font-serif mb-1">{stat.value}</div>
+                    <div className="text-xs font-medium text-white/60 uppercase tracking-wider">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Grid Pattern */}
+            <div className="relative hidden lg:block">
+              <div className="grid grid-cols-3 gap-4">
+                {/* Grid Items */}
+                {[
+                  { title: "AI-Powered", desc: "Smart lead qualification", isBlue: true },
+                  { title: "Real-Time", desc: "Live company updates", isBlue: false },
+                  { title: "Verified", desc: "98% data accuracy", isBlue: true },
+                  { title: "Comprehensive", desc: "95M+ companies", isBlue: false },
+                  { title: "Fast", desc: "2x faster pipeline", isBlue: true },
+                  { title: "Secure", desc: "Enterprise-grade", isBlue: false },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`glass-card p-6 rounded-2xl border border-white/10 transition-all group cursor-pointer card-hover ${
+                      item.isBlue ? 'hover:border-blue-500/30' : 'hover:border-green-500/30'
+                    }`}
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform ${
+                      item.isBlue 
+                        ? 'bg-gradient-to-br from-blue-500/20 to-green-500/20' 
+                        : 'bg-gradient-to-br from-green-500/20 to-blue-500/20'
+                    }`}>
+                      {idx % 3 === 0 && <RadarIcon />}
+                      {idx % 3 === 1 && <SparklesIcon />}
+                      {idx % 3 === 2 && <BarChartIcon />}
+                    </div>
+                    <h3 className="text-sm font-semibold text-white mb-1">{item.title}</h3>
+                    <p className="text-xs text-white/60">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Floating accent */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-full blur-3xl animate-float"></div>
+            </div>
           </div>
         </div>
       </section>

@@ -45,7 +45,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         className={`
           w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200
           ${isActive 
-            ? "bg-gradient-to-br from-blue-500 to-green-500 text-white shadow-lg shadow-blue-500/40" 
+            ? "bg-gradient-to-br from-blue-600 to-green-600 text-white shadow-lg shadow-blue-500/40" 
             : variant === "danger"
               ? "text-white/50 hover:text-red-400 hover:bg-red-500/20"
               : "text-white/60 hover:text-blue-400 hover:bg-white/10"
@@ -98,13 +98,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div className="w-12 glass border-r border-white/10 flex flex-col items-center py-2 gap-0.5">
       {/* Logo */}
-      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/40 mb-2 animate-pulse-glow">
+      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/40 mb-2 animate-pulse-glow">
         <Sparkles className="w-4 h-4 text-white" />
       </div>
       
       {/* Plan Badge */}
       <div className="mb-2 relative group">
-        <div className="w-8 h-5 bg-gradient-to-r from-blue-500 to-green-500 rounded flex items-center justify-center shadow-md">
+        <div className="w-8 h-5 bg-gradient-to-r from-blue-600 to-green-600 rounded flex items-center justify-center shadow-md">
           <Crown className="w-2.5 h-2.5 text-white" />
         </div>
         {/* Plan Tooltip */}

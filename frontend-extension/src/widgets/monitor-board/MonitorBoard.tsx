@@ -119,7 +119,7 @@ export const MonitorBoard: React.FC<MonitorBoardProps> = ({ showAll = false }) =
       {/* Header */}
       <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-4 bg-gradient-to-b from-blue-500 to-green-500 rounded-full" />
+          <div className="w-1 h-4 bg-gradient-to-b from-blue-600 to-green-600 rounded-full" />
           <h3 className="text-xs font-semibold text-white">Monitor Board</h3>
           <span className="badge">
             {trackedCompanies.length}
@@ -168,7 +168,7 @@ export const MonitorBoard: React.FC<MonitorBoardProps> = ({ showAll = false }) =
                   </div>
                   {/* Priority indicator */}
                   {company.is_priority && (
-                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-br from-blue-600 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                       <Star className="w-2 h-2 text-white fill-white" />
                     </div>
                   )}

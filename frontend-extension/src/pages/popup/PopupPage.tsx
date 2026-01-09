@@ -126,7 +126,7 @@ const PopupContent = () => {
             {/* Quick Search */}
             <div className="glass-card rounded-2xl p-4 card-hover">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-1.5 h-5 bg-gradient-to-b from-blue-500 to-green-500 rounded-full animate-pulse-glow" />
+                <div className="w-1.5 h-5 bg-gradient-to-b from-blue-600 to-green-600 rounded-full animate-pulse-glow" />
                 <h2 className="text-sm font-semibold text-white">
                   Track Companies
                 </h2>
@@ -343,7 +343,7 @@ const PopupContent = () => {
             <span className="font-serif font-bold text-white text-base tracking-tight">
               LYNQ
             </span>
-            <span className="text-[9px] bg-gradient-to-r from-blue-500 to-green-500 text-white px-1.5 py-0.5 rounded-full font-medium shadow-lg">
+            <span className="text-[9px] bg-gradient-to-r from-blue-600 to-green-600 text-white px-1.5 py-0.5 rounded-full font-medium shadow-lg">
               {activeTab === "home"
                 ? "Dashboard"
                 : activeTab === "companies"
