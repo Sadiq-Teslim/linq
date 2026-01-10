@@ -16,50 +16,9 @@
 }
 
 body {
-  @apply text-white antialiased;
+  @apply bg-white text-slate-900 antialiased;
   overflow-x: hidden;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #0f172a 60%, #1e293b 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 20s ease infinite;
-  position: relative;
   min-height: 100vh;
-}
-
-/* Animated gradient background */
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Floating abstract shapes */
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.4;
-  z-index: 0;
-  pointer-events: none;
-}
-
-body::before {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, #2563eb 0%, transparent 70%);
-  top: -200px;
-  left: -200px;
-  animation: float 25s ease-in-out infinite;
-}
-
-body::after {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, #10b981 0%, transparent 70%);
-  bottom: -150px;
-  right: -150px;
-  animation: float 30s ease-in-out infinite reverse;
 }
 
 h1, h2, h3, h4, h5, .font-serif {
@@ -72,7 +31,7 @@ html {
 
 /* Selection */
 ::selection {
-  @apply bg-blue-600/30 text-white;
+  @apply bg-blue-200 text-slate-900;
 }
 
 /* Smooth Reveal Animation */
