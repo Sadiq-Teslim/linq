@@ -61,14 +61,12 @@ export const ResultCard = () => {
     return (
       <div className="glass-card rounded-2xl border border-white/10 overflow-hidden shadow-lg">
         <div className="p-6">
-          <div className="flex flex-col items-center justify-center py-8">
+          <div className="flex flex-col items-center justify-center py-12">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-green-600 animate-pulse" />
-              <div className="absolute inset-0 animate-ping">
-                <div className="w-12 h-12 rounded-full bg-blue-500/30" />
-              </div>
+              <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 border-r-green-500 rounded-full animate-spin" />
             </div>
-            <p className="text-slate-300 mt-4 text-sm">Loading company details...</p>
+            <p className="text-slate-300 mt-4 text-sm font-medium">Loading company details...</p>
+            <p className="text-slate-500 text-xs mt-1">Please wait</p>
           </div>
         </div>
       </div>

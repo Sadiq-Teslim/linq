@@ -165,25 +165,15 @@ export const MarketPulse = ({ limit = 5 }: MarketPulseProps) => {
       <div className="glass-card rounded-xl overflow-hidden">
         <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 px-3 py-2 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-white/10 animate-pulse" />
-            <div className="h-3 bg-white/10 rounded w-24 animate-pulse" />
+            <Radio className="w-4 h-4 text-blue-400" />
+            <h3 className="text-sm font-semibold text-white">Market Pulse</h3>
           </div>
         </div>
-        <div className="p-2 space-y-2">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="p-2 rounded-lg glass animate-pulse"
-            >
-              <div className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-lg bg-white/10" />
-                <div className="flex-1">
-                  <div className="h-2 bg-white/10 rounded w-14 mb-2" />
-                  <div className="h-3 bg-white/10 rounded w-full" />
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="p-8 flex flex-col items-center justify-center">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 border-r-green-500 rounded-full animate-spin" />
+          </div>
+          <p className="text-sm text-slate-400 mt-4">Loading news...</p>
         </div>
       </div>
     );

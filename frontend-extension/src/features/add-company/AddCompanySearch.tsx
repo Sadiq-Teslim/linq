@@ -120,8 +120,18 @@ export const AddCompanySearch = () => {
         </div>
       </div>
 
+      {/* Loading State in Results Area */}
+      {showResults && isSearching && (
+        <div className="absolute z-[9999] w-full mt-2 bg-slate-900 rounded-xl border border-white/10 shadow-xl overflow-hidden">
+          <div className="p-6 flex flex-col items-center justify-center">
+            <div className="w-8 h-8 border-4 border-blue-500/20 border-t-blue-500 border-r-green-500 rounded-full animate-spin mb-3" />
+            <p className="text-sm text-slate-400">Searching companies...</p>
+          </div>
+        </div>
+      )}
+
       {/* Search Results Dropdown */}
-      {showResults && searchResults.length > 0 && (
+      {showResults && !isSearching && searchResults.length > 0 && (
         <div className="absolute z-[9999] w-full mt-2 bg-slate-900 rounded-xl border border-white/10 shadow-xl overflow-hidden">
           <div className="max-h-64 overflow-y-auto">
             {searchResults.map((company, index) => (
@@ -191,6 +201,7 @@ export const AddCompanySearch = () => {
                     size="sm"
                     variant={company.is_already_tracked ? "ghost" : "primary"}
                     disabled={company.is_already_tracked || isLoading}
+                    isLoading={isLoading}
                     onClick={() => handleTrack(company)}
                     className="flex-shrink-0"
                   >
