@@ -122,7 +122,7 @@ export const AddCompanySearch = () => {
 
       {/* Search Results Dropdown */}
       {showResults && searchResults.length > 0 && (
-        <div className="absolute z-[100] w-full mt-2 bg-navy-800 rounded-xl border border-white/10 shadow-xl overflow-hidden">
+        <div className="absolute z-[9999] w-full mt-2 bg-slate-900 rounded-xl border border-white/10 shadow-xl overflow-hidden">
           <div className="max-h-64 overflow-y-auto">
             {searchResults.map((company, index) => (
               <div
@@ -210,9 +210,9 @@ export const AddCompanySearch = () => {
         </div>
       )}
 
-      {/* No Results */}
-      {showResults && query && !isSearching && searchResults.length === 0 && (
-        <div className="absolute z-[100] w-full mt-2 glass-card rounded-xl border border-white/10 shadow-xl p-4">
+            {/* No Results */}
+            {showResults && query && !isSearching && searchResults.length === 0 && (
+              <div className="absolute z-[9999] w-full mt-2 bg-slate-900 rounded-xl border border-white/10 shadow-xl p-4">
           <p className="text-sm text-slate-300 text-center">
             No companies found for "{query}"
           </p>
@@ -222,13 +222,13 @@ export const AddCompanySearch = () => {
         </div>
       )}
 
-      {/* Click outside to close */}
-      {showResults && (
-        <div
-          className="fixed inset-0 z-[90]"
-          onClick={() => setShowResults(false)}
-        />
-      )}
+            {/* Click outside to close */}
+            {showResults && (
+              <div
+                className="fixed inset-0 z-[9998]"
+                onClick={() => setShowResults(false)}
+              />
+            )}
     </div>
   );
 };

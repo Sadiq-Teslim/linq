@@ -338,7 +338,7 @@ const PopupContent = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Header */}
-        <header className="glass border-b border-white/10 px-3 py-2 flex items-center justify-between">
+        <header className="glass border-b border-white/10 px-3 py-2 flex items-center justify-between relative z-20">
           <div className="flex items-center gap-2">
             <span className="font-serif font-bold text-white text-base tracking-tight">
               LYNQ

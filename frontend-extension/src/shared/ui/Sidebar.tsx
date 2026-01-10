@@ -62,7 +62,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
       
       {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
+        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[100] pointer-events-none">
           <div className="glass bg-white/10 backdrop-blur-xl text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl border border-white/20 whitespace-nowrap">
             {label}
             {/* Arrow */}
@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   planLabel = "Trial",
 }) => {
   return (
-    <div className="w-12 glass border-r border-white/10 flex flex-col items-center py-2 gap-0.5">
+    <div className="w-12 glass border-r border-white/10 flex flex-col items-center py-2 gap-0.5 relative z-20">
       {/* Logo */}
       <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/40 mb-2 animate-pulse-glow">
         <Sparkles className="w-4 h-4 text-white" />
@@ -108,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Crown className="w-2.5 h-2.5 text-white" />
         </div>
         {/* Plan Tooltip */}
-        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[100] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="glass bg-white/10 backdrop-blur-xl text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl border border-white/20 whitespace-nowrap">
             {planLabel} Plan
             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-white/20" />

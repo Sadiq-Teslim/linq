@@ -2,6 +2,7 @@
 Tracked Companies endpoints for the Monitor Board feature
 Handles company tracking, contacts, and updates
 """
+import httpx
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
@@ -10,6 +11,7 @@ from app.db.supabase_client import get_supabase_client, SupabaseClient
 from app.api.v1.endpoints.auth import get_current_user
 from app.services.company_search_service import company_search_service
 from app.services.llm.text_formatter import text_formatter
+from app.core.config import settings
 from app.schemas.company import (
     GlobalCompanySearchQuery,
     GlobalCompanySearchResult,
@@ -74,18 +76,64 @@ async def search_companies(
     tracked_domains = {c.get("domain", "").lower() for c in tracked_companies if c.get("domain")}
     tracked_names = {c.get("company_name", "").lower() for c in tracked_companies if c.get("company_name")}
 
-    # Use real company search service
-    try:
-        results = await company_search_service.search_companies(query, limit)
-    except ValueError as e:
-        # SERP_API_KEY not configured or other service error
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Search service unavailable: {str(e)}"
-        )
-    except Exception as e:
-        # Other errors - return empty results instead of failing
-        results = []
+    # Use real company search service with fallbacks
+    results = []
+    
+    # Try the full search service if SERP_API_KEY is available
+    if settings.SERP_API_KEY:
+        try:
+            results = await company_search_service.search_companies(query, limit)
+        except Exception as e:
+            print(f"[Company Search] SerpAPI error (non-fatal): {e}")
+            results = []
+    
+    # If no results from SerpAPI, try fallback methods
+    if not results:
+        # Try Clearbit Autocomplete (free)
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://autocomplete.clearbit.com/v1/companies/suggest",
+                    params={"query": query},
+                    timeout=10.0,
+                )
+                if response.status_code == 200:
+                    clearbit_results = response.json()
+                    for r in clearbit_results[:limit]:
+                        results.append({
+                            "name": r.get("name", query.title()),
+                            "domain": r.get("domain"),
+                            "logo_url": r.get("logo"),
+                            "website": f"https://{r.get('domain')}" if r.get("domain") else None,
+                            "industry": None,
+                            "employee_count": None,
+                            "headquarters": None,
+                            "linkedin_url": None,
+                            "description": None,
+                        })
+        except Exception as e:
+            print(f"[Company Search] Clearbit error (non-fatal): {e}")
+        
+        # If still no results, check known companies (similar to public endpoint)
+        if not results:
+            from app.api.v1.endpoints.public import KNOWN_COMPANIES, normalize_query
+            normalized_query = normalize_query(query)
+            
+            for key, company_data in KNOWN_COMPANIES.items():
+                if normalized_query in normalize_query(key) or normalize_query(key) in normalized_query:
+                    results.append({
+                        "name": company_data["name"],
+                        "domain": company_data.get("domain"),
+                        "industry": company_data.get("industry"),
+                        "headquarters": company_data.get("headquarters"),
+                        "employee_count": company_data.get("employee_count"),
+                        "description": company_data.get("description"),
+                        "logo_url": f"https://logo.clearbit.com/{company_data.get('domain')}" if company_data.get("domain") else None,
+                        "website": f"https://{company_data.get('domain')}" if company_data.get("domain") else None,
+                        "linkedin_url": None,
+                    })
+                    if len(results) >= limit:
+                        break
 
     # Convert to response schema and mark if already tracked
     search_results = []
