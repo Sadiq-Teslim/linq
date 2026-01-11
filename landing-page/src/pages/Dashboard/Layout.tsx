@@ -304,37 +304,33 @@ export const DashboardLayout = () => {
         </div>
       )}
 
-      <div className={`pt-[73px] ${!loading && !isActive ? "pt-[121px]" : ""}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Sidebar - Desktop */}
-            <nav className="hidden md:block w-56 flex-shrink-0">
-              <div className="sticky top-[105px] space-y-1">
-                {navItems.map((item, index) => (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      location.pathname === item.path
-                        ? "bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/30"
-                        : "text-slate-300 hover:text-white hover:bg-white/5 glass border border-white/10 hover:border-blue-500/20"
-                    }`}
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </nav>
+      {/* Sidebar - Desktop Fixed */}
+      <nav className={`hidden md:block fixed left-0 w-64 h-screen ${!loading && !isActive ? "top-[121px]" : "top-[73px]"} z-30 px-4 py-8 overflow-y-auto`}>
+        <div className="space-y-1">
+          {navItems.map((item, index) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                location.pathname === item.path
+                  ? "bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-lg shadow-blue-500/30 border border-blue-500/30"
+                  : "text-slate-300 hover:text-white hover:bg-white/5 glass border border-white/10 hover:border-blue-500/20"
+              }`}
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
-            {/* Content */}
-            <main className="flex-1 min-w-0">
-              <div className="animate-fade-in-up">
-                <Outlet context={{ subscriptionStatus, isActive }} />
-              </div>
-            </main>
-          </div>
+      {/* Main Content */}
+      <div className={`md:ml-64 pt-[73px] ${!loading && !isActive ? "pt-[121px]" : ""}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <main className="animate-fade-in-up">
+            <Outlet context={{ subscriptionStatus, isActive }} />
+          </main>
         </div>
       </div>
     </div>
