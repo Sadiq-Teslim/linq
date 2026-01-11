@@ -88,7 +88,7 @@ export const api = {
       getApiClient(token).get("/subscription/access-codes"),
 
     // DELETE /subscription/access-codes/{code_id} - Delete access code
-    deleteAccessCode: (token: string, codeId: string) =>
+    deleteAccessCode: (token: string, codeId: number) =>
       getApiClient(token).delete(`/subscription/access-codes/${codeId}`),
 
     // POST /subscription/paystack/initialize - Start payment

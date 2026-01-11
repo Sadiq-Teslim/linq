@@ -50,7 +50,7 @@ export const Modal = ({
     info: "text-blue-400 bg-blue-500/10",
     success: "text-green-400 bg-green-500/10",
     error: "text-red-400 bg-red-500/10",
-    warning: "text-amber-400 bg-amber-500/10",
+    warning: "text-blue-400 bg-blue-500/10",
   };
 
   const icons = {
@@ -118,16 +118,16 @@ export const Modal = ({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
       onClick={closeOnOverlayClick ? onClose : undefined}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md animate-fade-in" />
 
       {/* Modal */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-md bg-[#0f1629] border border-white/10 rounded-2xl shadow-2xl animate-scale-in overflow-hidden"
+        className="relative w-full max-w-md glass border border-white/10 rounded-2xl shadow-2xl animate-scale-in overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -195,10 +195,10 @@ export const AlertModal = ({
   buttonText = "OK",
 }: AlertModalProps) => {
   const buttonColors = {
-    info: "bg-blue-500 hover:bg-blue-400",
-    success: "bg-green-500 hover:bg-green-400",
-    error: "bg-red-500 hover:bg-red-400",
-    warning: "bg-amber-500 hover:bg-amber-400",
+    info: "bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500 shadow-lg shadow-blue-500/30",
+    success: "bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 shadow-lg shadow-green-500/30",
+    error: "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-500/30",
+    warning: "bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500 shadow-lg shadow-blue-500/30",
   };
 
   return (
@@ -238,10 +238,10 @@ export const ConfirmModal = ({
   loading = false,
 }: ConfirmModalProps) => {
   const buttonColors = {
-    info: "bg-blue-500 hover:bg-blue-400",
-    success: "bg-green-500 hover:bg-green-400",
-    error: "bg-red-500 hover:bg-red-400",
-    warning: "bg-amber-500 hover:bg-amber-400",
+    info: "bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500 shadow-lg shadow-blue-500/30",
+    success: "bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 shadow-lg shadow-green-500/30",
+    error: "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-500/30",
+    warning: "bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500 shadow-lg shadow-blue-500/30",
   };
 
   return (
