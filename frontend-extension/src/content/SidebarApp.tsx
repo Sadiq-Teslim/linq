@@ -41,28 +41,23 @@ export const SidebarApp = () => {
 
   return (
     <>
-      {/* Floating Action Button (FAB) - Collapsed State */}
-      {!isOpen && (
-        <div className="fixed top-1/2 right-0 -translate-y-1/2 z-[2147483647]">
-          <button
-            onClick={toggleSidebar}
-            className="w-12 h-14 rounded-l-lg flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:w-14"
-            style={{ backgroundColor: "#0052cc" }}
-            title="Open LYNQ AI"
-          >
-            <span className="text-white font-bold text-xl font-sans">L</span>
-          </button>
-        </div>
-      )}
+      {/* Floating Action Button (FAB) - Always Visible */}
+      <div className="fixed top-1/2 right-0 -translate-y-1/2 z-[2147483647]">
+        <button
+          onClick={toggleSidebar}
+          className="w-12 h-14 rounded-l-lg flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:w-14"
+          style={{ backgroundColor: "#0052cc" }}
+          title={isOpen ? "Close LYNQ AI" : "Open LYNQ AI"}
+        >
+          <span className="text-white font-bold text-xl font-sans">L</span>
+        </button>
+      </div>
 
       {/* Expanded State - PURE WRAPPER */}
       {isOpen && (
         <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/10 z-[2147483646] transition-opacity duration-300"
-            onClick={toggleSidebar}
-          />
+          {/* Backdrop - Non-interactive */}
+          <div className="fixed inset-0 bg-black/10 z-[2147483646] transition-opacity duration-300 pointer-events-none" />
 
           {/* Extension Container - NO WRAPPER UI */}
           <div className="fixed top-0 right-0 h-screen w-[400px] shadow-2xl z-[2147483647] animate-slide-in-right">
