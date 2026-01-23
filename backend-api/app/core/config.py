@@ -98,14 +98,22 @@ class Settings(BaseSettings):
     # CORS
     # =============================================================================
     # Format: comma-separated string "http://localhost:5173,http://localhost:3000"
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,https://use-linq.netlify.app"
 
     @property
     def allowed_origins(self) -> List[str]:
-        """Get CORS origins - parses comma-separated string"""
+        """Get CORS origins - parses comma-separated string including extension domains"""
+        base_origins = []
         if self.CORS_ORIGINS:
-            return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
-        return ["http://localhost:5173", "http://localhost:3000"]
+            base_origins = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        else:
+            base_origins = ["http://localhost:5173", "http://localhost:3000"]
+
+        # Always include extension deployment origin
+        if "https://use-linq.netlify.app" not in base_origins:
+            base_origins.append("https://use-linq.netlify.app")
+
+        return base_origins
 
     # =============================================================================
     # DATABASE

@@ -49,7 +49,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # CORS middleware - uses environment-aware origins
-# In development, allow common localhost ports
+# In development, allow common localhost ports + extension origins
 development_origins = [
     "http://localhost:5173",
     "http://localhost:3000",
@@ -58,9 +58,30 @@ development_origins = [
     "http://127.0.0.1:3000",
 ]
 
+# Chrome extension runs on these domains - must be allowed in all environments
+extension_origins = [
+    # Salesforce domains
+    "https://*.salesforce.com",
+    "https://*.force.com",
+    "https://*.lightning.force.com",
+    "https://*.my.salesforce.com",
+    # HubSpot domains
+    "https://*.hubspot.com",
+    "https://app.hubspot.com",
+    # ECX domains
+    "https://*.ecx.com.ng",
+    "https://go.ecx.com.ng",
+    # Netlify deployment
+    "https://use-linq.netlify.app",
+]
+
+# Combine all allowed origins
+all_origins = development_origins + extension_origins if settings.is_development else settings.allowed_origins + extension_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=development_origins if settings.is_development else settings.allowed_origins,
+    allow_origin_regex=r"https://.*\.(salesforce|force|hubspot|ecx\.com)\..*",
+    allow_origins=all_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
