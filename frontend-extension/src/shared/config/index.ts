@@ -6,7 +6,8 @@
 export const CONFIG = {
   // API Configuration - Use live API
   API_BASE_URL:
-    import.meta.env.VITE_API_BASE_URL || "https://linq-api.onrender.com/api/v1",
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://linq-api2.onrender.com/api/v1",
 
   // Local API for Ollama-specific endpoints (AI insights generation)
   LOCAL_API_URL:

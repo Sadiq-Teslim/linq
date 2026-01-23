@@ -10,7 +10,7 @@ export const CONFIG = {
         import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1"
       );
     }
-    return "https://linq-api.onrender.com/api/v1";
+    return "https://linq-api2.onrender.com/api/v1";
   },
 
   PAYSTACK_PUBLIC_KEY:

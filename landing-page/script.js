@@ -11,7 +11,7 @@ const CONFIG = {
       return "http://localhost:8000/api/v1";
     }
     // Production API URL - update this after Render deployment
-    return "https://linq-api.onrender.com/api/v1";
+    return "https://linq-api2.onrender.com/api/v1";
   },
 
   // Paystack public key (same for test/live, but you should use live key in prod)

@@ -6,7 +6,15 @@ import { MarketPulse } from "@/widgets/market-pulse";
 import { ResultCard } from "@/widgets/intelligence-card/ResultCard";
 import { ToastProvider, useToast, Sidebar } from "@/shared/ui";
 import { CONFIG } from "@/shared/config";
-import { Building2, Newspaper, Sparkles, Bell, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Building2,
+  Newspaper,
+  Sparkles,
+  Bell,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { useCompanyStore } from "@/entities/company/store";
 
 type TabType = "home" | "companies" | "feed" | "notifications" | "settings";
@@ -38,13 +46,13 @@ const PopupContent = () => {
       // Refresh industry feed in background
       try {
         fetch(
-          `${import.meta.env.VITE_API_BASE_URL || "https://linq-api.onrender.com/api/v1"}/feed/refresh`,
+          `${import.meta.env.VITE_API_BASE_URL || "https://linq-api2.onrender.com/api/v1"}/feed/refresh`,
           {
             method: "GET",
             headers: {
               Authorization: `Bearer ${localStorage.getItem("linq-extension-auth") ? JSON.parse(localStorage.getItem("linq-extension-auth")!).state?.token : ""}`,
             },
-          }
+          },
         ).catch(() => {});
       } catch (e) {
         // Ignore
@@ -106,7 +114,7 @@ const PopupContent = () => {
   };
 
   const handleMarkAllRead = async () => {
-    const unreadIds = updates.filter(u => !u.is_read).map(u => u.id);
+    const unreadIds = updates.filter((u) => !u.is_read).map((u) => u.id);
     if (unreadIds.length > 0) {
       await markUpdatesRead(unreadIds);
       addToast({
@@ -195,9 +203,7 @@ const PopupContent = () => {
                   Notifications
                 </h2>
                 {unreadCount > 0 && (
-                  <span className="badge badge-success">
-                    {unreadCount} new
-                  </span>
+                  <span className="badge badge-success">{unreadCount} new</span>
                 )}
               </div>
               {unreadCount > 0 && (
@@ -210,13 +216,15 @@ const PopupContent = () => {
                 </button>
               )}
             </div>
-            
+
             {updates.length === 0 ? (
               <div className="glass-card rounded-2xl p-8 text-center">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Bell className="w-6 h-6 text-blue-400" />
                 </div>
-                <h3 className="text-sm font-medium text-white">No notifications yet</h3>
+                <h3 className="text-sm font-medium text-white">
+                  No notifications yet
+                </h3>
                 <p className="text-xs text-white/60 mt-1">
                   Company updates and alerts will appear here
                 </p>
@@ -231,12 +239,16 @@ const PopupContent = () => {
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        update.importance === "high" || update.importance === "critical"
-                          ? "bg-orange-500/20"
-                          : "bg-blue-500/20"
-                      }`}>
-                        {update.importance === "high" || update.importance === "critical" ? (
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          update.importance === "high" ||
+                          update.importance === "critical"
+                            ? "bg-orange-500/20"
+                            : "bg-blue-500/20"
+                        }`}
+                      >
+                        {update.importance === "high" ||
+                        update.importance === "critical" ? (
                           <AlertCircle className="w-4 h-4 text-orange-400" />
                         ) : (
                           <Bell className="w-4 h-4 text-blue-400" />
@@ -257,13 +269,15 @@ const PopupContent = () => {
                             {formatTimeAgo(update.detected_at)}
                           </span>
                           {update.importance && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                              update.importance === "critical"
-                                ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                                : update.importance === "high"
-                                  ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
-                                  : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                            }`}>
+                            <span
+                              className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                update.importance === "critical"
+                                  ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                  : update.importance === "high"
+                                    ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
+                                    : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                              }`}
+                            >
                               {update.importance}
                             </span>
                           )}
@@ -291,9 +305,7 @@ const PopupContent = () => {
             </div>
             <div className="space-y-4">
               <div className="p-4 glass rounded-xl border border-white/10">
-                <p className="text-sm font-medium text-white">
-                  {user?.email}
-                </p>
+                <p className="text-sm font-medium text-white">{user?.email}</p>
                 <p className="text-xs text-white/60 mt-1">
                   {user?.organization_name || "Personal Account"}
                 </p>
@@ -322,7 +334,7 @@ const PopupContent = () => {
   };
 
   return (
-    <div className="w-[380px] h-[520px] flex overflow-hidden relative">
+    <div className="w-full h-full flex overflow-hidden relative">
       {/* Sidebar */}
       <Sidebar
         activeTab={activeTab}

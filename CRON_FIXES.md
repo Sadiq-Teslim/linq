@@ -8,7 +8,7 @@
 **Fix:**
 
 - Added GET method support to `/fetch-updates` endpoint
-- Cron job should use: `https://linq-api.onrender.com/api/v1/internal/fetch-updates` (no space)
+- Cron job should use: `https://linq-api2.onrender.com/api/v1/internal/fetch-updates` (no space)
 
 ### 2. ✅ Timeout on `/refresh-companies`
 
@@ -53,19 +53,17 @@
 Make sure your cron-job.org URLs are correct (no spaces):
 
 1. **Refresh Companies** (every 6 hours):
-
-   - URL: `https://linq-api.onrender.com/api/v1/internal/refresh-companies`
+   - URL: `https://linq-api2.onrender.com/api/v1/internal/refresh-companies`
    - Method: POST or GET
    - Header: `X-API-Key: linq-is-called-from-inside-outside`
 
 2. **Fetch Updates** (every 12 hours):
-
-   - URL: `https://linq-api.onrender.com/api/v1/internal/fetch-updates`
+   - URL: `https://linq-api2.onrender.com/api/v1/internal/fetch-updates`
    - Method: POST or GET
    - Header: `X-API-Key: linq-is-called-from-inside-outside`
 
 3. **Verify Contacts** (daily at 2 AM):
-   - URL: `https://linq-api.onrender.com/api/v1/internal/verify-contacts`
+   - URL: `https://linq-api2.onrender.com/api/v1/internal/verify-contacts`
    - Method: POST
    - Header: `X-API-Key: linq-is-called-from-inside-outside`
 

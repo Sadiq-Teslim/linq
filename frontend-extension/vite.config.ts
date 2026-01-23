@@ -11,4 +11,12 @@ export default defineConfig({
       "@": resolve(__dirname, "src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Ensure proper chunking for content scripts
+        manualChunks: undefined,
+      },
+    },
+  },
 });

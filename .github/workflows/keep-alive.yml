@@ -3,7 +3,7 @@ name: Keep Backend Alive
 on:
   schedule:
     # Run every 5 minutes
-    - cron: '*/5 * * * *'
+    - cron: "*/5 * * * *"
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Ping Backend Health Endpoint
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://linq-api.onrender.com/health)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://linq-api2.onrender.com/health)
           echo "Health check response: $response"
           if [ "$response" = "200" ]; then
             echo "Backend is healthy!"
@@ -23,5 +23,5 @@ jobs:
 
       - name: Ping Root Endpoint
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://linq-api.onrender.com/)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://linq-api2.onrender.com/)
           echo "Root endpoint response: $response"
