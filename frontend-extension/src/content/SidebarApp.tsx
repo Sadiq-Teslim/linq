@@ -36,9 +36,18 @@ export const SidebarApp = () => {
 
   // Drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only drag from the top bar area (first 40px)
-    const rect = sidebarRef.current?.getBoundingClientRect();
-    if (rect && e.clientY - rect.top > 40) return;
+    // Don't drag if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === "BUTTON" ||
+      target.tagName === "INPUT" ||
+      target.tagName === "A" ||
+      target.closest("button") ||
+      target.closest("input") ||
+      target.closest("a")
+    ) {
+      return;
+    }
 
     setIsDragging(true);
     setDragStart({
@@ -110,57 +119,42 @@ export const SidebarApp = () => {
         </button>
       </div>
 
-      {/* Expanded State - DRAGGABLE WRAPPER */}
+      {/* Expanded State - PURE WRAPPER (Draggable) */}
       {isOpen && (
         <div
           ref={sidebarRef}
-          className="fixed h-screen w-[400px] bg-white shadow-2xl z-[2147483647] flex flex-col"
+          className="fixed h-screen w-[400px] bg-white shadow-2xl z-[2147483647]"
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,
-            cursor: isDragging ? "grabbing" : "default",
           }}
+          onMouseDown={handleMouseDown}
         >
-          {/* Drag Handle & Close Button */}
-          <div
-            className="h-10 bg-gradient-to-r from-blue-600 to-green-600 flex items-center justify-between px-4 flex-shrink-0"
-            onMouseDown={handleMouseDown}
-            style={{ cursor: "grab" }}
+          {/* Close Button - Floating */}
+          <button
+            onClick={toggleSidebar}
+            className="absolute top-2 right-2 z-[9999] w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-lg hover:shadow-xl"
+            style={{ backgroundColor: "#0052cc" }}
+            title="Close"
           >
-            <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-sm">LINQ AI</span>
-              <div className="flex gap-1">
-                <div className="w-1 h-1 bg-white/50 rounded-full"></div>
-                <div className="w-1 h-1 bg-white/50 rounded-full"></div>
-                <div className="w-1 h-1 bg-white/50 rounded-full"></div>
-              </div>
-            </div>
-            <button
-              onClick={toggleSidebar}
-              className="text-white hover:bg-white/20 rounded p-1 transition-colors"
-              title="Close"
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 4L4 12M4 4L12 12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
+              <path
+                d="M12 4L4 12M4 4L12 12"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
 
-          {/* Content Area */}
-          <div className="flex-1 overflow-hidden">
-            {isAuthenticated ? <PopupPage /> : <LoginPage />}
-          </div>
+          {/* Content - Pure Pass-through */}
+          {isAuthenticated ? <PopupPage /> : <LoginPage />}
         </div>
       )}
 
