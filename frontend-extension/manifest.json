@@ -4,13 +4,28 @@
   "version": "1.0.0",
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "https://*.salesforce.com/*",
+        "https://*.force.com/*",
+        "https://*.lightning.force.com/*",
+        "https://*.my.salesforce.com/*",
+        "https://*.hubspot.com/*",
+        "https://app.hubspot.com/*"
+      ],
       "js": ["src/content/index.tsx"],
       "run_at": "document_end"
     }
   ],
   "permissions": ["activeTab", "storage", "scripting"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "https://*.salesforce.com/*",
+    "https://*.force.com/*",
+    "https://*.lightning.force.com/*",
+    "https://*.my.salesforce.com/*",
+    "https://*.hubspot.com/*",
+    "https://app.hubspot.com/*",
+    "https://linq-api2.onrender.com/*"
+  ],
   "background": {
     "service_worker": "src/app/background.ts",
     "type": "module"
