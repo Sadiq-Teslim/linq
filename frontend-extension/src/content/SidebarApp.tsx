@@ -55,15 +55,9 @@ export const SidebarApp = () => {
 
       {/* Expanded State - PURE WRAPPER */}
       {isOpen && (
-        <>
-          {/* Backdrop - Non-interactive */}
-          <div className="fixed inset-0 bg-black/10 z-[2147483646] transition-opacity duration-300 pointer-events-none" />
-
-          {/* Extension Container - NO WRAPPER UI */}
-          <div className="fixed top-0 right-0 h-screen w-[400px] shadow-2xl z-[2147483647] animate-slide-in-right">
-            {isAuthenticated ? <PopupPage /> : <LoginPage />}
-          </div>
-        </>
+        <div className="fixed top-0 right-0 h-screen w-[400px] bg-white shadow-2xl z-[2147483647] animate-slide-in-right">
+          {isAuthenticated ? <PopupPage /> : <LoginPage />}
+        </div>
       )}
 
       <style>
