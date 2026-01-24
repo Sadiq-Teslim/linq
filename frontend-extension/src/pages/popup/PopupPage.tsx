@@ -334,7 +334,13 @@ const PopupContent = () => {
   };
 
   return (
-    <div className="w-full h-full flex overflow-hidden relative">
+    <div className="w-full h-full flex overflow-hidden relative bg-gradient-to-b from-navy-950 to-navy-900">
+      {/* Decorative Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-green-500/10 rounded-full blur-3xl" />
+      </div>
+
       {/* Sidebar */}
       <Sidebar
         activeTab={activeTab}

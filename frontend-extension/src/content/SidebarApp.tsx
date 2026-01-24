@@ -123,7 +123,7 @@ export const SidebarApp = () => {
       {isOpen && (
         <div
           ref={sidebarRef}
-          className="fixed h-screen w-[400px] bg-white shadow-2xl z-[2147483647]"
+          className="fixed h-screen w-[400px] shadow-2xl z-[2147483647]"
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,
