@@ -89,11 +89,20 @@ export const DashboardPayment = () => {
       
       const config = response.data;
       
+      console.log("Korapay config received:", config);
+      
       if (!config.public_key || !config.reference) {
         alert("Failed to initialize payment. Please try again.");
         setLoading(false);
         return;
       }
+
+      console.log("Initializing Korapay with:", {
+        key: config.public_key?.substring(0, 15) + "...",
+        reference: config.reference,
+        amount: config.amount,
+        currency: config.currency,
+      });
 
       // Initialize Korapay checkout
       window.Korapay.initialize({
