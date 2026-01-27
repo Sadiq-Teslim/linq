@@ -55,7 +55,8 @@ export const PaymentCallback = () => {
       setHasToken(true);
 
       try {
-        const response = await api.subscription.verifyPaystackPayment(
+        // Verify payment with Korapay
+        const response = await api.subscription.verifyKorapayPayment(
           token,
           reference,
         );

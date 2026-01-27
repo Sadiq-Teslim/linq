@@ -85,7 +85,11 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"  # Celery broker
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"  # Celery results
 
-    # Paystack for payments
+    # Korapay for payments (USD)
+    KORAPAY_SECRET_KEY: str = ""
+    KORAPAY_PUBLIC_KEY: str = ""
+    
+    # Legacy Paystack (deprecated - migrating to Korapay)
     PAYSTACK_SECRET_KEY: str = ""
     PAYSTACK_PUBLIC_KEY: str = ""
 
@@ -128,13 +132,13 @@ class Settings(BaseSettings):
 
     @property
     def callback_url(self) -> str:
-        """Paystack callback URL"""
-        return f"{self.FRONTEND_URL}/payment/callback"
+        """Payment callback URL"""
+        return f"{self.FRONTEND_URL}/payment-callback"
 
     @property
     def webhook_url(self) -> str:
-        """Paystack webhook URL"""
-        return f"{self.API_BASE_URL}/api/v1/subscription/paystack/webhook"
+        """Korapay webhook URL"""
+        return f"{self.API_BASE_URL}/api/v1/subscription/korapay/webhook"
 
 
 @lru_cache()

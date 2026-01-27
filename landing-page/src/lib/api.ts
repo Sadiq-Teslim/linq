@@ -91,22 +91,40 @@ export const api = {
     deleteAccessCode: (token: string, codeId: number) =>
       getApiClient(token).delete(`/subscription/access-codes/${codeId}`),
 
-    // POST /subscription/paystack/initialize - Start payment
+    // GET /subscription/korapay/config - Get Korapay public key
+    getKorapayConfig: (token: string) =>
+      getApiClient(token).get("/subscription/korapay/config"),
+
+    // POST /subscription/korapay/initialize - Start payment (returns config for frontend checkout)
+    initializeKorapayPayment: (
+      token: string,
+      plan: string,
+      callbackUrl: string
+    ) => {
+      const url = `/subscription/korapay/initialize?plan=${plan}&callback_url=${encodeURIComponent(
+        callbackUrl
+      )}`;
+      console.log("Calling Korapay init with:", { plan, callbackUrl, url });
+      return getApiClient(token).post(url);
+    },
+
+    // GET /subscription/korapay/verify/{reference} - Verify payment
+    verifyKorapayPayment: (token: string, reference: string) =>
+      getApiClient(token).get(`/subscription/korapay/verify/${reference}`),
+
+    // Legacy Paystack methods (deprecated)
     initializePaystackPayment: (
       token: string,
       plan: string,
       callbackUrl: string
     ) => {
-      const url = `/subscription/paystack/initialize?plan=${plan}&callback_url=${encodeURIComponent(
-        callbackUrl
-      )}`;
-      console.log("Calling Paystack init with:", { plan, callbackUrl, url });
-      return getApiClient(token).post(url);
+      // Redirect to Korapay
+      return getApiClient(token).post(
+        `/subscription/korapay/initialize?plan=${plan}&callback_url=${encodeURIComponent(callbackUrl)}`
+      );
     },
-
-    // GET /subscription/paystack/verify/{reference} - Verify payment
     verifyPaystackPayment: (token: string, reference: string) =>
-      getApiClient(token).get(`/subscription/paystack/verify/${reference}`),
+      getApiClient(token).get(`/subscription/korapay/verify/${reference}`),
 
     // GET /subscription/payment-history - Get payment history
     getPaymentHistory: (token: string) =>

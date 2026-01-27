@@ -2,14 +2,50 @@ import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
 
+// Declare Korapay types
+declare global {
+  interface Window {
+    Korapay: {
+      initialize: (config: {
+        key: string;
+        reference: string;
+        amount: number;
+        currency: string;
+        customer: {
+          name: string;
+          email: string;
+        };
+        notification_url?: string;
+        onClose?: () => void;
+        onSuccess?: (data: { reference: string; status: string; amount: string }) => void;
+        onFailed?: (data: { reference: string; status: string }) => void;
+      }) => void;
+    };
+  }
+}
+
 export const DashboardPayment = () => {
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
   const [plans, setPlans] = useState<any[]>([]);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [korapayLoaded, setKorapayLoaded] = useState(false);
+
+  // Load Korapay script
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js";
+    script.async = true;
+    script.onload = () => setKorapayLoaded(true);
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,33 +70,68 @@ export const DashboardPayment = () => {
   }, [token]);
 
   const handleSubscribe = async (planName: string) => {
-    if (!token) return;
+    if (!token || !korapayLoaded) {
+      alert("Payment system is loading. Please try again.");
+      return;
+    }
+    
     setLoading(true);
     setSelectedPlan(planName);
     
     const callbackUrl = `${window.location.origin}/payment-callback`;
 
     try {
-      const response = await api.subscription.initializePaystackPayment(
+      const response = await api.subscription.initializeKorapayPayment(
         token,
         planName.toLowerCase(),
         callbackUrl
       );
-      if (response.data.authorization_url) {
-        window.location.href = response.data.authorization_url;
-      } else {
-        alert("No payment URL returned. Please try again.");
+      
+      const config = response.data;
+      
+      if (!config.public_key || !config.reference) {
+        alert("Failed to initialize payment. Please try again.");
+        setLoading(false);
+        return;
       }
+
+      // Initialize Korapay checkout
+      window.Korapay.initialize({
+        key: config.public_key,
+        reference: config.reference,
+        amount: config.amount,
+        currency: config.currency || "USD",
+        customer: {
+          name: config.customer_name || user?.full_name || "",
+          email: config.customer_email || user?.email || "",
+        },
+        notification_url: config.notification_url,
+        onClose: () => {
+          setLoading(false);
+          setSelectedPlan(null);
+        },
+        onSuccess: (data) => {
+          console.log("Payment successful:", data);
+          // Redirect to callback for verification
+          window.location.href = `${callbackUrl}?reference=${data.reference}`;
+        },
+        onFailed: (data) => {
+          console.error("Payment failed:", data);
+          alert("Payment failed. Please try again.");
+          setLoading(false);
+          setSelectedPlan(null);
+        },
+      });
     } catch (error) {
       console.error("Payment initialization failed:", error);
       alert("Failed to initialize payment. Please try again.");
-    } finally {
       setLoading(false);
+      setSelectedPlan(null);
     }
   };
 
   const formatPrice = (price: number) => {
-    return `₦${price.toLocaleString("en-NG")}`;
+    return `$${price.toLocaleString("en-US")}`;
   };
 
   const currentPlan = subscription?.plan || "free_trial";
@@ -123,10 +194,10 @@ export const DashboardPayment = () => {
             {!isSubscriptionActive && (
               <button
                 onClick={() => handleSubscribe(currentPlan)}
-                disabled={loading}
+                disabled={loading || !korapayLoaded}
                 className="px-6 py-2.5 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all disabled:opacity-50"
               >
-                Renew Subscription
+                {!korapayLoaded ? "Loading..." : "Renew Subscription"}
               </button>
             )}
           </div>
@@ -148,7 +219,7 @@ export const DashboardPayment = () => {
             .filter((plan) => plan.id !== "free_trial")
             .map((plan, index) => {
               const isCurrentPlan = currentPlan === plan.id;
-              const isDisabled = hasActivePaidPlan || loading;
+              const isDisabled = hasActivePaidPlan || loading || !korapayLoaded;
               
               return (
                 <div
@@ -216,6 +287,8 @@ export const DashboardPayment = () => {
                     >
                       {loading && selectedPlan === plan.id ? (
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : !korapayLoaded ? (
+                        "Loading..."
                       ) : hasActivePaidPlan ? (
                         "Unavailable"
                       ) : (
