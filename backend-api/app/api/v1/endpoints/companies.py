@@ -357,9 +357,9 @@ async def _discover_and_save_contacts(
     company_domain: Optional[str],
     supabase: SupabaseClient,
 ):
-    """Helper function to discover and save contacts"""
+    """Helper function to discover and save contacts using Smart Contact Discovery (Apollo + SerpAPI + Groq)"""
     try:
-        from app.services.contact_discovery_service import contact_discovery_service
+        from app.services.smart_contact_discovery import smart_contact_discovery
         
         # Extract main domain from subdomain (e.g., ibank.zenithbank.com -> zenithbank.com)
         main_domain = company_domain
@@ -368,13 +368,21 @@ async def _discover_and_save_contacts(
             if len(domain_parts) >= 2:
                 main_domain = ".".join(domain_parts[-2:])  # Get last 2 parts
         
-        print(f"🔍 Discovering contacts for {company_name} (domain: {main_domain})")
+        print(f"[SmartDiscovery] Discovering contacts for {company_name} (domain: {main_domain})")
         
-        discovered_contacts = await contact_discovery_service.discover_contacts(
+        # Use smart discovery (Apollo + SerpAPI + Groq merge)
+        discovery_result = await smart_contact_discovery.discover_contacts(
             company_name=company_name,
-            company_domain=main_domain,  # Use main domain for better results
-            country="Nigeria",
+            company_domain=main_domain,
+            location="Nigeria",
+            max_contacts=50,
         )
+        
+        discovered_contacts = discovery_result.get("contacts", [])
+        sources_used = discovery_result.get("sources_used", [])
+        merge_quality = discovery_result.get("merge_quality", "unknown")
+        
+        print(f"[SmartDiscovery] Found {len(discovered_contacts)} contacts (sources: {sources_used}, quality: {merge_quality})")
         
         now = datetime.utcnow()
         contacts_added = 0
@@ -1178,9 +1186,9 @@ async def refresh_company_data(
         # Log error but don't fail the refresh
         print(f"Error fetching company updates: {e}")
 
-    # Discover and store contacts (head officers and sales department heads)
+    # Discover and store contacts using Smart Contact Discovery (Apollo + SerpAPI + Groq)
     try:
-        from app.services.contact_discovery_service import contact_discovery_service
+        from app.services.smart_contact_discovery import smart_contact_discovery
         
         # Extract main domain from subdomain (e.g., ibank.zenithbank.com -> zenithbank.com)
         main_domain = company_domain
@@ -1189,13 +1197,19 @@ async def refresh_company_data(
             if len(domain_parts) >= 2:
                 main_domain = ".".join(domain_parts[-2:])  # Get last 2 parts
         
-        print(f"🔍 Discovering contacts for {company_name} (domain: {main_domain})")
+        print(f"[SmartDiscovery] Refreshing contacts for {company_name} (domain: {main_domain})")
         
-        discovered_contacts = await contact_discovery_service.discover_contacts(
+        # Use smart discovery (Apollo + SerpAPI + Groq merge)
+        discovery_result = await smart_contact_discovery.discover_contacts(
             company_name=company_name,
-            company_domain=main_domain,  # Use main domain for better results
-            country="Nigeria",
+            company_domain=main_domain,
+            location="Nigeria",
+            max_contacts=50,
         )
+        
+        discovered_contacts = discovery_result.get("contacts", [])
+        sources_used = discovery_result.get("sources_used", [])
+        print(f"[SmartDiscovery] Found {len(discovered_contacts)} contacts (sources: {sources_used})")
         
         # Store discovered contacts
         for contact_data in discovered_contacts:

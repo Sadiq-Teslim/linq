@@ -103,21 +103,21 @@ app.include_router(api_router, prefix="/api/v1")
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup"""
-    print("🚀 Starting up LINQ AI API...")
+    print("[STARTUP] Starting up LINQ AI API...")
     
     # Initialize Redis cache
     try:
         await redis_cache.connect()
     except Exception as e:
-        print(f"⚠ Redis initialization failed: {e}. Continuing without cache.")
+        print(f"[WARN] Redis initialization failed: {e}. Continuing without cache.")
     
-    print("✓ Startup complete")
+    print("[OK] Startup complete")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
-    print("🛑 Shutting down LINQ AI API...")
+    print("[SHUTDOWN] Shutting down LINQ AI API...")
     
     # Close Redis connection
     await redis_cache.disconnect()
@@ -130,7 +130,7 @@ async def shutdown_event():
     except:
         pass
     
-    print("✓ Shutdown complete")
+    print("[OK] Shutdown complete")
 
 
 @app.get("/")

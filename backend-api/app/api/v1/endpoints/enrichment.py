@@ -9,6 +9,8 @@ from pydantic import BaseModel, EmailStr
 from app.api.v1.endpoints.auth import get_current_user
 from app.services.waterfall_enrichment import waterfall_enrichment
 from app.services.cost_tracker import cost_tracker
+from app.services.data_sources.apollo import apollo_provider
+from app.services.smart_contact_discovery import smart_contact_discovery
 
 router = APIRouter()
 
@@ -37,6 +39,15 @@ class PersonEnrichmentRequest(BaseModel):
     last_name: Optional[str] = None
     company_domain: Optional[str] = None
     linkedin_url: Optional[str] = None
+
+
+class SmartDiscoveryRequest(BaseModel):
+    """Request model for smart contact discovery"""
+    company_name: str
+    company_domain: Optional[str] = None
+    location: Optional[str] = None
+    max_contacts: int = 50
+    include_roles: Optional[List[str]] = None
 
 
 # ===== Endpoints =====
@@ -235,4 +246,134 @@ async def get_enrichment_analytics(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Analytics error: {str(e)}"
         )
+
+
+@router.post("/smart-discover")
+async def smart_discover_contacts(
+    request: SmartDiscoveryRequest = Body(...),
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Smart Contact Discovery - Apollo + SerpAPI + Groq AI Merge
+    
+    This is the PRIMARY contact discovery endpoint that combines:
+    1. Apollo.io (Primary) - High-quality structured B2B data (91% email accuracy)
+    2. SerpAPI (Secondary) - Broader web coverage via Google/LinkedIn search
+    3. Groq LLM (Merger) - Intelligently combines and deduplicates results
+    
+    Request body:
+    {
+        "company_name": "Zenith Bank",
+        "company_domain": "zenithbank.com",  // Optional
+        "location": "Nigeria",                // Optional
+        "max_contacts": 50,
+        "include_roles": ["CEO", "CTO", "VP Sales"]  // Optional, defaults to executives + sales
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "contacts": [...],           // Merged, deduplicated contacts
+        "company": {...},            // Company info from Apollo
+        "sources_used": ["apollo", "serpapi", "groq_merger"],
+        "merge_quality": "excellent",  // excellent/good/moderate/limited
+        "total_raw_results": 45,      // Total before merge
+        "total_merged": 32            // Unique contacts after AI merge
+    }
+    """
+    try:
+        result = await smart_contact_discovery.discover_contacts(
+            company_name=request.company_name,
+            company_domain=request.company_domain,
+            location=request.location,
+            max_contacts=request.max_contacts,
+            include_roles=request.include_roles,
+        )
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Smart discovery error: {str(e)}"
+        )
+
+
+@router.get("/test-smart-discover")
+async def test_smart_discovery():
+    """
+    Test Smart Contact Discovery (no auth required for testing)
+    
+    Tests the Apollo + SerpAPI + Groq pipeline with a sample company.
+    """
+    try:
+        result = await smart_contact_discovery.discover_contacts(
+            company_name="Microsoft",
+            max_contacts=10,
+        )
+        
+        return {
+            "success": result.get("success"),
+            "message": "Smart discovery test complete",
+            "sources_used": result.get("sources_used", []),
+            "merge_quality": result.get("merge_quality"),
+            "contacts_found": len(result.get("contacts", [])),
+            "sample_contacts": result.get("contacts", [])[:3],  # Show first 3
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Smart discovery test error: {str(e)}",
+            "error_type": type(e).__name__
+        }
+
+
+@router.get("/test-apollo")
+async def test_apollo_connection():
+    """
+    Test Apollo.io API connection (no auth required for testing)
+    
+    Returns:
+    - Apollo enabled status
+    - Test company search result
+    """
+    try:
+        # Check if Apollo is enabled
+        if not apollo_provider.enabled:
+            return {
+                "success": False,
+                "apollo_enabled": False,
+                "message": "Apollo API key not configured. Set APOLLO_API_KEY in .env"
+            }
+        
+        # Test with a well-known company
+        test_company = await apollo_provider.search_company("Microsoft")
+        
+        if test_company:
+            return {
+                "success": True,
+                "apollo_enabled": True,
+                "message": "Apollo.io connection successful!",
+                "test_result": {
+                    "company_name": test_company.get("name"),
+                    "domain": test_company.get("domain"),
+                    "industry": test_company.get("industry"),
+                    "employee_count": test_company.get("employee_count"),
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "apollo_enabled": True,
+                "message": "Apollo connected but returned no results for test query"
+            }
+            
+    except Exception as e:
+        return {
+            "success": False,
+            "apollo_enabled": apollo_provider.enabled,
+            "message": f"Apollo API error: {str(e)}",
+            "error_type": type(e).__name__
+        }
 
