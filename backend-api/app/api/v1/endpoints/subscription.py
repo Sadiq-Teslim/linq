@@ -480,8 +480,8 @@ def activate_access_code(
             success=True,
             access_token=demo_token,
             token_type="bearer",
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            message="Demo mode activated successfully",
+            expires_in=settings.EXTENSION_TOKEN_EXPIRE_HOURS * 60 * 60,  # 48 hours in seconds
+            message="Demo mode activated successfully. Valid for 48 hours.",
         )
 
     # Validate code first
@@ -541,7 +541,7 @@ def activate_access_code(
         success=True,
         access_token=access_token,
         token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires_in=settings.EXTENSION_TOKEN_EXPIRE_HOURS * 60 * 60,  # 48 hours in seconds
         organization=OrganizationResponse(
             id=org_id,
             name=org.get("name"),
@@ -553,7 +553,7 @@ def activate_access_code(
             created_at=now,
             updated_at=now,
         ),
-        message="Extension activated successfully",
+        message="Extension activated successfully. Valid for 48 hours.",
     )
 
 

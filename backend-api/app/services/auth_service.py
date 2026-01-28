@@ -364,6 +364,7 @@ class AuthService:
         """
         Create a session for the Chrome extension activation
         This is used when activating via access code
+        Extension sessions last 48 hours (configurable via EXTENSION_TOKEN_EXPIRE_HOURS)
         """
         # Create access token for organization-based access
         token_data = {
@@ -373,9 +374,10 @@ class AuthService:
             "extension": True,
         }
 
+        # Extension tokens last 48 hours (not 30 minutes like regular tokens)
         access_token = create_access_token(
             token_data,
-            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+            expires_delta=timedelta(hours=settings.EXTENSION_TOKEN_EXPIRE_HOURS),
         )
 
         # Only create session record if we have a user_id

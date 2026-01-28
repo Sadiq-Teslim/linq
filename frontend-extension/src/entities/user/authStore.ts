@@ -9,6 +9,7 @@ interface AuthState {
   organization: Organization | null;
   accessCode: string | null; // Stored permanently after first activation
   accessCodeExpiresAt: string | null; // When the access code expires
+  activatedAt: string | null; // When the extension was first activated (for 48-hour window)
   isAuthenticated: boolean;
   isActivated: boolean; // Extension has been activated with access code
   isLoading: boolean;
@@ -45,6 +46,9 @@ interface AuthState {
   setNeedsNewAccessCode: (needs: boolean) => void;
 }
 
+// 48 hours in milliseconds
+const ACTIVATION_VALID_DURATION_MS = 48 * 60 * 60 * 1000;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -53,6 +57,7 @@ export const useAuthStore = create<AuthState>()(
       organization: null,
       accessCode: null,
       accessCodeExpiresAt: null,
+      activatedAt: null,
       isAuthenticated: false,
       isActivated: false,
       isLoading: false,
@@ -83,33 +88,37 @@ export const useAuthStore = create<AuthState>()(
             return { success: false, needsAccessCode: false, message: "Subscription not active" };
           }
 
-          // Check if we have a stored access code and if it's still valid
-          const { accessCode, accessCodeExpiresAt, isActivated } = get();
+          // Check if we have a stored access code and if it's still valid (48-hour window)
+          const { accessCode, activatedAt, isActivated } = get();
 
-          // If already activated with a valid access code, complete login
-          if (isActivated && accessCode) {
-            // Check if access code has expired
-            if (accessCodeExpiresAt) {
-              const expiresAt = new Date(accessCodeExpiresAt);
-              if (expiresAt < new Date()) {
-                // Access code expired, need a new one
-                set({
-                  user,
-                  isLoading: false,
-                  needsNewAccessCode: true,
-                });
-                return { success: true, needsAccessCode: true, message: "Access code expired" };
-              }
+          // If already activated with a valid access code, check 48-hour window
+          if (isActivated && accessCode && activatedAt) {
+            const activatedTime = new Date(activatedAt).getTime();
+            const now = Date.now();
+            const timeSinceActivation = now - activatedTime;
+
+            // Check if within 48-hour window
+            if (timeSinceActivation < ACTIVATION_VALID_DURATION_MS) {
+              // Still within 48-hour window, complete authentication
+              set({
+                user,
+                isAuthenticated: true,
+                isLoading: false,
+                needsNewAccessCode: false,
+              });
+              return { success: true, needsAccessCode: false };
+            } else {
+              // 48 hours expired, need a new access code
+              set({
+                user,
+                isLoading: false,
+                needsNewAccessCode: true,
+                isActivated: false,
+                accessCode: null,
+                activatedAt: null,
+              });
+              return { success: true, needsAccessCode: true, message: "Session expired (48 hours). Please enter a new access code." };
             }
-
-            // Access code still valid, complete authentication
-            set({
-              user,
-              isAuthenticated: true,
-              isLoading: false,
-              needsNewAccessCode: false,
-            });
-            return { success: true, needsAccessCode: false };
           }
 
           // Not activated yet, need access code
@@ -158,10 +167,12 @@ export const useAuthStore = create<AuthState>()(
             return false;
           }
 
-          // Store access code permanently
+          // Store token, access code, and activation timestamp (for 48-hour window)
           set({
+            token: activationResponse.access_token || get().token, // Use activation token
             accessCode: accessCode,
             accessCodeExpiresAt: validation.expires_at || null,
+            activatedAt: new Date().toISOString(), // Track when activation happened
             organization: activationResponse.organization || null,
             isAuthenticated: true,
             isActivated: true,
@@ -195,36 +206,33 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Check if stored access code is still valid
+      // Check if stored access code is still valid (48-hour window)
       checkAccessCodeValidity: async () => {
-        const { accessCode, accessCodeExpiresAt } = get();
+        const { accessCode, activatedAt } = get();
 
-        if (!accessCode) {
-          set({ needsNewAccessCode: true });
+        if (!accessCode || !activatedAt) {
+          set({ needsNewAccessCode: true, isActivated: false });
           return false;
         }
 
-        // Check expiry date
-        if (accessCodeExpiresAt) {
-          const expiresAt = new Date(accessCodeExpiresAt);
-          if (expiresAt < new Date()) {
-            set({ needsNewAccessCode: true });
-            return false;
-          }
+        // Check if within 48-hour window
+        const activatedTime = new Date(activatedAt).getTime();
+        const now = Date.now();
+        const timeSinceActivation = now - activatedTime;
+
+        if (timeSinceActivation >= ACTIVATION_VALID_DURATION_MS) {
+          // 48 hours expired
+          set({ 
+            needsNewAccessCode: true, 
+            isActivated: false,
+            accessCode: null,
+            activatedAt: null,
+          });
+          return false;
         }
 
-        // Optionally validate with server
-        try {
-          const result = await authApi.validateCode(accessCode);
-          if (!result.valid) {
-            set({ needsNewAccessCode: true });
-            return false;
-          }
-          return true;
-        } catch {
-          // If server validation fails, assume valid (offline mode)
-          return true;
-        }
+        // Still within 48-hour window
+        return true;
       },
 
       logout: async () => {
@@ -243,6 +251,7 @@ export const useAuthStore = create<AuthState>()(
           organization: null,
           accessCode: null,
           accessCodeExpiresAt: null,
+          activatedAt: null,
           isAuthenticated: false,
           isActivated: false,
           needsNewAccessCode: false,
@@ -250,7 +259,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkSession: async () => {
-        const { token, isActivated, accessCode } = get();
+        const { token, isActivated, accessCode, activatedAt } = get();
         if (!token) return false;
 
         try {
@@ -268,13 +277,31 @@ export const useAuthStore = create<AuthState>()(
               return false;
             }
 
-            // If activated with access code, fully authenticate
-            if (isActivated && accessCode) {
-              set({ user, isAuthenticated: true });
-              return true;
+            // If activated with access code, check 48-hour window
+            if (isActivated && accessCode && activatedAt) {
+              const activatedTime = new Date(activatedAt).getTime();
+              const now = Date.now();
+              const timeSinceActivation = now - activatedTime;
+
+              if (timeSinceActivation < ACTIVATION_VALID_DURATION_MS) {
+                // Still within 48-hour window
+                set({ user, isAuthenticated: true });
+                return true;
+              } else {
+                // 48 hours expired
+                set({ 
+                  user, 
+                  isAuthenticated: false, 
+                  needsNewAccessCode: true,
+                  isActivated: false,
+                  accessCode: null,
+                  activatedAt: null,
+                });
+                return false;
+              }
             }
 
-            // Has valid session but needs access code
+            // Has valid session but needs access code (never activated)
             set({ user, isAuthenticated: false, needsNewAccessCode: true });
             return false;
           }
@@ -326,6 +353,7 @@ export const useAuthStore = create<AuthState>()(
         organization: state.organization,
         accessCode: state.accessCode,
         accessCodeExpiresAt: state.accessCodeExpiresAt,
+        activatedAt: state.activatedAt,
         isAuthenticated: state.isAuthenticated,
         isActivated: state.isActivated,
       }),

@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-super-secret-key-min-32-chars-long"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    EXTENSION_TOKEN_EXPIRE_HOURS: int = 48  # Extension sessions last 48 hours
 
     # =============================================================================
     # EXTERNAL APIS
