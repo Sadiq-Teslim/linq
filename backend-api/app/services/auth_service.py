@@ -190,7 +190,7 @@ class AuthService:
     def validate_session(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate a session token and return the user"""
         try:
-            # Find active session with retry logic
+            # First, try to find active session in database
             session_result = self._execute_with_retry(
                 self.supabase.table("user_sessions")
                     .select("*")
@@ -198,32 +198,79 @@ class AuthService:
                     .eq("is_active", True)
             )
 
-            if not session_result.data:
-                return None
+            if session_result.data:
+                session = session_result.data[0]
 
-            session = session_result.data[0]
+                # Update last activity with retry logic
+                self._execute_with_retry(
+                    self.supabase.table("user_sessions")
+                        .update({"last_activity": datetime.utcnow().isoformat()})
+                        .eq("id", session["id"])
+                )
 
-            # Update last activity with retry logic
-            self._execute_with_retry(
-                self.supabase.table("user_sessions")
-                    .update({"last_activity": datetime.utcnow().isoformat()})
-                    .eq("id", session["id"])
-            )
+                # Get user with retry logic
+                user_result = self._execute_with_retry(
+                    self.supabase.table("users")
+                        .select("*")
+                        .eq("id", session["user_id"])
+                )
 
-            # Get user with retry logic
-            user_result = self._execute_with_retry(
-                self.supabase.table("users")
-                    .select("*")
-                    .eq("id", session["user_id"])
-            )
+                if user_result.data:
+                    return user_result.data[0]
 
-            if not user_result.data:
-                return None
-
-            return user_result.data[0]
+            # Fallback: Try to decode JWT directly for extension tokens
+            # This handles cases where session wasn't created in DB (extension access codes)
+            try:
+                from jose import jwt, JWTError
+                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+                
+                # Check if this is an extension token with organization_id
+                org_id = payload.get("organization_id")
+                user_id = payload.get("user_id")
+                is_extension = payload.get("extension", False)
+                
+                if is_extension and org_id:
+                    # Find a user in this organization
+                    if user_id:
+                        user_result = self._execute_with_retry(
+                            self.supabase.table("users")
+                                .select("*")
+                                .eq("id", user_id)
+                        )
+                        if user_result.data:
+                            return user_result.data[0]
+                    
+                    # If no user_id in token, find any active user in the organization
+                    user_result = self._execute_with_retry(
+                        self.supabase.table("users")
+                            .select("*")
+                            .eq("organization_id", org_id)
+                            .eq("is_active", True)
+                            .limit(1)
+                    )
+                    if user_result.data:
+                        return user_result.data[0]
+                
+                # Regular JWT token (not extension) - try to get user from sub claim
+                email = payload.get("sub")
+                if email and not email.startswith("org:"):
+                    user_result = self._execute_with_retry(
+                        self.supabase.table("users")
+                            .select("*")
+                            .eq("email", email)
+                    )
+                    if user_result.data:
+                        return user_result.data[0]
+                        
+            except JWTError:
+                # Token is invalid or expired
+                pass
+            
+            return None
+            
         except (httpx.ReadError, httpx.ConnectError, httpx.TimeoutException, ConnectionError) as e:
             # Log the error but don't fail silently - let it propagate after retries
-            print(f"⚠ Network error during session validation: {e}")
+            print(f"[Auth] Network error during session validation: {e}")
             raise
 
     def revoke_session(self, token: str) -> bool:

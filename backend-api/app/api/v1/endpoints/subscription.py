@@ -525,9 +525,17 @@ def activate_access_code(
         "used_at": now.isoformat(),
     }).eq("id", code["id"]).execute()
 
-    # Create session token
+    # Find or create a user for this organization to create a proper session
+    # First, try to find an existing user in this organization
+    user_result = supabase.table("users").select("*").eq("organization_id", org_id).eq("is_active", True).limit(1).execute()
+    
+    user_id = None
+    if user_result.data:
+        user_id = user_result.data[0]["id"]
+    
+    # Create session token (now with user_id so session record is created)
     auth_service = AuthService(supabase)
-    access_token = auth_service.create_extension_session(org_id)
+    access_token = auth_service.create_extension_session(org_id, user_id=user_id)
 
     return ActivationResult(
         success=True,
