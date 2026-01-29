@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     EXTENSION_TOKEN_EXPIRE_HOURS: int = 48  # Extension sessions last 48 hours
+    
+    # Serper.dev API for Google search (contact discovery)
+    SERPER_API_KEY: str = ""
 
     # =============================================================================
     # EXTERNAL APIS

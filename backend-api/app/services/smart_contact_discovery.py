@@ -22,11 +22,11 @@ from app.services.cache.redis_client import redis_cache
 
 class SmartContactDiscovery:
     """
-    Intelligent contact discovery using Apollo + SerpAPI + Groq
+    Intelligent contact discovery using Apollo + Serper.dev + Groq
     Returns the best quality contacts with maximum coverage
     """
     
-    SERP_API_URL = "https://serpapi.com/search"
+    SERPER_API_URL = "https://google.serper.dev/search"
     GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
     
     # Target roles for discovery
@@ -36,7 +36,7 @@ class SmartContactDiscovery:
     
     def __init__(self):
         self.apollo = apollo_provider
-        self.serp_key = settings.SERP_API_KEY
+        self.serper_key = settings.SERPER_API_KEY  # Using Serper.dev instead of SerpAPI
         self.groq_key = settings.GROQ_API_KEY
     
     async def discover_contacts(
@@ -71,7 +71,7 @@ class SmartContactDiscovery:
         print(f"\n[SmartDiscovery] Starting discovery for {company_name}...")
         print(f"[SmartDiscovery] API Keys status:")
         print(f"  - Apollo: {'ENABLED' if self.apollo.enabled else 'DISABLED (no API key)'}")
-        print(f"  - SerpAPI: {'ENABLED' if self.serp_key else 'DISABLED (no API key)'}")
+        print(f"  - Serper: {'ENABLED' if self.serper_key else 'DISABLED (no API key)'}")
         print(f"  - Groq: {'ENABLED' if self.groq_key else 'DISABLED (no API key)'}")
         
         # Build role list
@@ -79,10 +79,10 @@ class SmartContactDiscovery:
         
         # Step 1: Fetch from both sources in parallel
         apollo_task = self._fetch_from_apollo(company_name, company_domain, roles, max_contacts)
-        serp_task = self._fetch_from_serpapi(company_name, company_domain, location, roles)
+        serper_task = self._fetch_from_serper(company_name, company_domain, location, roles)
         
-        apollo_results, serp_results = await asyncio.gather(
-            apollo_task, serp_task, return_exceptions=True
+        apollo_results, serper_results = await asyncio.gather(
+            apollo_task, serper_task, return_exceptions=True
         )
         
         # Handle exceptions
@@ -90,22 +90,22 @@ class SmartContactDiscovery:
             print(f"[SmartDiscovery] Apollo error: {apollo_results}")
             apollo_results = {"contacts": [], "company": None}
         
-        if isinstance(serp_results, Exception):
-            print(f"[SmartDiscovery] SerpAPI error: {serp_results}")
-            serp_results = {"contacts": []}
+        if isinstance(serper_results, Exception):
+            print(f"[SmartDiscovery] Serper error: {serper_results}")
+            serper_results = {"contacts": []}
         
         apollo_contacts = apollo_results.get("contacts", [])
-        serp_contacts = serp_results.get("contacts", [])
+        serper_contacts = serper_results.get("contacts", [])
         company_data = apollo_results.get("company") or {}
         
-        total_raw = len(apollo_contacts) + len(serp_contacts)
-        print(f"[SmartDiscovery] Raw results: Apollo={len(apollo_contacts)}, SerpAPI={len(serp_contacts)}")
+        total_raw = len(apollo_contacts) + len(serper_contacts)
+        print(f"[SmartDiscovery] Raw results: Apollo={len(apollo_contacts)}, Serper={len(serper_contacts)}")
         
         # If no results from any source, return early with helpful message
         if total_raw == 0:
             print(f"[SmartDiscovery] WARNING: No contacts found from any source for {company_name}")
-            if not self.apollo.enabled and not self.serp_key:
-                print(f"[SmartDiscovery] HINT: Both Apollo and SerpAPI are disabled. Check API keys in environment.")
+            if not self.apollo.enabled and not self.serper_key:
+                print(f"[SmartDiscovery] HINT: Both Apollo and Serper are disabled. Check API keys in environment.")
             return {
                 "success": False,
                 "contacts": [],
@@ -118,10 +118,10 @@ class SmartContactDiscovery:
             }
         
         # Step 2: Merge with Groq AI
-        if apollo_contacts or serp_contacts:
+        if apollo_contacts or serper_contacts:
             merged_contacts = await self._merge_with_groq(
                 apollo_contacts=apollo_contacts,
-                serp_contacts=serp_contacts,
+                serper_contacts=serper_contacts,
                 company_name=company_name,
                 max_contacts=max_contacts
             )
@@ -131,15 +131,15 @@ class SmartContactDiscovery:
             merged_contacts = []
         
         # Determine merge quality
-        merge_quality = self._assess_merge_quality(apollo_contacts, serp_contacts, merged_contacts)
+        merge_quality = self._assess_merge_quality(apollo_contacts, serper_contacts, merged_contacts)
         
         # Build sources list
         sources_used = []
         if apollo_contacts:
             sources_used.append("apollo")
-        if serp_contacts:
-            sources_used.append("serpapi")
-        if self.groq_key and (apollo_contacts or serp_contacts):
+        if serper_contacts:
+            sources_used.append("serper")
+        if self.groq_key and (apollo_contacts or serper_contacts):
             sources_used.append("groq_merger")
         
         print(f"[SmartDiscovery] Merged {total_raw} raw contacts into {len(merged_contacts)} unique contacts")
@@ -217,16 +217,16 @@ class SmartContactDiscovery:
         
         return {"contacts": contacts, "company": company_data}
     
-    async def _fetch_from_serpapi(
+    async def _fetch_from_serper(
         self,
         company_name: str,
         company_domain: Optional[str],
         location: Optional[str],
         roles: List[str],
     ) -> Dict[str, Any]:
-        """Fetch contacts from SerpAPI (Secondary source - web scraping)"""
-        if not self.serp_key:
-            print("[SmartDiscovery] SerpAPI not enabled (no API key)")
+        """Fetch contacts from Serper.dev (Secondary source - Google search)"""
+        if not self.serper_key:
+            print("[SmartDiscovery] Serper not enabled (no API key)")
             return {"contacts": []}
         
         all_contacts = []
@@ -234,110 +234,116 @@ class SmartContactDiscovery:
         # Search for each role
         search_tasks = []
         for role in roles[:4]:  # Limit to 4 roles to save API calls
-            search_tasks.append(self._search_serpapi_role(company_name, role, location))
+            search_tasks.append(self._search_serper_role(company_name, role, location))
         
         results = await asyncio.gather(*search_tasks, return_exceptions=True)
         
         for result in results:
             if isinstance(result, Exception):
+                print(f"[Serper] Role search exception: {result}")
                 continue
             all_contacts.extend(result)
         
         # Also search LinkedIn directly
-        linkedin_contacts = await self._search_linkedin_via_serpapi(company_name, location)
+        linkedin_contacts = await self._search_linkedin_via_serper(company_name, location)
         all_contacts.extend(linkedin_contacts)
         
-        print(f"[SerpAPI] Found {len(all_contacts)} contacts")
+        print(f"[Serper] Found {len(all_contacts)} contacts total")
         return {"contacts": all_contacts}
     
-    async def _search_serpapi_role(
+    async def _search_serper_role(
         self,
         company_name: str,
         role: str,
         location: Optional[str],
     ) -> List[Dict[str, Any]]:
-        """Search SerpAPI for a specific role"""
+        """Search Serper.dev for a specific role"""
         query = f"{role} {company_name}"
         if location:
             query += f" {location}"
         
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
-                response = await client.get(
-                    self.SERP_API_URL,
-                    params={
-                        "api_key": self.serp_key,
+                response = await client.post(
+                    self.SERPER_API_URL,
+                    headers={
+                        "X-API-KEY": self.serper_key,
+                        "Content-Type": "application/json",
+                    },
+                    json={
                         "q": query,
-                        "engine": "google",
                         "num": 10,
                     }
                 )
                 
                 if response.status_code != 200:
-                    print(f"[SerpAPI] Role search failed for '{role}': HTTP {response.status_code}")
+                    print(f"[Serper] Role search failed for '{role}': HTTP {response.status_code}")
                     try:
                         error_data = response.json()
-                        print(f"[SerpAPI] Error response: {error_data}")
+                        print(f"[Serper] Error response: {error_data}")
                     except:
-                        print(f"[SerpAPI] Error body: {response.text[:200]}")
+                        print(f"[Serper] Error body: {response.text[:200]}")
                     return []
                 
                 data = response.json()
                 
                 # Check for API errors in response
                 if data.get("error"):
-                    print(f"[SerpAPI] API error: {data.get('error')}")
+                    print(f"[Serper] API error: {data.get('error')}")
                     return []
                 
-                results = self._parse_serpapi_results(data, company_name, role)
-                print(f"[SerpAPI] Role '{role}': found {len(results)} contacts")
+                results = self._parse_serper_results(data, company_name, role)
+                print(f"[Serper] Role '{role}': found {len(results)} contacts")
                 return results
                 
         except Exception as e:
-            print(f"[SerpAPI] Search error for '{role}': {type(e).__name__}: {e}")
+            print(f"[Serper] Search error for '{role}': {type(e).__name__}: {e}")
             return []
     
-    async def _search_linkedin_via_serpapi(
+    async def _search_linkedin_via_serper(
         self,
         company_name: str,
         location: Optional[str],
     ) -> List[Dict[str, Any]]:
-        """Search LinkedIn profiles via SerpAPI"""
+        """Search LinkedIn profiles via Serper.dev"""
         query = f'site:linkedin.com/in "{company_name}" CEO OR founder OR director'
         if location:
             query += f" {location}"
         
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
-                response = await client.get(
-                    self.SERP_API_URL,
-                    params={
-                        "api_key": self.serp_key,
+                response = await client.post(
+                    self.SERPER_API_URL,
+                    headers={
+                        "X-API-KEY": self.serper_key,
+                        "Content-Type": "application/json",
+                    },
+                    json={
                         "q": query,
-                        "engine": "google",
                         "num": 15,
                     }
                 )
                 
                 if response.status_code != 200:
-                    print(f"[SerpAPI] LinkedIn search failed: HTTP {response.status_code}")
+                    print(f"[Serper] LinkedIn search failed: HTTP {response.status_code}")
                     try:
                         error_data = response.json()
-                        print(f"[SerpAPI] Error response: {error_data}")
+                        print(f"[Serper] Error response: {error_data}")
                     except:
-                        print(f"[SerpAPI] Error body: {response.text[:200]}")
+                        print(f"[Serper] Error body: {response.text[:200]}")
                     return []
                 
                 data = response.json()
                 
                 # Check for API errors in response
                 if data.get("error"):
-                    print(f"[SerpAPI] LinkedIn API error: {data.get('error')}")
+                    print(f"[Serper] LinkedIn API error: {data.get('error')}")
                     return []
                 
                 contacts = []
-                organic_results = data.get("organic_results", [])
-                print(f"[SerpAPI] LinkedIn search returned {len(organic_results)} organic results")
+                # Serper uses "organic" instead of "organic_results"
+                organic_results = data.get("organic", [])
+                print(f"[Serper] LinkedIn search returned {len(organic_results)} organic results")
                 
                 for result in organic_results:
                     link = result.get("link", "")
@@ -361,28 +367,28 @@ class SmartContactDiscovery:
                             "title": job_title,
                             "linkedin_url": link,
                             "company_name": company_name,
-                            "source": "serpapi_linkedin",
+                            "source": "serper_linkedin",
                             "confidence": 0.7,
                         })
                 
-                print(f"[SerpAPI] LinkedIn: extracted {len(contacts)} contacts from results")
+                print(f"[Serper] LinkedIn: extracted {len(contacts)} contacts from results")
                 return contacts
                 
         except Exception as e:
-            print(f"[SerpAPI] LinkedIn search error: {type(e).__name__}: {e}")
+            print(f"[Serper] LinkedIn search error: {type(e).__name__}: {e}")
             return []
     
-    def _parse_serpapi_results(
+    def _parse_serper_results(
         self,
         data: Dict[str, Any],
         company_name: str,
         role: str,
     ) -> List[Dict[str, Any]]:
-        """Parse SerpAPI results into contacts"""
+        """Parse Serper.dev results into contacts"""
         contacts = []
         
-        # Parse LinkedIn profiles from results
-        for result in data.get("organic_results", []):
+        # Serper uses "organic" instead of "organic_results"
+        for result in data.get("organic", []):
             link = result.get("link", "")
             snippet = result.get("snippet", "")
             title = result.get("title", "")
@@ -410,7 +416,7 @@ class SmartContactDiscovery:
                     "phone": phone_match.group(0) if phone_match else None,
                     "linkedin_url": link if "linkedin.com/in/" in link else None,
                     "company_name": company_name,
-                    "source": "serpapi_google",
+                    "source": "serper_google",
                     "confidence": 0.6,
                 })
         
@@ -419,7 +425,7 @@ class SmartContactDiscovery:
     async def _merge_with_groq(
         self,
         apollo_contacts: List[Dict[str, Any]],
-        serp_contacts: List[Dict[str, Any]],
+        serper_contacts: List[Dict[str, Any]],
         company_name: str,
         max_contacts: int,
     ) -> List[Dict[str, Any]]:
@@ -428,18 +434,18 @@ class SmartContactDiscovery:
         # If no Groq key, use basic deduplication
         if not self.groq_key:
             print("[SmartDiscovery] Groq not available, using basic merge")
-            return self._basic_merge(apollo_contacts, serp_contacts)
+            return self._basic_merge(apollo_contacts, serper_contacts)
         
         # If one source is empty, return the other
-        if not apollo_contacts and not serp_contacts:
+        if not apollo_contacts and not serper_contacts:
             return []
-        if not serp_contacts:
+        if not serper_contacts:
             return apollo_contacts
         if not apollo_contacts:
-            return serp_contacts
+            return serper_contacts
         
         # Prepare data for Groq
-        prompt = self._build_merge_prompt(apollo_contacts, serp_contacts, company_name, max_contacts)
+        prompt = self._build_merge_prompt(apollo_contacts, serper_contacts, company_name, max_contacts)
         
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -472,7 +478,7 @@ Rules:
                 
                 if response.status_code != 200:
                     print(f"[Groq] API error: {response.status_code}")
-                    return self._basic_merge(apollo_contacts, serp_contacts)
+                    return self._basic_merge(apollo_contacts, serper_contacts)
                 
                 result = response.json()
                 content = result["choices"][0]["message"]["content"]
@@ -483,27 +489,27 @@ Rules:
                 if merged:
                     # Post-process to ensure deduplication
                     merged = self._post_process_contacts(merged)
-                    print(f"[Groq] Successfully merged {len(apollo_contacts) + len(serp_contacts)} into {len(merged)} contacts")
+                    print(f"[Groq] Successfully merged {len(apollo_contacts) + len(serper_contacts)} into {len(merged)} contacts")
                     return merged
                 else:
                     print("[Groq] Failed to parse response, using basic merge")
-                    return self._post_process_contacts(self._basic_merge(apollo_contacts, serp_contacts))
+                    return self._post_process_contacts(self._basic_merge(apollo_contacts, serper_contacts))
                     
         except Exception as e:
             print(f"[Groq] Merge error: {e}")
-            return self._post_process_contacts(self._basic_merge(apollo_contacts, serp_contacts))
+            return self._post_process_contacts(self._basic_merge(apollo_contacts, serper_contacts))
     
     def _build_merge_prompt(
         self,
         apollo_contacts: List[Dict[str, Any]],
-        serp_contacts: List[Dict[str, Any]],
+        serper_contacts: List[Dict[str, Any]],
         company_name: str,
         max_contacts: int,
     ) -> str:
         """Build prompt for Groq merge"""
         # Limit data size for prompt
         apollo_sample = apollo_contacts[:20]
-        serp_sample = serp_contacts[:20]
+        serp_sample = serper_contacts[:20]
         
         return f"""Merge and deduplicate these contact lists for company: {company_name}
 
@@ -554,7 +560,7 @@ Return ONLY the JSON array, no explanations or other text."""
     def _basic_merge(
         self,
         apollo_contacts: List[Dict[str, Any]],
-        serp_contacts: List[Dict[str, Any]],
+        serper_contacts: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """Basic merge without AI (fallback) - with deduplication"""
         merged = {}
@@ -587,7 +593,7 @@ Return ONLY the JSON array, no explanations or other text."""
                 merged[name] = contact
         
         # Add SerpAPI contacts (fill gaps and merge)
-        for contact in serp_contacts:
+        for contact in serper_contacts:
             name = normalize_name(contact.get("full_name") or "")
             if not name:
                 continue
@@ -640,7 +646,7 @@ Return ONLY the JSON array, no explanations or other text."""
     def _assess_merge_quality(
         self,
         apollo_contacts: List[Dict[str, Any]],
-        serp_contacts: List[Dict[str, Any]],
+        serper_contacts: List[Dict[str, Any]],
         merged_contacts: List[Dict[str, Any]],
     ) -> str:
         """Assess the quality of the merge"""
