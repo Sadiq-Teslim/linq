@@ -274,13 +274,27 @@ class SmartContactDiscovery:
                 )
                 
                 if response.status_code != 200:
+                    print(f"[SerpAPI] Role search failed for '{role}': HTTP {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        print(f"[SerpAPI] Error response: {error_data}")
+                    except:
+                        print(f"[SerpAPI] Error body: {response.text[:200]}")
                     return []
                 
                 data = response.json()
-                return self._parse_serpapi_results(data, company_name, role)
+                
+                # Check for API errors in response
+                if data.get("error"):
+                    print(f"[SerpAPI] API error: {data.get('error')}")
+                    return []
+                
+                results = self._parse_serpapi_results(data, company_name, role)
+                print(f"[SerpAPI] Role '{role}': found {len(results)} contacts")
+                return results
                 
         except Exception as e:
-            print(f"[SerpAPI] Search error: {e}")
+            print(f"[SerpAPI] Search error for '{role}': {type(e).__name__}: {e}")
             return []
     
     async def _search_linkedin_via_serpapi(
@@ -306,12 +320,26 @@ class SmartContactDiscovery:
                 )
                 
                 if response.status_code != 200:
+                    print(f"[SerpAPI] LinkedIn search failed: HTTP {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        print(f"[SerpAPI] Error response: {error_data}")
+                    except:
+                        print(f"[SerpAPI] Error body: {response.text[:200]}")
                     return []
                 
                 data = response.json()
-                contacts = []
                 
-                for result in data.get("organic_results", []):
+                # Check for API errors in response
+                if data.get("error"):
+                    print(f"[SerpAPI] LinkedIn API error: {data.get('error')}")
+                    return []
+                
+                contacts = []
+                organic_results = data.get("organic_results", [])
+                print(f"[SerpAPI] LinkedIn search returned {len(organic_results)} organic results")
+                
+                for result in organic_results:
                     link = result.get("link", "")
                     if "linkedin.com/in/" not in link:
                         continue
@@ -337,10 +365,11 @@ class SmartContactDiscovery:
                             "confidence": 0.7,
                         })
                 
+                print(f"[SerpAPI] LinkedIn: extracted {len(contacts)} contacts from results")
                 return contacts
                 
         except Exception as e:
-            print(f"[SerpAPI] LinkedIn search error: {e}")
+            print(f"[SerpAPI] LinkedIn search error: {type(e).__name__}: {e}")
             return []
     
     def _parse_serpapi_results(
