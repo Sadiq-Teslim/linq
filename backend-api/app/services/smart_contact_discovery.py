@@ -69,6 +69,10 @@ class SmartContactDiscovery:
             }
         """
         print(f"\n[SmartDiscovery] Starting discovery for {company_name}...")
+        print(f"[SmartDiscovery] API Keys status:")
+        print(f"  - Apollo: {'ENABLED' if self.apollo.enabled else 'DISABLED (no API key)'}")
+        print(f"  - SerpAPI: {'ENABLED' if self.serp_key else 'DISABLED (no API key)'}")
+        print(f"  - Groq: {'ENABLED' if self.groq_key else 'DISABLED (no API key)'}")
         
         # Build role list
         roles = include_roles or (self.EXECUTIVE_ROLES[:3] + self.SALES_ROLES[:2])
@@ -96,6 +100,22 @@ class SmartContactDiscovery:
         
         total_raw = len(apollo_contacts) + len(serp_contacts)
         print(f"[SmartDiscovery] Raw results: Apollo={len(apollo_contacts)}, SerpAPI={len(serp_contacts)}")
+        
+        # If no results from any source, return early with helpful message
+        if total_raw == 0:
+            print(f"[SmartDiscovery] WARNING: No contacts found from any source for {company_name}")
+            if not self.apollo.enabled and not self.serp_key:
+                print(f"[SmartDiscovery] HINT: Both Apollo and SerpAPI are disabled. Check API keys in environment.")
+            return {
+                "success": False,
+                "contacts": [],
+                "company": company_data,
+                "sources_used": [],
+                "merge_quality": "no_data",
+                "total_raw_results": 0,
+                "total_merged": 0,
+                "error": "No contacts found - check API keys configuration"
+            }
         
         # Step 2: Merge with Groq AI
         if apollo_contacts or serp_contacts:

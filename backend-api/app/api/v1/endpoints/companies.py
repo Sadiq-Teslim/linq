@@ -330,13 +330,14 @@ async def track_company(
     # Immediately discover contacts (await to ensure they're saved before response)
     try:
         # Discover contacts immediately - await to ensure they're available right away
-        await _discover_and_save_contacts(
+        print(f"[TrackCompany] Starting contact discovery for {data.company_name} (domain: {data.domain})")
+        contacts_found = await _discover_and_save_contacts(
             company_id=company_id,
             company_name=data.company_name,
             company_domain=data.domain,
             supabase=supabase,
         )
-        print(f"✓ Contact discovery completed for {data.company_name}")
+        print(f"[TrackCompany] Contact discovery completed for {data.company_name}: {contacts_found} contacts saved")
         
         # Also fetch initial company updates (funding, news, events)
         await _fetch_initial_company_updates(
@@ -345,8 +346,12 @@ async def track_company(
             supabase=supabase,
         )
     except Exception as e:
-        # Log error but don't fail the request
-        print(f"⚠ Error during contact discovery: {e}")
+        # Log full error with traceback but don't fail the request
+        import traceback
+        print(f"[TrackCompany] ERROR during contact discovery for {data.company_name}:")
+        print(f"[TrackCompany] Error type: {type(e).__name__}")
+        print(f"[TrackCompany] Error message: {str(e)}")
+        traceback.print_exc()
 
     return TrackedCompanyResponse.model_validate(company)
 
@@ -466,9 +471,13 @@ async def _discover_and_save_contacts(
                     print(f"⚠ Error saving contact '{full_name}': {e}")
                     continue
         
-        print(f"✓ Discovered and saved {contacts_added} contacts for {company_name}")
+        print(f"[SmartDiscovery] Saved {contacts_added} contacts for {company_name}")
+        return contacts_added
     except Exception as e:
-        print(f"✗ Error discovering contacts for {company_name}: {e}")
+        import traceback
+        print(f"[SmartDiscovery] ERROR discovering contacts for {company_name}: {e}")
+        traceback.print_exc()
+        return 0
 
 
 async def _fetch_initial_company_updates(
@@ -1023,36 +1032,63 @@ def get_all_updates(
             unread_count=0,
         )
 
-    # Build query
-    query = supabase.table("company_updates").select("*")
-
+    # Build base query for counting
+    count_query = supabase.table("company_updates").select("id, is_read")
+    
     if company_id:
         if company_id not in company_ids:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Company not found"
             )
-        query = query.eq("company_id", company_id)
+        count_query = count_query.eq("company_id", company_id)
     else:
-        query = query.in_("company_id", company_ids)
+        count_query = count_query.in_("company_id", company_ids)
 
     if is_read is not None:
-        query = query.eq("is_read", is_read)
+        count_query = count_query.eq("is_read", is_read)
 
     # Get total and unread count
-    all_updates = query.execute()
+    all_updates = count_query.execute()
     total = len(all_updates.data) if all_updates.data else 0
     unread_count = len([u for u in (all_updates.data or []) if not u.get("is_read", False)])
 
+    # Build separate query for paginated results
+    data_query = supabase.table("company_updates").select("*")
+    
+    if company_id:
+        data_query = data_query.eq("company_id", company_id)
+    else:
+        data_query = data_query.in_("company_id", company_ids)
+
+    if is_read is not None:
+        data_query = data_query.eq("is_read", is_read)
+
     # Paginate
     offset = (page - 1) * page_size
-    query = query.order("created_at", desc=True).range(offset, offset + page_size - 1)
+    data_query = data_query.order("created_at", desc=True).range(offset, offset + page_size - 1)
 
-    result = query.execute()
-    items = result.data if result.data else []
+    result = data_query.execute()
+    raw_items = result.data if result.data else []
+    
+    # Safely validate items, skip invalid ones
+    items = []
+    for item in raw_items:
+        try:
+            # Ensure required fields have defaults
+            if item.get("update_type") is None:
+                item["update_type"] = "other"
+            if item.get("is_important") is None:
+                item["is_important"] = False
+            if item.get("is_read") is None:
+                item["is_read"] = False
+            items.append(TrackedCompanyUpdateResponse.model_validate(item))
+        except Exception as e:
+            print(f"[Updates] Skipping invalid update {item.get('id')}: {e}")
+            continue
 
     return PaginatedCompanyUpdates(
-        items=[TrackedCompanyUpdateResponse.model_validate(item) for item in items],
+        items=items,
         total=total,
         page=page,
         page_size=page_size,
