@@ -81,7 +81,7 @@ export const DashboardPayment = () => {
         callbackUrl
       );
       
-      const { authorization_url, reference, public_key, amount, currency } = response.data;
+      const { reference, public_key, amount, currency } = response.data;
       
       console.log("Paystack config received:", { reference, amount, currency });
       
