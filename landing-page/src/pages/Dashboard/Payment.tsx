@@ -2,24 +2,19 @@ import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/authStore";
 
-// Declare Korapay types
+// Declare Paystack types
 declare global {
   interface Window {
-    Korapay: {
-      initialize: (config: {
+    PaystackPop: {
+      setup: (config: {
         key: string;
-        reference: string;
+        email: string;
         amount: number;
         currency: string;
-        customer: {
-          name: string;
-          email: string;
-        };
-        notification_url?: string;
-        onClose?: () => void;
-        onSuccess?: (data: { reference: string; status: string; amount: string }) => void;
-        onFailed?: (data: { reference: string; status: string }) => void;
-      }) => void;
+        ref: string;
+        callback: (response: { reference: string; status: string }) => void;
+        onClose: () => void;
+      }) => { openIframe: () => void };
     };
   }
 }
@@ -32,19 +27,18 @@ export const DashboardPayment = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [korapayLoaded, setKorapayLoaded] = useState(false);
+  const [paystackLoaded, setPaystackLoaded] = useState(false);
 
-  // Load Korapay script
+  // Check if Paystack is loaded
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js";
-    script.async = true;
-    script.onload = () => setKorapayLoaded(true);
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
+    const checkPaystack = () => {
+      if (window.PaystackPop) {
+        setPaystackLoaded(true);
+      } else {
+        setTimeout(checkPaystack, 100);
+      }
     };
+    checkPaystack();
   }, []);
 
   useEffect(() => {
@@ -70,7 +64,7 @@ export const DashboardPayment = () => {
   }, [token]);
 
   const handleSubscribe = async (planName: string) => {
-    if (!token || !korapayLoaded) {
+    if (!token || !paystackLoaded) {
       alert("Payment system is loading. Please try again.");
       return;
     }
@@ -81,56 +75,41 @@ export const DashboardPayment = () => {
     const callbackUrl = `${window.location.origin}/payment-callback`;
 
     try {
-      const response = await api.subscription.initializeKorapayPayment(
+      const response = await api.subscription.initializePaystackPayment(
         token,
         planName.toLowerCase(),
         callbackUrl
       );
       
-      const config = response.data;
+      const { authorization_url, reference, public_key, amount, currency } = response.data;
       
-      console.log("Korapay config received:", config);
+      console.log("Paystack config received:", { reference, amount, currency });
       
-      if (!config.public_key || !config.reference) {
+      if (!public_key || !reference) {
         alert("Failed to initialize payment. Please try again.");
         setLoading(false);
         return;
       }
 
-      console.log("Initializing Korapay with:", {
-        key: config.public_key?.substring(0, 15) + "...",
-        reference: config.reference,
-        amount: config.amount,
-        currency: config.currency,
-      });
-
-      // Initialize Korapay checkout
-      window.Korapay.initialize({
-        key: config.public_key,
-        reference: config.reference,
-        amount: config.amount,
-        currency: config.currency || "USD",
-        customer: {
-          name: config.customer_name || user?.full_name || "",
-          email: config.customer_email || user?.email || "",
+      // Initialize Paystack popup
+      const handler = window.PaystackPop.setup({
+        key: public_key,
+        email: user?.email || "",
+        amount: amount, // Amount in kobo
+        currency: currency || "NGN",
+        ref: reference,
+        callback: (response) => {
+          console.log("Payment successful:", response);
+          // Redirect to callback for verification
+          window.location.href = `${callbackUrl}?reference=${response.reference}`;
         },
-        notification_url: config.notification_url,
         onClose: () => {
           setLoading(false);
           setSelectedPlan(null);
         },
-        onSuccess: (data) => {
-          console.log("Payment successful:", data);
-          // Redirect to callback for verification
-          window.location.href = `${callbackUrl}?reference=${data.reference}`;
-        },
-        onFailed: (data) => {
-          console.error("Payment failed:", data);
-          alert("Payment failed. Please try again.");
-          setLoading(false);
-          setSelectedPlan(null);
-        },
       });
+
+      handler.openIframe();
     } catch (error) {
       console.error("Payment initialization failed:", error);
       alert("Failed to initialize payment. Please try again.");
@@ -140,7 +119,7 @@ export const DashboardPayment = () => {
   };
 
   const formatPrice = (price: number) => {
-    return `$${price.toLocaleString("en-US")}`;
+    return `₦${price.toLocaleString("en-NG")}`;
   };
 
   const currentPlan = subscription?.plan || "free_trial";
@@ -203,10 +182,10 @@ export const DashboardPayment = () => {
             {!isSubscriptionActive && (
               <button
                 onClick={() => handleSubscribe(currentPlan)}
-                disabled={loading || !korapayLoaded}
+                disabled={loading || !paystackLoaded}
                 className="px-6 py-2.5 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all disabled:opacity-50"
               >
-                {!korapayLoaded ? "Loading..." : "Renew Subscription"}
+                {!paystackLoaded ? "Loading..." : "Renew Subscription"}
               </button>
             )}
           </div>
@@ -228,7 +207,7 @@ export const DashboardPayment = () => {
             .filter((plan) => plan.id !== "free_trial")
             .map((plan, index) => {
               const isCurrentPlan = currentPlan === plan.id;
-              const isDisabled = hasActivePaidPlan || loading || !korapayLoaded;
+              const isDisabled = hasActivePaidPlan || loading || !paystackLoaded;
               
               return (
                 <div
@@ -296,7 +275,7 @@ export const DashboardPayment = () => {
                     >
                       {loading && selectedPlan === plan.id ? (
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      ) : !korapayLoaded ? (
+                      ) : !paystackLoaded ? (
                         "Loading..."
                       ) : hasActivePaidPlan ? (
                         "Unavailable"

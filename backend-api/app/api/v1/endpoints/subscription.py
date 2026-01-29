@@ -1,7 +1,7 @@
 """
 Subscription and Access Code endpoints
 Handles billing, plan management, and extension activation
-Uses Korapay integration for USD payments
+Uses Paystack integration for NGN payments
 """
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
@@ -13,8 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, Header, 
 from app.db.supabase_client import get_supabase_client, SupabaseClient
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.config import settings
-from app.services.korapay_service import korapay_service, KorapayError
-from app.services.paystack_service import paystack_service, PaystackError  # Legacy
+from app.services.paystack_service import paystack_service, PaystackError
 
 logger = logging.getLogger(__name__)
 from app.schemas.subscription import (
@@ -46,7 +45,7 @@ router = APIRouter()
 # }
 
 
-# ===== Plan Definitions (USD Pricing) =====
+# ===== Plan Definitions (NGN Pricing) =====
 
 PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
     SubscriptionPlan.FREE_TRIAL: PlanDetails(
@@ -54,7 +53,7 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
         name="Free Trial",
         price_monthly=0,
         price_yearly=0,
-        currency="USD",
+        currency="NGN",
         max_tracked_companies=5,
         max_team_members=1,
         max_contacts_per_company=5,
@@ -68,9 +67,9 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
     SubscriptionPlan.STARTER: PlanDetails(
         id=SubscriptionPlan.STARTER,
         name="Starter",
-        price_monthly=9,  # $9 per month (multiply by 100 for cents)
-        price_yearly=90,  # $90 per year (2 months free)
-        currency="USD",
+        price_monthly=14500,  # ₦14,500 per month
+        price_yearly=145000,  # ₦145,000 per year (2 months free)
+        currency="NGN",
         max_tracked_companies=25,
         max_team_members=3,
         max_contacts_per_company=10,
@@ -85,9 +84,9 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
     SubscriptionPlan.PROFESSIONAL: PlanDetails(
         id=SubscriptionPlan.PROFESSIONAL,
         name="Professional",
-        price_monthly=25,  # $25 per month (multiply by 100 for cents)
-        price_yearly=250,  # $250 per year (2 months free)
-        currency="USD",
+        price_monthly=40000,  # ₦40,000 per month
+        price_yearly=400000,  # ₦400,000 per year (2 months free)
+        currency="NGN",
         max_tracked_companies=100,
         max_team_members=10,
         max_contacts_per_company=25,
@@ -105,9 +104,9 @@ PLAN_DETAILS: Dict[SubscriptionPlan, PlanDetails] = {
     SubscriptionPlan.ENTERPRISE: PlanDetails(
         id=SubscriptionPlan.ENTERPRISE,
         name="Enterprise",
-        price_monthly=65,  # $65 per month (multiply by 100 for cents)
-        price_yearly=650,  # $650 per year (2 months free)
-        currency="USD",
+        price_monthly=105000,  # ₦105,000 per month
+        price_yearly=1050000,  # ₦1,050,000 per year (2 months free)
+        currency="NGN",
         max_tracked_companies=-1,  # Unlimited
         max_team_members=-1,  # Unlimited
         max_contacts_per_company=-1,  # Unlimited
@@ -588,31 +587,19 @@ def revoke_access_code(
 
 
 # =============================================================================
-# KORAPAY INTEGRATION - Real Payment Processing (USD)
+# PAYSTACK INTEGRATION - Real Payment Processing (NGN)
 # =============================================================================
 
-@router.get("/korapay/config")
-async def get_korapay_config(
-    current_user: Dict[str, Any] = Depends(get_current_user),
-):
-    """
-    Get Korapay public key for frontend checkout initialization
-    """
-    return {
-        "public_key": korapay_service.get_public_key(),
-    }
-
-
-@router.post("/korapay/initialize")
-async def initialize_payment(
+@router.post("/paystack/initialize")
+async def initialize_paystack_payment(
     plan: str = Query(...),
     callback_url: str = Query(...),
     current_user: Dict[str, Any] = Depends(get_current_user),
     supabase: SupabaseClient = Depends(get_supabase_client),
 ):
     """
-    Initialize a Korapay payment for subscription
-    Returns reference and config for frontend checkout
+    Initialize a Paystack payment for subscription
+    Returns authorization URL and reference for frontend checkout
     """
     # Convert plan string to enum
     try:
@@ -666,43 +653,56 @@ async def initialize_payment(
                 detail="Failed to create organization"
             )
 
-    # Generate unique reference
-    reference = f"LINQ-{current_user['id']}-{plan_enum.value}-{int(datetime.utcnow().timestamp())}"
-    
-    # Amount in cents (USD)
-    amount_in_dollars = plan_details.price_monthly
-    amount_in_cents = amount_in_dollars * 100
+    # Amount in kobo (NGN smallest unit - 100 kobo = 1 Naira)
+    amount_in_naira = plan_details.price_monthly
+    amount_in_kobo = amount_in_naira * 100
 
-    # Return config for frontend to initialize Korapay checkout
-    return {
-        "public_key": korapay_service.get_public_key(),
-        "reference": reference,
-        "amount": amount_in_cents,
-        "currency": "USD",
-        "customer_name": full_name,
-        "customer_email": email,
-        "plan": plan_enum.value,
-        "notification_url": settings.webhook_url,
-        "metadata": {
-            "organization_id": str(org_id),
-            "user_id": str(current_user["id"]),
+    try:
+        # Initialize transaction with Paystack
+        result = await paystack_service.initialize_transaction(
+            email=email,
+            amount=amount_in_kobo,
+            callback_url=callback_url,
+            currency="NGN",
+            metadata={
+                "organization_id": str(org_id),
+                "user_id": str(current_user["id"]),
+                "plan": plan_enum.value,
+                "customer_name": full_name,
+            },
+        )
+
+        # Return config for frontend
+        return {
+            "authorization_url": result.get("authorization_url"),
+            "access_code": result.get("access_code"),
+            "reference": result.get("reference"),
+            "public_key": settings.PAYSTACK_PUBLIC_KEY,
+            "amount": amount_in_kobo,
+            "currency": "NGN",
             "plan": plan_enum.value,
-        },
-    }
+        }
+
+    except PaystackError as e:
+        logger.error(f"Paystack initialization error: {e.message}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Payment initialization failed: {e.message}"
+        )
 
 
-@router.get("/korapay/verify/{reference}")
-async def verify_payment(
+@router.get("/paystack/verify/{reference}")
+async def verify_paystack_payment(
     reference: str,
     current_user: Dict[str, Any] = Depends(get_current_user),
     supabase: SupabaseClient = Depends(get_supabase_client),
 ):
     """
-    Verify a Korapay payment by reference
+    Verify a Paystack payment by reference
     Call this after user completes payment
     """
     try:
-        result = await korapay_service.verify_charge(reference)
+        result = await paystack_service.verify_transaction(reference)
 
         if result.get("status") != "success":
             return {
@@ -711,7 +711,7 @@ async def verify_payment(
                 "status": result.get("status"),
             }
 
-        # Extract metadata from Korapay response
+        # Extract metadata from Paystack response
         metadata = result.get("metadata", {})
         if isinstance(metadata, str):
             import json
@@ -726,13 +726,6 @@ async def verify_payment(
         # If org_id is None or missing, get it from current user
         if not org_id:
             org_id = current_user.get("organization_id")
-
-        # Try to extract plan from reference if not in metadata
-        if not plan_value and reference:
-            # Reference format: LINQ-{user_id}-{plan}-{timestamp}
-            parts = reference.split("-")
-            if len(parts) >= 3:
-                plan_value = parts[2]
         
         if not plan_value:
             return {
@@ -783,13 +776,13 @@ async def verify_payment(
                 "plan": plan.value,
                 "status": SubscriptionStatus.ACTIVE.value,
                 "price_monthly": plan_details.price_monthly,
-                "currency": "USD",
+                "currency": "NGN",
                 "max_tracked_companies": plan_details.max_tracked_companies,
                 "max_team_members": plan_details.max_team_members,
                 "max_contacts_per_company": plan_details.max_contacts_per_company,
                 "current_period_start": now.isoformat(),
                 "current_period_end": (now + timedelta(days=30)).isoformat(),
-                "korapay_reference": reference,
+                "paystack_reference": reference,
                 "updated_at": now.isoformat(),
             }).eq("id", sub_id).execute()
             logger.info(f"Updated subscription {sub_id} for org {org_id} to plan {plan.value}")
@@ -800,13 +793,13 @@ async def verify_payment(
                 "plan": plan.value,
                 "status": SubscriptionStatus.ACTIVE.value,
                 "price_monthly": plan_details.price_monthly,
-                "currency": "USD",
+                "currency": "NGN",
                 "max_tracked_companies": plan_details.max_tracked_companies,
                 "max_team_members": plan_details.max_team_members,
                 "max_contacts_per_company": plan_details.max_contacts_per_company,
                 "current_period_start": now.isoformat(),
                 "current_period_end": (now + timedelta(days=30)).isoformat(),
-                "korapay_reference": reference,
+                "paystack_reference": reference,
                 "created_at": now.isoformat(),
                 "updated_at": now.isoformat(),
             }
@@ -838,31 +831,31 @@ async def verify_payment(
             "plan": plan.value,
             "access_code": access_code,
             "amount": result.get("amount"),
-            "currency": "USD",
+            "currency": "NGN",
         }
 
-    except KorapayError as e:
+    except PaystackError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Payment verification failed: {e.message}"
         )
 
 
-@router.post("/korapay/webhook")
-async def korapay_webhook(
+@router.post("/paystack/webhook")
+async def paystack_webhook(
     request: Request,
-    x_korapay_signature: str = Header(None, alias="x-korapay-signature"),
+    x_paystack_signature: str = Header(None, alias="x-paystack-signature"),
     supabase: SupabaseClient = Depends(get_supabase_client),
 ):
     """
-    Handle Korapay webhook events
-    https://docs.korapay.com/webhooks
+    Handle Paystack webhook events
+    https://paystack.com/docs/payments/webhooks/
     """
     body = await request.body()
 
     # Verify webhook signature
-    if x_korapay_signature:
-        if not korapay_service.verify_webhook(body, x_korapay_signature):
+    if x_paystack_signature:
+        if not paystack_service.verify_webhook(body, x_paystack_signature):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid webhook signature"
@@ -873,7 +866,7 @@ async def korapay_webhook(
         event = payload.get("event")
         data = payload.get("data", {})
 
-        logger.info(f"Korapay webhook received: {event}")
+        logger.info(f"Paystack webhook received: {event}")
         logger.debug(f"Webhook data: {data}")
 
         # Handle different event types
@@ -890,15 +883,9 @@ async def korapay_webhook(
             org_id = metadata.get("organization_id")
             user_id = metadata.get("user_id")
             plan_value = metadata.get("plan")
-            reference = data.get("reference") or data.get("payment_reference")
-            amount = data.get("amount", 0)  # Amount in cents
-            currency = data.get("currency", "USD")
-
-            # Try to extract plan from reference if not in metadata
-            if not plan_value and reference:
-                parts = reference.split("-")
-                if len(parts) >= 3:
-                    plan_value = parts[2]
+            reference = data.get("reference")
+            amount = data.get("amount", 0)  # Amount in kobo
+            currency = data.get("currency", "NGN")
 
             if org_id and plan_value and reference:
                 plan = SubscriptionPlan(plan_value)
@@ -909,12 +896,12 @@ async def korapay_webhook(
                 transaction_data = {
                     "organization_id": org_id,
                     "user_id": user_id,
-                    "korapay_reference": reference,
+                    "paystack_reference": reference,
                     "amount": amount,
                     "currency": currency,
                     "plan": plan.value,
                     "status": "success",
-                    "gateway_response": data.get("transaction_status", "success"),
+                    "gateway_response": data.get("gateway_response", "success"),
                     "metadata": metadata,
                     "transaction_date": now.isoformat(),
                     "created_at": now.isoformat(),
@@ -935,10 +922,10 @@ async def korapay_webhook(
                     supabase.table("subscriptions").update({
                         "plan": plan.value,
                         "status": SubscriptionStatus.ACTIVE.value,
-                        "currency": "USD",
+                        "currency": "NGN",
                         "current_period_start": now.isoformat(),
                         "current_period_end": (now + timedelta(days=30)).isoformat(),
-                        "korapay_reference": reference,
+                        "paystack_reference": reference,
                         "updated_at": now.isoformat(),
                     }).eq("id", sub_id).execute()
                 else:
@@ -948,13 +935,13 @@ async def korapay_webhook(
                         "plan": plan.value,
                         "status": SubscriptionStatus.ACTIVE.value,
                         "price_monthly": plan_details.price_monthly,
-                        "currency": "USD",
+                        "currency": "NGN",
                         "max_tracked_companies": plan_details.max_tracked_companies,
                         "max_team_members": plan_details.max_team_members,
                         "max_contacts_per_company": plan_details.max_contacts_per_company,
                         "current_period_start": now.isoformat(),
                         "current_period_end": (now + timedelta(days=30)).isoformat(),
-                        "korapay_reference": reference,
+                        "paystack_reference": reference,
                         "created_at": now.isoformat(),
                         "updated_at": now.isoformat(),
                     }
@@ -970,7 +957,7 @@ async def korapay_webhook(
 
         elif event == "charge.failed":
             # Payment failed
-            reference = data.get("reference") or data.get("payment_reference")
+            reference = data.get("reference")
             logger.warning(f"Payment failed for reference: {reference}")
 
         return {"status": "success"}
