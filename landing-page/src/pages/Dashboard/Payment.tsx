@@ -123,7 +123,15 @@ export const DashboardPayment = () => {
   };
 
   const currentPlan = subscription?.plan || "free_trial";
-  const isSubscriptionActive = subscription?.status === "active" || subscription?.status === "trialing";
+  
+  // Check if subscription is actually active (status is active AND period hasn't ended)
+  const isSubscriptionExpired = (() => {
+    if (!subscription?.current_period_end) return false;
+    const endDate = new Date(subscription.current_period_end);
+    return endDate < new Date();
+  })();
+  
+  const isSubscriptionActive = (subscription?.status === "active" || subscription?.status === "trialing") && !isSubscriptionExpired;
   const hasActivePaidPlan = isSubscriptionActive && currentPlan !== "free_trial";
 
   if (loadingData) {
@@ -147,17 +155,21 @@ export const DashboardPayment = () => {
         <div className={`p-6 rounded-xl border ${
           isSubscriptionActive 
             ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20" 
-            : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20"
+            : "bg-gradient-to-r from-red-500/10 to-orange-500/10 border-red-500/20"
         }`}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm text-slate-400">Current Plan</p>
-                {isSubscriptionActive && (
+                {isSubscriptionActive ? (
                   <span className="px-2 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
                     Active
                   </span>
-                )}
+                ) : isSubscriptionExpired ? (
+                  <span className="px-2 py-0.5 text-xs font-medium bg-red-500/20 text-red-400 rounded-full border border-red-500/30">
+                    Expired
+                  </span>
+                ) : null}
               </div>
               <p className="text-2xl font-serif text-white capitalize mb-2">
                 {currentPlan.replace("_", " ")}
@@ -165,11 +177,11 @@ export const DashboardPayment = () => {
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 <span className={`flex items-center gap-1.5 ${isSubscriptionActive ? "text-green-400" : "text-red-400"}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${isSubscriptionActive ? "bg-green-400" : "bg-red-400"}`}></span>
-                  {subscription.status}
+                  {isSubscriptionExpired ? "expired" : subscription.status}
                 </span>
                 {subscription.current_period_end && (
                   <span className="text-slate-400">
-                    {isSubscriptionActive ? "Renews" : "Expired"}: {new Date(subscription.current_period_end).toLocaleDateString()}
+                    {isSubscriptionActive ? "Renews" : "Expired on"}: {new Date(subscription.current_period_end).toLocaleDateString()}
                   </span>
                 )}
                 {subscription.max_tracked_companies && (
@@ -185,7 +197,13 @@ export const DashboardPayment = () => {
                 disabled={loading || !paystackLoaded}
                 className="px-6 py-2.5 rounded-lg font-medium text-sm text-[#0a0f1c] bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all disabled:opacity-50"
               >
-                {!paystackLoaded ? "Loading..." : "Renew Subscription"}
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                ) : !paystackLoaded ? (
+                  "Loading..."
+                ) : (
+                  "Renew Subscription"
+                )}
               </button>
             )}
           </div>
@@ -207,6 +225,8 @@ export const DashboardPayment = () => {
             .filter((plan) => plan.id !== "free_trial")
             .map((plan, index) => {
               const isCurrentPlan = currentPlan === plan.id;
+              const isPlanExpired = isCurrentPlan && isSubscriptionExpired;
+              // Only disable if there's an ACTIVE paid plan - expired plans should allow renewal
               const isDisabled = hasActivePaidPlan || loading || !paystackLoaded;
               
               return (
@@ -215,6 +235,8 @@ export const DashboardPayment = () => {
                   className={`relative p-6 rounded-xl border transition-all duration-300 ${
                     isCurrentPlan && isSubscriptionActive
                       ? "bg-gradient-to-b from-green-500/10 to-transparent border-green-500/30 ring-2 ring-green-500/20"
+                      : isPlanExpired
+                      ? "bg-gradient-to-b from-red-500/10 to-transparent border-red-500/30 ring-2 ring-red-500/20"
                       : plan.is_popular && !hasActivePaidPlan
                       ? "bg-gradient-to-b from-amber-500/10 to-transparent border-amber-500/30"
                       : "bg-white/[0.02] border-white/5"
@@ -229,6 +251,15 @@ export const DashboardPayment = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Active Plan
+                      </span>
+                    </div>
+                  ) : isPlanExpired ? (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="text-xs font-medium text-white bg-gradient-to-r from-red-500 to-red-600 px-3 py-1 rounded-full flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Expired
                       </span>
                     </div>
                   ) : plan.is_popular && !hasActivePaidPlan ? (
@@ -261,6 +292,20 @@ export const DashboardPayment = () => {
                     <div className="w-full py-2.5 rounded-lg font-medium text-sm bg-green-500/10 text-green-400 border border-green-500/20 text-center">
                       Current Plan
                     </div>
+                  ) : isPlanExpired ? (
+                    <button
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={loading || !paystackLoaded}
+                      className="w-full py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 text-[#0a0f1c] hover:from-amber-300 hover:to-amber-400"
+                    >
+                      {loading && selectedPlan === plan.id ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : !paystackLoaded ? (
+                        "Loading..."
+                      ) : (
+                        "Renew Now"
+                      )}
+                    </button>
                   ) : (
                     <button
                       onClick={() => !isDisabled && handleSubscribe(plan.id)}
